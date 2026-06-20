@@ -1042,10 +1042,48 @@
         }
 
         function checkout() {
-            if (cart.length === 0) {
-                alert("Adicione produtos antes de finalizar!");
-                return;
-            }
+    // ========================================================
+    // SISTEMA DE COOLDOWN (BLOQUEIO DE SPAM DE PEDIDOS)
+    // ========================================================
+    const TEMPO_ESPERA_MS = 60 * 1000; // 1 minuto em milissegundos
+    const ultimoPedidoTime = localStorage.getItem('rx7_ultimo_pedido');
+    const agora = Date.now();
+
+    if (ultimoPedidoTime) {
+        const tempoDecorrido = agora - parseInt(ultimoPedidoTime);
+        if (tempoDecorrido < TEMPO_ESPERA_MS) {
+            const tempoRestanteSegundos = Math.ceil((TEMPO_ESPERA_MS - tempoDecorrido) / 1000);
+            
+            // Exibe um alerta visual para o usuário
+            alert(`Aguarde ${tempoRestanteSegundos} segundos antes de enviar um novo pedido para evitar spam.`);
+            return; // Cancela a execução do checkout
+        }
+    }
+
+    // Se o carrinho estiver vazio, não faz sentido avançar (ajuste opcional caso já não tenha)
+    if (cart.length === 0) {
+        alert("Seu carrinho está vazio!");
+        return;
+    }
+
+    // --- SEU CÓDIGO ATUAL DE ENVIO DO PEDIDO COMEÇA AQUI ---
+    // (Abaixo está um exemplo de estrutura genérica, mantenha a lógica original que você usa para gerar o ID e enviar ao WhatsApp/Discord)
+    
+    try {
+        // ... TODA A SUA LÓGICA ATUAL DE MONTAR A MENSAGEM DO WHATSAPP,
+        // ... ENVIAR PARA O DISCORD E COPIAR ID DO PEDIDO FICA AQUI ...
+
+        // SE O PEDIDO FOI ENVIADO COM SUCESSO:
+        // Salva o momento atual no navegador para ativar o bloqueio de 1 minuto
+        localStorage.setItem('rx7_ultimo_pedido', Date.now());
+
+        // ... O resto do seu código atual (como limpar o carrinho, etc) ...
+
+    } catch (error) {
+        console.error("Erro ao processar pedido:", error);
+        alert("Houve um erro ao processar seu pedido. Tente novamente.");
+    }
+}
             
             const orderID = generateOrderID();
             let total = 0;
