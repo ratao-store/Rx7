@@ -10,23 +10,99 @@
 name="viewport"
 content="width=device-width,initial-scale=1">
 
-<title>
+<title>RX7 Admin</title>
 
-RX7 Admin
+<style>
 
-</title>
+body{
 
-<link
-rel="stylesheet"
-href="style.css">
+background:#050505;
+
+color:white;
+
+font-family:Arial;
+
+padding:40px;
+
+}
+
+.box{
+
+max-width:500px;
+
+margin:auto;
+
+background:#101010;
+
+padding:30px;
+
+border-radius:20px;
+
+}
+
+input{
+
+width:100%;
+
+padding:16px;
+
+border:none;
+
+border-radius:14px;
+
+margin-top:20px;
+
+}
+
+button{
+
+margin-top:20px;
+
+width:100%;
+
+padding:16px;
+
+border:none;
+
+border-radius:14px;
+
+background:#5B7FFF;
+
+color:white;
+
+cursor:pointer;
+
+}
+
+#painel{
+
+display:none;
+
+margin-top:30px;
+
+}
+
+.card{
+
+background:#171717;
+
+padding:20px;
+
+border-radius:16px;
+
+margin-top:14px;
+
+}
+
+</style>
 
 </head>
 
 <body>
 
-<div id="login">
+<div class="box">
 
-<div class="loginCard">
+<div id="login">
 
 <h1>
 
@@ -34,16 +110,10 @@ Painel RX7
 
 </h1>
 
-<p>
-
-Área administrativa
-
-</p>
-
 <input
-type="password"
 id="senha"
-placeholder="Senha">
+type="password"
+placeholder="Senha Admin">
 
 <button
 onclick="entrar()">
@@ -54,68 +124,30 @@ Entrar
 
 </div>
 
-</div>
+<div id="painel">
 
-<div
-id="painel"
-style="display:none">
-
-<header>
-
-<h1>
+<h2>
 
 Painel Administrativo
 
-</h1>
-
-</header>
-
-<section>
-
-<h2>
-
-Produtos
-
 </h2>
 
-<input
-id="nome"
-placeholder="Nome">
+<div class="card">
 
-<input
-id="preco"
-placeholder="Preço">
+Editar produtos
+<br><br>
 
-<textarea
-id="descricao"
-placeholder="Descrição">
-
-</textarea>
-
-<button
-onclick="salvar()">
-
-Salvar
-
-</button>
-
-</section>
-
-<section>
-
-<h2>
-
-Pedidos
-
-</h2>
-
-<div id="pedidos">
-
-Nenhum pedido
+Em breve
 
 </div>
 
-</section>
+<div class="card">
+
+Pedidos
+
+</div>
+
+</div>
 
 </div>
 
@@ -125,88 +157,41 @@ function entrar(){
 
 if(
 
-senha.value
-!=="admin1234"
+document
+.getElementById(
+"senha"
+)
+.value
+
+===
+
+"admin1234"
 
 ){
+
+document
+.getElementById(
+"login"
+)
+.style.display=
+
+"none"
+
+document
+.getElementById(
+"painel"
+)
+.style.display=
+
+"block"
+
+}
+
+else{
 
 alert(
 "Senha incorreta"
 )
-
-return
-
-}
-
-login.style.display=
-
-"none"
-
-painel.style.display=
-
-"block"
-
-carregar()
-
-}
-
-function salvar(){
-
-const produto={
-
-nome:
-nome.value,
-
-preco:
-preco.value,
-
-descricao:
-descricao.value
-
-}
-
-localStorage.setItem(
-
-"rx7_produto",
-
-JSON.stringify(
-produto
-)
-
-)
-
-alert(
-"Salvo"
-)
-
-}
-
-function carregar(){
-
-const p=
-
-JSON.parse(
-
-localStorage
-.getItem(
-"pedido"
-)
-
-)
-
-if(p){
-
-pedidos.innerHTML=
-
-`
-ID:
-${p.id}
-
-<br>
-
-Status:
-${p.status}
-`
 
 }
 
