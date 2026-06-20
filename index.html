@@ -284,6 +284,15 @@
             filter: brightness(1.2);
         }
 
+        .btn-buy:disabled {
+            background: #2a2a3a;
+            color: #666677;
+            border: 1px solid #3a3a4a;
+            cursor: not-allowed;
+            box-shadow: none !important;
+            filter: none !important;
+        }
+
         .modal {
             display: none;
             position: fixed;
@@ -410,7 +419,6 @@
             .admin-layout { grid-template-columns: 1fr 1.2fr; }
         }
 
-        /* ESTILOS DA LISTA ARRÁSTAVEL */
         .sortable-list {
             background: rgba(255, 255, 255, 0.02);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -577,7 +585,7 @@
     </div>
 
     <section class="products-section" id="shopContentArea">
-        </section>
+    </section>
 
     <a href="#" class="whatsapp-float" target="_blank" id="mainWhatsappBtn">
         <i class="fab fa-whatsapp"></i>
@@ -664,9 +672,6 @@
     </div>
 
     <script>
-        // ========================================================
-        // CREDENCIAIS PRESERVADAS DO SEU PROJETO
-        // ========================================================
         const firebaseConfig = {
             apiKey: "AIzaSyB7cxrpXsf_abhtCeEsh9yURrt9GNcn1eM",
             authDomain: "rx7-store.firebaseapp.com",
@@ -688,8 +693,13 @@
         let products = [];
         let cart = [];
         let isAdminLoggedIn = false;
+        let cooldownInterval = null;
 
-        // PUXA OS PRODUTOS ORDENADOS DO FIREBASE
+        // VERIFICA SE O CLIENTE ESTÁ EM BLOQUEIO AO CARREGAR A PÁGINA
+        window.addEventListener('DOMContentLoaded', () => {
+            checkOrderCooldown();
+        });
+
         database.ref('products').on('value', (snapshot) => {
             const data = snapshot.val();
             products = [];
@@ -697,7 +707,6 @@
                 for (let id in data) {
                     products.push({ id_fb: id, ...data[id] });
                 }
-                // Ordena os produtos pela propriedade 'displayOrder' se ela existir
                 products.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
             } else {
                 const initialProducts = [
@@ -715,7 +724,6 @@
             if (isAdminLoggedIn) renderAdminSortableList();
         });
 
-        // EXIBE OS PRODUTOS NA VITRINE AGRUPADOS POR SEÇÃO (CATEGORIA)
         function renderStorefront() {
             const shopArea = document.getElementById('shopContentArea');
             shopArea.innerHTML = '';
@@ -725,7 +733,6 @@
                 return;
             }
 
-            // Separa os itens em caixas de categorias
             const categoriesMap = {};
             products.forEach(product => {
                 const catName = product.category || "Geral";
@@ -733,7 +740,6 @@
                 categoriesMap[catName].push(product);
             });
 
-            // Cria o HTML na tela para cada categoria separadamente
             for (let categoryTitle in categoriesMap) {
                 let categoryHtml = `
                     <div class="category-container">
@@ -763,7 +769,6 @@
             }
         }
 
-        // MONTA A LISTA DE ARRASTAR NO ADMIN
         function renderAdminSortableList() {
             const container = document.getElementById('sortableListContainer');
             container.innerHTML = '';
@@ -795,7 +800,6 @@
             initDragAndDrop();
         }
 
-        // CONTROLE VISUAL DO SELETOR DE NOVA CATEGORIA
         function checkNewCategoryField() {
             const select = document.getElementById('prodCategorySelect');
             const newField = document.getElementById('prodCategoryNew');
@@ -808,12 +812,10 @@
             }
         }
 
-        // MANTÉM AS CATEGORIAS DO MENU ATUALIZADAS CONFORME O QUE JÁ EXISTE NO BANCO
         function updateCategorySelectors() {
             const select = document.getElementById('prodCategorySelect');
             const savedValue = select.value;
             
-            // Pega categorias únicas criadas
             const distinctCategories = [];
             products.forEach(p => {
                 if (p.category && !distinctCategories.includes(p.category)) {
@@ -821,7 +823,6 @@
                 }
             });
 
-            // Se não houver nada cadastrado ainda, mantém padrões seguros
             if (!distinctCategories.includes("Servidores")) distinctCategories.push("Servidores");
             if (!distinctCategories.includes("Impulsos")) distinctCategories.push("Impulsos");
 
@@ -836,7 +837,6 @@
             }
         }
 
-        // LÓGICA COMPLETA DE ARRASTAR E REORDENAR COM O MOUSE
         function initDragAndDrop() {
             const list = document.getElementById('sortableListContainer');
             const items = list.querySelectorAll('.sortable-item');
@@ -864,21 +864,18 @@
             });
         }
 
-        // SALVA A ORDEM DA LISTA ARRASTADA DIRETO NO FIREBASE
         function saveNewOrderToFirebase() {
             const list = document.getElementById('sortableListContainer');
             const items = [...list.querySelectorAll('.sortable-item')];
             
             items.forEach((item, index) => {
                 const idFb = item.getAttribute('data-id');
-                // Salva o número da nova posição (displayOrder)
                 database.ref(`products/${idFb}`).update({
                     displayOrder: index + 1
                 });
             });
         }
 
-        // PREENCHE OS CAMPOS PARA EDITAR UM PRODUTO EXISTENTE
         function loadEditProduct(idFb) {
             const product = products.find(p => p.id_fb === idFb);
             if (!product) return;
@@ -898,7 +895,6 @@
             document.getElementById('btnCancelEdit').style.display = "block";
         }
 
-        // ADICIONA OU ATUALIZA PRODUTOS NO BANCO DE DADOS
         function handleProductSubmit(e) {
             e.preventDefault();
             const idFb = document.getElementById('editProductId').value;
@@ -914,11 +910,9 @@
             if (!category) category = "Geral";
 
             if (idFb) {
-                // Atualiza produto mantendo a ordem atual
                 database.ref(`products/${idFb}`).update({ name, price, desc, category })
                     .then(() => resetProductForm());
             } else {
-                // Adiciona um novo produto no final da fila da listagem
                 const nextOrder = products.length > 0 ? Math.max(...products.map(p => p.displayOrder || 0)) + 1 : 1;
                 const newProduct = { name, price, desc, category, displayOrder: nextOrder };
                 
@@ -943,14 +937,23 @@
             document.getElementById('btnCancelEdit').style.display = "none";
         }
 
-        // SISTEMA DO CARRINHO
         function addToCart(idFb) {
             const product = products.find(p => p.id_fb === idFb);
             if (product) {
                 cart.push(product);
                 updateCartUI();
                 document.getElementById('orderSuccessArea').innerHTML = '';
-                document.getElementById('btnCheckout').style.display = 'block';
+                
+                // Só restaura o comportamento se não estiver no bloqueio de 60s
+                if (!localStorage.getItem('rx7_last_order_time')) {
+                    const btnCheck = document.getElementById('btnCheckout');
+                    btnCheck.style.display = 'block';
+                    btnCheck.innerText = "Finalizar Pedido";
+                    btnCheck.disabled = false;
+                    btnCheck.onclick = checkout;
+                } else {
+                    document.getElementById('btnCheckout').style.display = 'block';
+                }
             }
         }
 
@@ -1031,9 +1034,55 @@
             }).catch(err => console.error("Erro ao enviar para o Discord:", err));
         }
 
+        // SISTEMA DE VERIFICAÇÃO DO BLOQUEIO DE 60 SEGUNDOS (ANTI-SPAM)
+        function checkOrderCooldown() {
+            const lastOrderTime = localStorage.getItem('rx7_last_order_time');
+            if (!lastOrderTime) return false;
+
+            const now = Date.now();
+            const timePassed = Math.floor((now - parseInt(lastOrderTime)) / 1000);
+            const timeLeft = 60 - timePassed;
+
+            if (timeLeft > 0) {
+                activateCooldownUI(timeLeft);
+                return true;
+            } else {
+                localStorage.removeItem('rx7_last_order_time');
+                return false;
+            }
+        }
+
+        function activateCooldownUI(secondsLeft) {
+            const btnCheck = document.getElementById('btnCheckout');
+            btnCheck.disabled = true;
+            btnCheck.innerText = `Aguarde ${secondsLeft}s...`;
+            
+            if (cooldownInterval) clearInterval(cooldownInterval);
+
+            cooldownInterval = setInterval(() => {
+                secondsLeft--;
+                if (secondsLeft <= 0) {
+                    clearInterval(cooldownInterval);
+                    btnCheck.disabled = false;
+                    btnCheck.innerText = "Finalizar Pedido";
+                    btnCheck.onclick = checkout;
+                    localStorage.removeItem('rx7_last_order_time');
+                    document.getElementById('orderSuccessArea').innerHTML = '';
+                } else {
+                    btnCheck.innerText = `Aguarde ${secondsLeft}s...`;
+                }
+            }, 1000);
+        }
+
         function checkout() {
             if (cart.length === 0) {
                 alert("Adicione produtos antes de finalizar!");
+                return;
+            }
+
+            // Garante que o usuário não burlou o clique antes de rodar o checkout
+            if (checkOrderCooldown()) {
+                alert("Por segurança, aguarde 1 minuto entre a criação de novos pedidos.");
                 return;
             }
             
@@ -1063,16 +1112,21 @@
                 </div>
             `;
 
+            // Ativa o bloqueio de 60 segundos gravando a hora atual
+            localStorage.setItem('rx7_last_order_time', Date.now().toString());
+
             const btnCheck = document.getElementById('btnCheckout');
             btnCheck.innerText = "Ir para o WhatsApp agora";
+            
+            // Redireciona o usuário e limpa o carrinho
             btnCheck.onclick = function() {
                 window.open(whatsappUrl, '_blank');
                 cart = [];
                 updateCartUI();
                 toggleModal('cartModal');
-                successArea.innerHTML = '';
-                btnCheck.innerText = "Finalizar Pedido";
-                btnCheck.onclick = checkout;
+                
+                // Inicia visualmente o contador de 1 minuto para o próximo pedido
+                checkOrderCooldown();
             };
         }
 
@@ -1107,7 +1161,6 @@
             }
         }
 
-        // ANTI-CLIQUE DIREITO EMBUTIDO
         document.addEventListener('contextmenu', function(e) {
             e.preventDefault();
             alert("[SISTEMA DE SEGURANÇA]: Essa função foi desativada.");
