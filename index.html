@@ -195,11 +195,15 @@
             padding: 0 20px;
         }
 
+        .category-container {
+            margin-bottom: 50px;
+        }
+
         .section-title {
-            font-size: 2rem;
+            font-size: 1.8rem;
             text-transform: uppercase;
             letter-spacing: 2px;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
             border-left: 4px solid var(--neon-blue);
             padding-left: 15px;
             text-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
@@ -250,6 +254,7 @@
             margin-bottom: 20px;
             line-height: 1.5;
             flex-grow: 1;
+            white-space: pre-wrap;
         }
 
         .product-price {
@@ -304,8 +309,8 @@
         }
 
         .modal-content-large {
-            max-width: 900px;
-            max-height: 85vh;
+            max-width: 1000px;
+            max-height: 90vh;
             overflow-y: auto;
         }
 
@@ -402,46 +407,60 @@
         }
 
         @media(min-width: 768px) {
-            .admin-layout { grid-template-columns: 1fr 1.5fr; }
+            .admin-layout { grid-template-columns: 1fr 1.2fr; }
         }
 
-        .admin-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-            font-size: 0.9rem;
+        /* ESTILOS DA LISTA ARRÁSTAVEL */
+        .sortable-list {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 10px;
+            max-height: 450px;
+            overflow-y: auto;
         }
 
-        .admin-table th, .admin-table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .admin-table th {
-            color: var(--neon-blue);
-            text-transform: uppercase;
-            font-size: 0.8rem;
-            letter-spacing: 1px;
-        }
-
-        .action-btns {
+        .sortable-item {
             display: flex;
-            gap: 10px;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            background: #161626;
+            border: 1px solid rgba(0, 243, 255, 0.1);
+            border-radius: 6px;
+            margin-bottom: 10px;
+            cursor: grab;
+            transition: 0.2s;
         }
 
-        .btn-edit {
-            background: none;
-            border: none;
-            color: #ffaa00;
-            cursor: pointer;
+        .sortable-item:active {
+            cursor: grabbing;
         }
 
-        .btn-delete {
-            background: none;
-            border: none;
-            color: var(--neon-pink);
-            cursor: pointer;
+        .sortable-item.dragging {
+            opacity: 0.5;
+            background: #202038;
+            border-color: var(--neon-pink);
+        }
+
+        .item-drag-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .item-drag-info i.fa-bars {
+            color: #555570;
+        }
+
+        .item-drag-info h4 {
+            font-size: 0.95rem;
+            color: #fff;
+        }
+
+        .item-drag-info span {
+            font-size: 0.8rem;
+            color: var(--neon-blue);
         }
 
         .badge {
@@ -450,7 +469,22 @@
             border-radius: 4px;
             font-size: 0.75rem;
             text-transform: uppercase;
+            font-weight: bold;
         }
+
+        .action-btns button {
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: 0.2s;
+        }
+
+        .btn-edit { color: #ffaa00; }
+        .btn-edit:hover { filter: brightness(1.3); }
+        .btn-delete { color: var(--neon-pink); }
+        .btn-delete:hover { filter: brightness(1.3); }
 
         .whatsapp-float {
             position: fixed;
@@ -528,7 +562,7 @@
         <div class="feature-card">
             <i class="fas fa-bolt"></i>
             <h3>Impulsos para Servidor</h3>
-            <p>Pacotes de Impulsos para o seu servidor, com otimos preços.</p>
+            <p>Pacotes de Impulsos para o seu servidor, com ótimos preços.</p>
         </div>
         <div class="feature-card">
             <i class="fas fa-headset"></i>
@@ -542,10 +576,8 @@
         </div>
     </div>
 
-    <section class="products-section">
-        <h2 class="section-title">Produtos Disponíveis</h2>
-        <div class="products-grid" id="productsGrid"></div>
-    </section>
+    <section class="products-section" id="shopContentArea">
+        </section>
 
     <a href="#" class="whatsapp-float" target="_blank" id="mainWhatsappBtn">
         <i class="fab fa-whatsapp"></i>
@@ -587,7 +619,7 @@
         <div class="modal-content modal-content-large">
             <i class="fas fa-times close-modal" onclick="toggleModal('adminPanelModal')"></i>
             <h2 class="section-title" style="margin-bottom: 20px;">Painel de Controle Central</h2>
-            
+             
             <div class="admin-layout">
                 <div>
                     <h3 style="color:#fff; margin-bottom: 15px;" id="formAdminTitle">Adicionar Novo Produto</h3>
@@ -601,29 +633,31 @@
                             <label>Preço (R$)</label>
                             <input type="number" id="prodPrice" class="form-control" step="0.01" required placeholder="30">
                         </div>
+
+                        <div class="form-group">
+                            <label>Categoria do Produto</label>
+                            <select id="prodCategorySelect" class="form-control" onchange="checkNewCategoryField()" style="margin-bottom: 10px;">
+                                <option value="Servidores">Servidores</option>
+                                <option value="Impulsos">Impulsos</option>
+                                <option value="__NEW__">+ Criar Nova Categoria...</option>
+                            </select>
+                            <input type="text" id="prodCategoryNew" class="form-control" placeholder="Digite o nome da nova categoria" style="display: none;">
+                        </div>
+
                         <div class="form-group">
                             <label>Descrição do Produto</label>
                             <textarea id="prodDesc" class="form-control" rows="4" required placeholder="Ex: Inclui 14 Boosts..."></textarea>
                         </div>
                         <button type="submit" class="btn-buy" id="btnSaveProduct">Salvar no Banco de Dados</button>
-                        <button type="button" class="btn-admin" style="width:100%; margin-top:10px; border-color:var(--neon-pink);" id="btnCancelEdit" onclick="resetProductForm()" style="display:none;">Cancelar Edição</button>
+                        <button type="button" class="btn-admin" style="width:100%; margin-top:10px; border-color:var(--neon-pink); display:none;" id="btnCancelEdit" onclick="resetProductForm()">Cancelar Edição</button>
                     </form>
                 </div>
 
                 <div>
-                    <h3 style="color:#fff; margin-bottom: 15px;">Produtos Cadastrados</h3>
-                    <div style="overflow-x: auto;">
-                        <table class="admin-table">
-                            <thead>
-                                <tr>
-                                    <th>Nome</th>
-                                    <th>Preço</th>
-                                    <th>Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody id="adminProductsTable"></tbody>
-                        </table>
-                    </div>
+                    <h3 style="color:#fff; margin-bottom: 5px;">Organizar Ordem dos Produtos</h3>
+                    <p style="color: #8a8aa3; font-size: 0.85rem; margin-bottom: 15px;">Segure e arraste as caixas para cima ou para baixo para reordenar sua vitrine na mesma hora.</p>
+                    
+                    <div class="sortable-list" id="sortableListContainer"></div>
                 </div>
             </div>
         </div>
@@ -631,7 +665,7 @@
 
     <script>
         // ========================================================
-        // AS SUAS CREDENCIAIS DO FIREBASE JÁ ESTÃO CONFIGURADAS AQUI
+        // CREDENCIAIS PRESERVADAS DO SEU PROJETO
         // ========================================================
         const firebaseConfig = {
             apiKey: "AIzaSyB7cxrpXsf_abhtCeEsh9yURrt9GNcn1eM",
@@ -643,12 +677,9 @@
             appId: "1:782894155670:web:0ba17769fc39a0aa333fb7"
         };
         
-        // Inicializando o sistema na nuvem
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
-        // ========================================================
 
-        // INFORMAÇÕES DA RX-7 STORE
         const WHATSAPP_NUMBER = "5519997663848"; 
         const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1517720759101952183/4Rzh6HdmlC-UW4sVYuDFkoGKVvv5rKM0i3HcoIedx7Iy013CDnMGkGmOLGLx_qxV7RaY"; 
 
@@ -658,7 +689,7 @@
         let cart = [];
         let isAdminLoggedIn = false;
 
-        // PUXA OS PRODUTOS DO FIREBASE EM TEMPO REAL E ATUALIZA SEM PRECISAR DAR F5
+        // PUXA OS PRODUTOS ORDENADOS DO FIREBASE
         database.ref('products').on('value', (snapshot) => {
             const data = snapshot.val();
             products = [];
@@ -666,40 +697,252 @@
                 for (let id in data) {
                     products.push({ id_fb: id, ...data[id] });
                 }
+                // Ordena os produtos pela propriedade 'displayOrder' se ela existir
+                products.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
             } else {
-                // Configuração base da loja caso o seu banco de dados esteja limpo no início
                 const initialProducts = [
-                    { id: 1, name: "Servidor Comunidade Standard", price: 30.00, desc: "Servidor básico e otimizado para comunidades. Configuração de cargos essenciais, bots de boas-vindas e suporte pós-compra para ajustes inclusos." },
-                    { id: 2, name: "Servidor Gamer Premium + 14 Boosts", price: 90.00, desc: "Combo completo: Servidor gamer profissional configurado de ponta a ponta + Adicional de 14 Boosts inclusos. Suporte total pós-venda para alterações de salas." },
-                    { id: 3, name: "Pacote de Impulsos: 14 Boosts", price: 60.00, desc: "Apenas os 14 Impulsos aplicados diretamente no seu servidor existente do Discord para atingir os níveis mais altos de vantagens." }
+                    { name: "Servidor Comunidade Standard", price: 30.00, desc: "Servidor básico e otimizado para comunidades. Configuração de cargos essenciais, bots de boas-vindas e suporte pós-compra para ajustes inclusos.", category: "Servidores", displayOrder: 1 },
+                    { name: "Servidor Gamer Premium + 14 Boosts", price: 90.00, desc: "Combo completo: Servidor gamer profissional configurado de ponta a ponta + Adicional de 14 Boosts inclusos. Suporte total pós-venda para alterações de salas.", category: "Servidores", displayOrder: 2 },
+                    { name: "Pacote de Impulsos: 14 Boosts", price: 60.00, desc: "Apenas os 14 Impulsos aplicados diretamente no seu servidor existente do Discord para atingir os níveis mais altos de vantagens.", category: "Impulsos", displayOrder: 3 }
                 ];
-                initialProducts.forEach(p => database.ref('products').push(p));
+                initialProducts.forEach((p, idx) => {
+                    database.ref('products').push(p);
+                });
             }
-            renderProducts();
-            if (isAdminLoggedIn) renderAdminTable();
+            renderStorefront();
+            updateCategorySelectors();
+            if (isAdminLoggedIn) renderAdminSortableList();
         });
 
-        function renderProducts() {
-            const grid = document.getElementById('productsGrid');
-            grid.innerHTML = '';
+        // EXIBE OS PRODUTOS NA VITRINE AGRUPADOS POR SEÇÃO (CATEGORIA)
+        function renderStorefront() {
+            const shopArea = document.getElementById('shopContentArea');
+            shopArea.innerHTML = '';
+
+            if (products.length === 0) {
+                shopArea.innerHTML = '<p style="color: #a0a0ba; text-align:center; padding: 40px 0;">Nenhum produto cadastrado na vitrine.</p>';
+                return;
+            }
+
+            // Separa os itens em caixas de categorias
+            const categoriesMap = {};
             products.forEach(product => {
-                grid.innerHTML += `
-                    <div class="product-card">
-                        <div>
-                            <h3 class="product-title">${product.name}</h3>
-                            <p class="product-desc">${product.desc}</p>
+                const catName = product.category || "Geral";
+                if (!categoriesMap[catName]) categoriesMap[catName] = [];
+                categoriesMap[catName].push(product);
+            });
+
+            // Cria o HTML na tela para cada categoria separadamente
+            for (let categoryTitle in categoriesMap) {
+                let categoryHtml = `
+                    <div class="category-container">
+                        <h2 class="section-title">${categoryTitle}</h2>
+                        <div class="products-grid">
+                `;
+
+                categoriesMap[categoryTitle].forEach(product => {
+                    categoryHtml += `
+                        <div class="product-card">
+                            <div>
+                                <h3 class="product-title">${product.name}</h3>
+                                <p class="product-desc">${product.desc}</p>
+                            </div>
+                            <div>
+                                <div class="product-price">R$ ${product.price.toFixed(2).replace('.', ',')}</div>
+                                <button class="btn-buy" onclick="addToCart('${product.id_fb}')">
+                                    <i class="fas fa-cart-plus"></i> Adicionar
+                                </button>
+                            </div>
                         </div>
-                        <div>
-                            <div class="product-price">R$ ${product.price.toFixed(2).replace('.', ',')}</div>
-                            <button class="btn-buy" onclick="addToCart('${product.id_fb}')">
-                                <i class="fas fa-cart-plus"></i> Adicionar
-                            </button>
+                    `;
+                });
+
+                categoryHtml += `</div></div>`;
+                shopArea.innerHTML += categoryHtml;
+            }
+        }
+
+        // MONTA A LISTA DE ARRASTAR NO ADMIN
+        function renderAdminSortableList() {
+            const container = document.getElementById('sortableListContainer');
+            container.innerHTML = '';
+
+            if (products.length === 0) {
+                container.innerHTML = '<p style="color: #a0a0ba; text-align:center; padding: 20px 0;">Nenhum produto.</p>';
+                return;
+            }
+
+            products.forEach(product => {
+                const cat = product.category || "Geral";
+                container.innerHTML += `
+                    <div class="sortable-item" draggable="true" data-id="${product.id_fb}">
+                        <div class="item-drag-info">
+                            <i class="fas fa-bars"></i>
+                            <div>
+                                <h4>${product.name}</h4>
+                                <span>R$ ${product.price.toFixed(2)} <span class="badge" style="margin-left:5px; font-size:0.65rem;">${cat}</span></span>
+                            </div>
+                        </div>
+                        <div class="action-btns">
+                            <button type="button" class="btn-edit" onclick="loadEditProduct('${product.id_fb}')"><i class="fas fa-edit"></i></button>
+                            <button type="button" class="btn-delete" onclick="deleteProduct('${product.id_fb}')"><i class="fas fa-trash"></i></button>
                         </div>
                     </div>
                 `;
             });
+
+            initDragAndDrop();
         }
 
+        // CONTROLE VISUAL DO SELETOR DE NOVA CATEGORIA
+        function checkNewCategoryField() {
+            const select = document.getElementById('prodCategorySelect');
+            const newField = document.getElementById('prodCategoryNew');
+            if (select.value === "__NEW__") {
+                newField.style.display = "block";
+                newField.required = true;
+            } else {
+                newField.style.display = "none";
+                newField.required = false;
+            }
+        }
+
+        // MANTÉM AS CATEGORIAS DO MENU ATUALIZADAS CONFORME O QUE JÁ EXISTE NO BANCO
+        function updateCategorySelectors() {
+            const select = document.getElementById('prodCategorySelect');
+            const savedValue = select.value;
+            
+            // Pega categorias únicas criadas
+            const distinctCategories = [];
+            products.forEach(p => {
+                if (p.category && !distinctCategories.includes(p.category)) {
+                    distinctCategories.push(p.category);
+                }
+            });
+
+            // Se não houver nada cadastrado ainda, mantém padrões seguros
+            if (!distinctCategories.includes("Servidores")) distinctCategories.push("Servidores");
+            if (!distinctCategories.includes("Impulsos")) distinctCategories.push("Impulsos");
+
+            select.innerHTML = '';
+            distinctCategories.forEach(cat => {
+                select.innerHTML += `<option value="${cat}">${cat}</option>`;
+            });
+            select.innerHTML += `<option value="__NEW__">+ Criar Nova Categoria...</option>`;
+
+            if (savedValue && Array.from(select.options).some(opt => opt.value === savedValue)) {
+                select.value = savedValue;
+            }
+        }
+
+        // LÓGICA COMPLETA DE ARRASTAR E REORDENAR COM O MOUSE
+        function initDragAndDrop() {
+            const list = document.getElementById('sortableListContainer');
+            const items = list.querySelectorAll('.sortable-item');
+
+            items.forEach(item => {
+                item.addEventListener('dragstart', () => {
+                    setTimeout(() => item.classList.add('dragging'), 0);
+                });
+                item.addEventListener('dragend', () => {
+                    item.classList.remove('dragging');
+                    saveNewOrderToFirebase();
+                });
+            });
+
+            list.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                const draggingItem = list.querySelector('.dragging');
+                const siblings = [...list.querySelectorAll('.sortable-item:not(.dragging)')];
+                
+                let nextSibling = siblings.find(sibling => {
+                    return e.clientY <= sibling.getBoundingClientRect().top + sibling.getBoundingClientRect().height / 2;
+                });
+                
+                list.insertBefore(draggingItem, nextSibling);
+            });
+        }
+
+        // SALVA A ORDEM DA LISTA ARRASTADA DIRETO NO FIREBASE
+        function saveNewOrderToFirebase() {
+            const list = document.getElementById('sortableListContainer');
+            const items = [...list.querySelectorAll('.sortable-item')];
+            
+            items.forEach((item, index) => {
+                const idFb = item.getAttribute('data-id');
+                // Salva o número da nova posição (displayOrder)
+                database.ref(`products/${idFb}`).update({
+                    displayOrder: index + 1
+                });
+            });
+        }
+
+        // PREENCHE OS CAMPOS PARA EDITAR UM PRODUTO EXISTENTE
+        function loadEditProduct(idFb) {
+            const product = products.find(p => p.id_fb === idFb);
+            if (!product) return;
+
+            document.getElementById('editProductId').value = idFb;
+            document.getElementById('prodName').value = product.name;
+            document.getElementById('prodPrice').value = product.price;
+            document.getElementById('prodDesc').value = product.desc;
+            
+            const select = document.getElementById('prodCategorySelect');
+            select.value = product.category || "Servidores";
+            document.getElementById('prodCategoryNew').style.display = "none";
+            document.getElementById('prodCategoryNew').required = false;
+
+            document.getElementById('formAdminTitle').innerText = "Editar Produto Selecionado";
+            document.getElementById('btnSaveProduct').innerText = "Atualizar no Banco";
+            document.getElementById('btnCancelEdit').style.display = "block";
+        }
+
+        // ADICIONA OU ATUALIZA PRODUTOS NO BANCO DE DADOS
+        function handleProductSubmit(e) {
+            e.preventDefault();
+            const idFb = document.getElementById('editProductId').value;
+            const name = document.getElementById('prodName').value;
+            const price = parseFloat(document.getElementById('prodPrice').value);
+            const desc = document.getElementById('prodDesc').value;
+            
+            let category = document.getElementById('prodCategorySelect').value;
+            if (category === "__NEW__") {
+                category = document.getElementById('prodCategoryNew').value.trim();
+            }
+
+            if (!category) category = "Geral";
+
+            if (idFb) {
+                // Atualiza produto mantendo a ordem atual
+                database.ref(`products/${idFb}`).update({ name, price, desc, category })
+                    .then(() => resetProductForm());
+            } else {
+                // Adiciona um novo produto no final da fila da listagem
+                const nextOrder = products.length > 0 ? Math.max(...products.map(p => p.displayOrder || 0)) + 1 : 1;
+                const newProduct = { name, price, desc, category, displayOrder: nextOrder };
+                
+                database.ref('products').push(newProduct)
+                    .then(() => resetProductForm());
+            }
+        }
+
+        function deleteProduct(idFb) {
+            if (confirm("Tem certeza absoluta de que quer apagar este produto da loja?")) {
+                database.ref(`products/${idFb}`).remove();
+            }
+        }
+
+        function resetProductForm() {
+            document.getElementById('editProductId').value = '';
+            document.getElementById('productForm').reset();
+            document.getElementById('prodCategoryNew').style.display = "none";
+            document.getElementById('prodCategoryNew').required = false;
+            document.getElementById('formAdminTitle').innerText = "Adicionar Novo Produto";
+            document.getElementById('btnSaveProduct').innerText = "Salvar no Banco de Dados";
+            document.getElementById('btnCancelEdit').style.display = "none";
+        }
+
+        // SISTEMA DO CARRINHO
         function addToCart(idFb) {
             const product = products.find(p => p.id_fb === idFb);
             if (product) {
@@ -752,7 +995,6 @@
             const hour = String(date.getHours()).padStart(2, '0');
             const min = String(date.getMinutes()).padStart(2, '0');
             const randomFactor = Math.floor(1000 + Math.random() * 9000);
-            
             return `RX7-${day}${month}${year}-${hour}${min}-${randomFactor}`;
         }
 
@@ -840,7 +1082,7 @@
 
         function openAdminClick() {
             if (isAdminLoggedIn) {
-                renderAdminTable();
+                renderAdminSortableList();
                 toggleModal('adminPanelModal');
             } else {
                 toggleModal('loginModal');
@@ -855,7 +1097,7 @@
             if (user === 'ratao246' && pass === '245677') {
                 isAdminLoggedIn = true;
                 toggleModal('loginModal');
-                renderAdminTable();
+                renderAdminSortableList();
                 toggleModal('adminPanelModal');
                 document.getElementById('adminUser').value = '';
                 document.getElementById('adminPass').value = '';
@@ -864,93 +1106,10 @@
             }
         }
 
-        function renderAdminTable() {
-            const tbody = document.getElementById('adminProductsTable');
-            tbody.innerHTML = '';
-            products.forEach(product => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td><span class="badge">Discord</span> ${product.name}</td>
-                        <td>R$ ${product.price.toFixed(2)}</td>
-                        <td class="action-btns">
-                            <button class="btn-edit" onclick="loadEditProduct('${product.id_fb}')"><i class="fas fa-edit"></i></button>
-                            <button class="btn-delete" onclick="deleteProduct('${product.id_fb}')"><i class="fas fa-trash"></i></button>
-                        </td>
-                    </tr>
-                `;
-            });
-        }
-
-        function handleProductSubmit(e) {
+        // ANTI-CLIQUE DIREITO EMBUTIDO
+        document.addEventListener('contextmenu', function(e) {
             e.preventDefault();
-            const idFb = document.getElementById('editProductId').value;
-            const name = document.getElementById('prodName').value;
-            const price = parseFloat(document.getElementById('prodPrice').value);
-            const desc = document.getElementById('prodDesc').value;
-
-            const productData = { name, price, desc };
-
-            if (idFb) {
-                database.ref('products/' + idFb).set(productData);
-            } else {
-                const nextId = products.length > 0 ? Math.max(...products.map(p => p.id || 0)) + 1 : 1;
-                productData.id = nextId;
-                database.ref('products').push(productData);
-            }
-            resetProductForm();
-        }
-
-        function loadEditProduct(idFb) {
-            const product = products.find(p => p.id_fb === idFb);
-            if (product) {
-                document.getElementById('editProductId').value = product.id_fb;
-                document.getElementById('prodName').value = product.name;
-                document.getElementById('prodPrice').value = product.price;
-                document.getElementById('prodDesc').value = product.desc;
-                document.getElementById('formAdminTitle').innerText = "Editar Produto Existente";
-                document.getElementById('btnSaveProduct').innerText = "Atualizar Sistema";
-                document.getElementById('btnCancelEdit').style.display = "block";
-            }
-        }
-
-        function deleteProduct(idFb) {
-            if (confirm("Deseja realmente apagar este produto do banco de dados na nuvem?")) {
-                database.ref('products/' + idFb).remove();
-            }
-        }
-
-        function resetProductForm() {
-            document.getElementById('editProductId').value = '';
-            document.getElementById('productForm').reset();
-            document.getElementById('formAdminTitle').innerText = "Adicionar Novo Produto";
-            document.getElementById('btnSaveProduct').innerText = "Salvar no Banco de Dados";
-            document.getElementById('btnCancelEdit').style.display = "none";
-        }
-
-        // ==========================================
-        // SISTEMA DE SEGURANÇA CONTRA CÓPIAS / CLONES
-        // ==========================================
-        function blockActions(evento) {
-            evento.preventDefault();
-            alert("[SISTEMA PROTEGIDO]: O menu de contexto e salvamento de arquivos foi desativado na RX-7 Store.");
-        }
-
-        document.addEventListener('contextmenu', blockActions);
-
-        document.addEventListener('keydown', function(evento) {
-            if (evento.ctrlKey && evento.key === 's') {
-                evento.preventDefault();
-                alert("[ALERTA]: Clonagem de dados locais bloqueada.");
-            }
-            if (evento.ctrlKey && evento.key === 'u') {
-                evento.preventDefault();
-            }
-            if (evento.key === 'F12') {
-                evento.preventDefault();
-            }
-            if (evento.ctrlKey && evento.shiftKey && evento.key === 'I') {
-                evento.preventDefault();
-            }
+            alert("Sistema de Segurança: Clique direito desativado para proteção do código fonte.");
         });
     </script>
 </body>
