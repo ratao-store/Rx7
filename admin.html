@@ -210,7 +210,11 @@ imagem.value
 
 function salvar(){
 
-const produto={
+localStorage.setItem(
+
+"rx7_produto",
+
+JSON.stringify({
 
 nome:
 nome.value,
@@ -224,25 +228,32 @@ imagem.value,
 descricao:
 descricao.value
 
-}
-
-localStorage.setItem(
-
-"rx7_produto",
-
-JSON.stringify(
-produto
-)
+})
 
 )
 
 alert(
-"Produto salvo"
+"Produto enviado para loja"
 
 )
 
 }
 
+function remover(){
+
+localStorage.removeItem(
+"rx7_produto"
+)
+
+alert(
+"Produto removido"
+
+)
+
+location.reload()
+
+}
+  
 function carregar(){
 
 const p=
