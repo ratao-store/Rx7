@@ -1,132 +1,131 @@
+```javascript
 let cart=[]
 
-let total=0
+function carregarProduto(){
 
-function toggleCart(){
+const produto=
 
-cartEl=document
-.getElementById("cart")
+JSON.parse(
+localStorage.getItem(
+"rx7_produto"
+))
 
-cartEl
-.classList
-.toggle("open")
+if(!produto)return
 
-}
+const area=
 
-function addProduct(){
-
-let price=30
-
-let text=
-"Comunidade"
-
-if(
-boost.checked
-){
-
-price+=60
-
-text+=
-" + 14 Boosters"
-
-}
-
-cart.push({
-
-name:text,
-
-price
-
-})
-
-render()
-
-}
-
-function render(){
-
-cartCount.innerText=
-
-cart.length
-
-cartItems.innerHTML=
-
-cart
-.map(
-
-x=>
-
-`<p>${x.name}</p>`
-
+document.getElementById(
+"produtoArea"
 )
-.join("")
 
-total=
+if(!area)return
 
-cart
-.reduce(
+area.innerHTML=
 
-(a,b)=>
+`
+<div class="card">
 
-a+b.price
+<img
+src="${
+produto.imagem
+}"
+style="
+width:100%;
+border-radius:20px;
+height:260px;
+object-fit:cover;
+">
 
-,0)
+<h2>
+
+${produto.nome}
+
+</h2>
+
+<p>
+
+${produto.descricao}
+
+</p>
+
+<h1>
+
+R$${produto.preco}
+
+</h1>
+
+<button
+onclick="addCart()">
+
+Adicionar
+
+</button>
+
+</div>
+`
+
+}
+
+function addCart(){
+
+cart.push(1)
 
 document
 .getElementById(
-"total"
+"cartCount"
 )
-
 .innerText=
 
-"Total: R$"+total
+cart.length
+
+abrir()
 
 }
 
-function finishOrder(){
+function abrir(){
+
+document
+.getElementById(
+"cart"
+)
+
+.style.right=
+
+"0"
+
+}
+
+function fechar(){
+
+document
+.getElementById(
+"cart"
+)
+
+.style.right=
+
+"-420px"
+
+}
+
+window.onclick=
+
+function(e){
 
 if(
-!cart.length
+
+e.target.id
+==="overlay"
+
 ){
 
-alert(
-"Carrinho vazio"
-)
-
-return
+fechar()
 
 }
 
-let id=
-
-"RX7-"+
-
-Math
-.random()
-.toString(36)
-.slice(2,8)
-
-localStorage
-.setItem(
-
-"pedido",
-
-JSON.stringify({
-
-id,
-
-status:
-
-"Registrado"
-
-})
-
-)
-
-alert(
-
-"Pedido criado: "+id
-
-)
-
 }
+
+window.onload=
+
+carregarProduto
+```
