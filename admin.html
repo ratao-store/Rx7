@@ -1,37 +1,220 @@
+```html
 <!DOCTYPE html>
-
-<html>
+<html lang="pt-BR">
 
 <head>
 
-<link rel="stylesheet"
+<meta charset="UTF-8">
+
+<meta
+name="viewport"
+content="width=device-width,initial-scale=1">
+
+<title>
+
+RX7 Admin
+
+</title>
+
+<link
+rel="stylesheet"
 href="style.css">
 
 </head>
 
 <body>
 
+<div id="login">
+
+<div class="loginCard">
+
 <h1>
 
-Painel Admin
+Painel RX7
 
 </h1>
 
+<p>
+
+Área administrativa
+
+</p>
+
 <input
-id="code"
-placeholder="Código">
+type="password"
+id="senha"
+placeholder="Senha">
 
 <button
-onclick="enter()">
+onclick="entrar()">
 
 Entrar
 
 </button>
 
-<div id="panel"></div>
+</div>
 
-<script src="admin.js"></script>
+</div>
+
+<div
+id="painel"
+style="display:none">
+
+<header>
+
+<h1>
+
+Painel Administrativo
+
+</h1>
+
+</header>
+
+<section>
+
+<h2>
+
+Produtos
+
+</h2>
+
+<input
+id="nome"
+placeholder="Nome">
+
+<input
+id="preco"
+placeholder="Preço">
+
+<textarea
+id="descricao"
+placeholder="Descrição">
+
+</textarea>
+
+<button
+onclick="salvar()">
+
+Salvar
+
+</button>
+
+</section>
+
+<section>
+
+<h2>
+
+Pedidos
+
+</h2>
+
+<div id="pedidos">
+
+Nenhum pedido
+
+</div>
+
+</section>
+
+</div>
+
+<script>
+
+function entrar(){
+
+if(
+
+senha.value
+!=="admin1234"
+
+){
+
+alert(
+"Senha incorreta"
+)
+
+return
+
+}
+
+login.style.display=
+
+"none"
+
+painel.style.display=
+
+"block"
+
+carregar()
+
+}
+
+function salvar(){
+
+const produto={
+
+nome:
+nome.value,
+
+preco:
+preco.value,
+
+descricao:
+descricao.value
+
+}
+
+localStorage.setItem(
+
+"rx7_produto",
+
+JSON.stringify(
+produto
+)
+
+)
+
+alert(
+"Salvo"
+)
+
+}
+
+function carregar(){
+
+const p=
+
+JSON.parse(
+
+localStorage
+.getItem(
+"pedido"
+)
+
+)
+
+if(p){
+
+pedidos.innerHTML=
+
+`
+ID:
+${p.id}
+
+<br>
+
+Status:
+${p.status}
+`
+
+}
+
+}
+
+</script>
 
 </body>
 
 </html>
+```
