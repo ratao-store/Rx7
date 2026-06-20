@@ -410,6 +410,7 @@
             .admin-layout { grid-template-columns: 1fr 1.2fr; }
         }
 
+        /* ESTILOS DA LISTA ARRÁSTAVEL */
         .sortable-list {
             background: rgba(255, 255, 255, 0.02);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -576,7 +577,7 @@
     </div>
 
     <section class="products-section" id="shopContentArea">
-    </section>
+        </section>
 
     <a href="#" class="whatsapp-float" target="_blank" id="mainWhatsappBtn">
         <i class="fab fa-whatsapp"></i>
@@ -663,12 +664,6 @@
     </div>
 
     <script>
-
-        // Bloqueia o menu de contexto do clique direito
-window.addEventListener('contextmenu', function (e) {
-    e.preventDefault();
-}, false);
-        
         // ========================================================
         // CREDENCIAIS PRESERVADAS DO SEU PROJETO
         // ========================================================
@@ -702,12 +697,14 @@ window.addEventListener('contextmenu', function (e) {
                 for (let id in data) {
                     products.push({ id_fb: id, ...data[id] });
                 }
+                // Ordena os produtos pela propriedade 'displayOrder' se ela existir
                 products.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
             } else {
                 const initialProducts = [
                     { name: "Servidor Comunidade Standard", price: 30.00, desc: "Servidor básico e otimizado para comunidades. Configuração de cargos essenciais, bots de boas-vindas e suporte pós-compra para ajustes inclusos.", category: "Servidores", displayOrder: 1 },
                     { name: "Servidor Gamer Premium + 14 Boosts", price: 90.00, desc: "Combo completo: Servidor gamer profissional configurado de ponta a ponta + Adicional de 14 Boosts inclusos. Suporte total pós-venda para alterações de salas.", category: "Servidores", displayOrder: 2 },
-                    { name: "Pacote de Impulsos: 14 Boosts", price: 60.00, desc: "Apenas os 14 Impulsos aplicados diretamente no seu servidor existente do Discord para atingir os níveis mais altos de vantagens.", category: "Impulsos", displayOrder: 3 }
+                    { name: "Pacote de Impulsos: 14 Boosts", price: 60.00, desc: "Apenas os 14 Impulsos aplicados diretamente no seu servidor existente do Discord para atingir os níveis mais altos de vantagens.", category: "Impulsos", displayOrder: 3 },
+                    { name: "Servidor Premium 1.500+ Membros Active", price: 100.00, desc: "Servidor pronto e configurado com mais de 1.500 membros reais para o seu projeto. Inclui suporte pós-compra completo para transferência e ajustes de canais.\n\nLINK: https://discord.gg/HpX3XNRpgj", category: "Servidores", displayOrder: 4 }
                 ];
                 initialProducts.forEach((p, idx) => {
                     database.ref('products').push(p);
@@ -718,6 +715,7 @@ window.addEventListener('contextmenu', function (e) {
             if (isAdminLoggedIn) renderAdminSortableList();
         });
 
+        // EXIBE OS PRODUTOS NA VITRINE AGRUPADOS POR SEÇÃO (CATEGORIA)
         function renderStorefront() {
             const shopArea = document.getElementById('shopContentArea');
             shopArea.innerHTML = '';
@@ -727,6 +725,7 @@ window.addEventListener('contextmenu', function (e) {
                 return;
             }
 
+            // Separa os itens em caixas de categorias
             const categoriesMap = {};
             products.forEach(product => {
                 const catName = product.category || "Geral";
@@ -734,6 +733,7 @@ window.addEventListener('contextmenu', function (e) {
                 categoriesMap[catName].push(product);
             });
 
+            // Cria o HTML na tela para cada categoria separadamente
             for (let categoryTitle in categoriesMap) {
                 let categoryHtml = `
                     <div class="category-container">
@@ -763,6 +763,7 @@ window.addEventListener('contextmenu', function (e) {
             }
         }
 
+        // MONTA A LISTA DE ARRASTAR NO ADMIN
         function renderAdminSortableList() {
             const container = document.getElementById('sortableListContainer');
             container.innerHTML = '';
@@ -794,6 +795,7 @@ window.addEventListener('contextmenu', function (e) {
             initDragAndDrop();
         }
 
+        // CONTROLE VISUAL DO SELETOR DE NOVA CATEGORIA
         function checkNewCategoryField() {
             const select = document.getElementById('prodCategorySelect');
             const newField = document.getElementById('prodCategoryNew');
@@ -806,10 +808,12 @@ window.addEventListener('contextmenu', function (e) {
             }
         }
 
+        // MANTÉM AS CATEGORIAS DO MENU ATUALIZADAS CONFORME O QUE JÁ EXISTE NO BANCO
         function updateCategorySelectors() {
             const select = document.getElementById('prodCategorySelect');
             const savedValue = select.value;
             
+            // Pega categorias únicas criadas
             const distinctCategories = [];
             products.forEach(p => {
                 if (p.category && !distinctCategories.includes(p.category)) {
@@ -817,6 +821,7 @@ window.addEventListener('contextmenu', function (e) {
                 }
             });
 
+            // Se não houver nada cadastrado ainda, mantém padrões seguros
             if (!distinctCategories.includes("Servidores")) distinctCategories.push("Servidores");
             if (!distinctCategories.includes("Impulsos")) distinctCategories.push("Impulsos");
 
@@ -831,6 +836,7 @@ window.addEventListener('contextmenu', function (e) {
             }
         }
 
+        // LÓGICA COMPLETA DE ARRASTAR E REORDENAR COM O MOUSE
         function initDragAndDrop() {
             const list = document.getElementById('sortableListContainer');
             const items = list.querySelectorAll('.sortable-item');
@@ -858,18 +864,21 @@ window.addEventListener('contextmenu', function (e) {
             });
         }
 
+        // SALVA A ORDEM DA LISTA ARRASTADA DIRETO NO FIREBASE
         function saveNewOrderToFirebase() {
             const list = document.getElementById('sortableListContainer');
             const items = [...list.querySelectorAll('.sortable-item')];
             
             items.forEach((item, index) => {
                 const idFb = item.getAttribute('data-id');
+                // Salva o número da nova posição (displayOrder)
                 database.ref(`products/${idFb}`).update({
                     displayOrder: index + 1
                 });
             });
         }
 
+        // PREENCHE OS CAMPOS PARA EDITAR UM PRODUTO EXISTENTE
         function loadEditProduct(idFb) {
             const product = products.find(p => p.id_fb === idFb);
             if (!product) return;
@@ -884,21 +893,12 @@ window.addEventListener('contextmenu', function (e) {
             document.getElementById('prodCategoryNew').style.display = "none";
             document.getElementById('prodCategoryNew').required = false;
 
-            document.getElementById('formAdminTitle').innerText = "Editar Produto Existente";
+            document.getElementById('formAdminTitle').innerText = "Editar Produto Selecionado";
             document.getElementById('btnSaveProduct').innerText = "Atualizar no Banco";
             document.getElementById('btnCancelEdit').style.display = "block";
         }
 
-        function resetProductForm() {
-            document.getElementById('productForm').reset();
-            document.getElementById('editProductId').value = '';
-            document.getElementById('formAdminTitle').innerText = "Adicionar Novo Produto";
-            document.getElementById('btnSaveProduct').innerText = "Salvar no Banco de Dados";
-            document.getElementById('btnCancelEdit').style.display = "none";
-            document.getElementById('prodCategoryNew').style.display = "none";
-            document.getElementById('prodCategoryNew').required = false;
-        }
-
+        // ADICIONA OU ATUALIZA PRODUTOS NO BANCO DE DADOS
         function handleProductSubmit(e) {
             e.preventDefault();
             const idFb = document.getElementById('editProductId').value;
@@ -906,78 +906,52 @@ window.addEventListener('contextmenu', function (e) {
             const price = parseFloat(document.getElementById('prodPrice').value);
             const desc = document.getElementById('prodDesc').value;
             
-            const select = document.getElementById('prodCategorySelect');
-            let category = select.value;
+            let category = document.getElementById('prodCategorySelect').value;
             if (category === "__NEW__") {
                 category = document.getElementById('prodCategoryNew').value.trim();
             }
 
-            const pData = { name, price, desc, category };
+            if (!category) category = "Geral";
 
             if (idFb) {
-                database.ref(`products/${idFb}`).update(pData).then(() => {
-                    resetProductForm();
-                });
+                // Atualiza produto mantendo a ordem atual
+                database.ref(`products/${idFb}`).update({ name, price, desc, category })
+                    .then(() => resetProductForm());
             } else {
-                pData.displayOrder = products.length + 1;
-                database.ref('products').push(pData).then(() => {
-                    resetProductForm();
-                });
+                // Adiciona um novo produto no final da fila da listagem
+                const nextOrder = products.length > 0 ? Math.max(...products.map(p => p.displayOrder || 0)) + 1 : 1;
+                const newProduct = { name, price, desc, category, displayOrder: nextOrder };
+                
+                database.ref('products').push(newProduct)
+                    .then(() => resetProductForm());
             }
         }
 
         function deleteProduct(idFb) {
-            if (confirm("Tem certeza que deseja apagar este produto para sempre?")) {
+            if (confirm("Tem certeza absoluta de que quer apagar este produto da loja?")) {
                 database.ref(`products/${idFb}`).remove();
             }
         }
 
-        // MODAIS
-        function toggleModal(id) {
-            const m = document.getElementById(id);
-            if (m.style.display === "flex") {
-                m.style.display = "none";
-            } else {
-                m.style.display = "flex";
-                if (id === 'cartModal') {
-                    document.getElementById('orderSuccessArea').innerHTML = '';
-                }
-            }
+        function resetProductForm() {
+            document.getElementById('editProductId').value = '';
+            document.getElementById('productForm').reset();
+            document.getElementById('prodCategoryNew').style.display = "none";
+            document.getElementById('prodCategoryNew').required = false;
+            document.getElementById('formAdminTitle').innerText = "Adicionar Novo Produto";
+            document.getElementById('btnSaveProduct').innerText = "Salvar no Banco de Dados";
+            document.getElementById('btnCancelEdit').style.display = "none";
         }
 
-        function openAdminClick() {
-            if (isAdminLoggedIn) {
-                toggleModal('adminPanelModal');
-            } else {
-                toggleModal('loginModal');
-            }
-        }
-
-        function handleLogin(e) {
-            e.preventDefault();
-            const u = document.getElementById('adminUser').value;
-            const p = document.getElementById('adminPass').value;
-
-            if (u === "admin" && p === "rx7store2024") {
-                isAdminLoggedIn = true;
-                toggleModal('loginModal');
-                toggleModal('adminPanelModal');
-                renderAdminSortableList();
-            } else {
-                alert("Credenciais Inválidas!");
-            }
-        }
-
-        // ========================================================
-        // SISTEMA DO CARRINHO DE COMPRAS E CHECKOUT
-        // ========================================================
+        // SISTEMA DO CARRINHO
         function addToCart(idFb) {
             const product = products.find(p => p.id_fb === idFb);
-            if (!product) return;
-
-            cart.push(product);
-            updateCartUI();
-            toggleModal('cartModal');
+            if (product) {
+                cart.push(product);
+                updateCartUI();
+                document.getElementById('orderSuccessArea').innerHTML = '';
+                document.getElementById('btnCheckout').style.display = 'block';
+            }
         }
 
         function removeFromCart(index) {
@@ -990,6 +964,12 @@ window.addEventListener('contextmenu', function (e) {
             const container = document.getElementById('cartItemsContainer');
             container.innerHTML = '';
             
+            if (cart.length === 0) {
+                container.innerHTML = '<p style="color: #a0a0ba; text-align:center; padding: 20px 0;">Carrinho vazio.</p>';
+                document.getElementById('cartTotalValue').innerText = 'R$ 0,00';
+                return;
+            }
+
             let total = 0;
             cart.forEach((item, index) => {
                 total += item.price;
@@ -999,108 +979,139 @@ window.addEventListener('contextmenu', function (e) {
                             <h4>${item.name}</h4>
                             <p>R$ ${item.price.toFixed(2).replace('.', ',')}</p>
                         </div>
-                        <button class="btn-remove" onclick="removeFromCart(${index})"><i class="fas fa-trash"></i></button>
+                        <button class="btn-remove" onclick="removeFromCart(${index})">
+                            <i class="fas fa-trash"></i>
+                        </button>
                     </div>
                 `;
             });
-
             document.getElementById('cartTotalValue').innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
         }
 
-        // GENERADOR DE ID ALEATÓRIO PARA O PEDIDO
-        function generateOrderNumber() {
-            return 'RX7-' + Math.floor(100000 + Math.random() * 900000);
+        function generateOrderID() {
+            const date = new Date();
+            const year = date.getFullYear().toString().substring(2);
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hour = String(date.getHours()).padStart(2, '0');
+            const min = String(date.getMinutes()).padStart(2, '0');
+            const randomFactor = Math.floor(1000 + Math.random() * 9000);
+            return `RX7-${day}${month}${year}-${hour}${min}-${randomFactor}`;
         }
 
-        // FINALIZAR PEDIDO COM SISTEMA ANTISPAM DE 1 MINUTO
-        function checkout() {
-            const TEMPO_ESPERA_MS = 60 * 1000; // 1 minuto de trava
-            const ultimoPedidoTime = localStorage.getItem('rx7_ultimo_pedido');
-            const agora = Date.now();
+        function sendToDiscordWebhook(orderID, itemsList, totalValue) {
+            if (!DISCORD_WEBHOOK_URL) return;
 
-            // Verifica se o usuário já fez um pedido recentemente
-            if (ultimoPedidoTime) {
-                const tempoDecorrido = agora - parseInt(ultimoPedidoTime);
-                if (tempoDecorrido < TEMPO_ESPERA_MS) {
-                    const tempoRestanteSegundos = Math.ceil((TEMPO_ESPERA_MS - tempoDecorrido) / 1000);
-                    alert(`Aguarde ${tempoRestanteSegundos} segundos antes de enviar outro pedido.`);
-                    return; // Cancela e sai da função imediatamente
-                }
-            }
-
-            if (cart.length === 0) {
-                alert("Seu carrinho está vazio!");
-                return;
-            }
-
-            const orderId = generateOrderNumber();
-            let total = 0;
-            let textWhatsApp = `Olá! Acabei de realizar um pedido no site da *RX-7 Store*!\n\n`;
-            textWhatsApp += `🆔 *ID do Pedido:* \`${orderId}\`\n`;
-            textWhatsApp += `📦 *Itens Escolhidos:*\n`;
-
-            let embedFields = [];
-
-            cart.forEach((item, index) => {
-                total += item.price;
-                textWhatsApp += `• ${item.name} - *R$ ${item.price.toFixed(2).replace('.', ',')}*\n`;
-                embedFields.push({
-                    name: `Item #${index + 1}`,
-                    value: `**${item.name}**\nPreço: R$ ${item.price.toFixed(2)}`,
-                    inline: false
-                });
+            let descriptionText = "";
+            itemsList.forEach(item => {
+                descriptionText += `• **${item.name}** - R$ ${item.price.toFixed(2)}\n`;
             });
 
-            textWhatsApp += `\n💰 *Valor Total:* R$ ${total.toFixed(2).replace('.', ',')}\n\n`;
-            textWhatsApp += `Por favor, me informe as chaves pix ou dados para pagamento!`;
-
-            // Envia os dados para a API do Discord Webhook
-            const discordPayload = {
-                username: "RX-7 Central de Vendas",
-                avatar_url: "https://i.imgur.com/4M796pD.png", 
+            const embedData = {
+                username: "RX-7 Store Bot",
+                avatar_url: "https://i.imgur.com/wSTFkRM.png",
                 embeds: [{
-                    title: "🛍️ NOVO PEDIDO RECEBIDO!",
-                    color: 16711765, 
-                    description: `O cliente montou um carrinho e gerou o código de checkout.`,
+                    title: "📥 NOVO PEDIDO RECEBIDO",
+                    color: 65535,
                     fields: [
-                        { name: "🆔 Código identificador", value: `\`${orderId}\``, inline: true },
-                        { name: "💰 Total Geral", value: `**R$ ${total.toFixed(2)}**`, inline: true },
-                        ...embedFields
+                        { name: "🆔 ID do Pedido", value: `\`${orderID}\``, inline: false },
+                        { name: "🛒 Produtos Selecionados", value: descriptionText, inline: false },
+                        { name: "💰 Valor Total", value: `**R$ ${totalValue.toFixed(2)}**`, inline: true },
+                        { name: "🛠️ Status", value: "Aguardando contato via WhatsApp", inline: true }
                     ],
-                    footer: { text: "RX-7 Store - Sistema Automático de Notificações" },
-                    timestamp: new Date().toISOString()
+                    footer: { text: "RX-7 Store | Monitoramento Automático de Vendas" },
+                    timestamp: new Date()
                 }]
             };
 
             fetch(DISCORD_WEBHOOK_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(discordPayload)
-            }).catch(err => console.error("Erro Discord Webhook: ", err));
+                body: JSON.stringify(embedData)
+            }).catch(err => console.error("Erro ao enviar para o Discord:", err));
+        }
 
-            // Exibe a caixinha de sucesso na tela para o usuário ver
-            document.getElementById('orderSuccessArea').innerHTML = `
+        function checkout() {
+            if (cart.length === 0) {
+                alert("Adicione produtos antes de finalizar!");
+                return;
+            }
+            
+            const orderID = generateOrderID();
+            let total = 0;
+            cart.forEach(item => total += item.price);
+
+            sendToDiscordWebhook(orderID, cart, total);
+            
+            let message = `Olá RX-7 Store! Acabei de fechar um pedido no site.\n\n`;
+            message += `🆔 *ID do Pedido:* ${orderID}\n`;
+            message += `-------------------------\n`;
+            cart.forEach(item => { message += `- ${item.name}\n`; });
+            message += `-------------------------\n`;
+            message += `*Total:* R$ ${total.toFixed(2)}\n\n`;
+            message += `Estou te mandando o ID do pedido para você conferir no Discord!`;
+            
+            let whatsappUrl = `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${encodeURIComponent(message)}`;
+            
+            const successArea = document.getElementById('orderSuccessArea');
+            successArea.innerHTML = `
                 <div class="order-success-box">
-                    <p style="color:#00f3ff; font-weight:bold;"><i class="fas fa-check-circle"></i> Pedido Gerado com Sucesso!</p>
-                    <p style="font-size:0.85rem; color:#a0a0ba; margin-top:5px;">Copie o ID abaixo se precisar de suporte:</p>
-                    <div class="order-id-display">${orderId}</div>
-                    <p style="font-size:0.8rem; color:#ff0055;">Redirecionando você para o nosso WhatsApp comercial...</p>
+                    <p style="color: var(--neon-blue); font-weight: bold;"><i class="fas fa-check-circle"></i> PEDIDO GERADO NO SISTEMA!</p>
+                    <p style="font-size: 0.85rem; color: #a0a0ba; margin-top:5px;">Copie ou salve o ID abaixo:</p>
+                    <div class="order-id-display">${orderID}</div>
+                    <p style="font-size: 0.8rem; color: #8a8aa3;">Ele já foi enviado para o nosso Discord. Clique no botão abaixo para concluir o contato no WhatsApp.</p>
                 </div>
             `;
 
-            // Registra o horário do pedido atualizado no navegador
-            localStorage.setItem('rx7_ultimo_pedido', Date.now());
-
-            // Limpa o carrinho
-            cart = [];
-            updateCartUI();
-
-            // Abre a API do WhatsApp após 3 segundos para dar tempo de ler o ID
-            setTimeout(() => {
-                const urlencodedText = encodeURIComponent(textWhatsApp);
-                window.open(`https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${urlencodedText}`, '_blank');
-            }, 3000);
+            const btnCheck = document.getElementById('btnCheckout');
+            btnCheck.innerText = "Ir para o WhatsApp agora";
+            btnCheck.onclick = function() {
+                window.open(whatsappUrl, '_blank');
+                cart = [];
+                updateCartUI();
+                toggleModal('cartModal');
+                successArea.innerHTML = '';
+                btnCheck.innerText = "Finalizar Pedido";
+                btnCheck.onclick = checkout;
+            };
         }
+
+        function toggleModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
+        }
+
+        function openAdminClick() {
+            if (isAdminLoggedIn) {
+                renderAdminSortableList();
+                toggleModal('adminPanelModal');
+            } else {
+                toggleModal('loginModal');
+            }
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const user = document.getElementById('adminUser').value;
+            const pass = document.getElementById('adminPass').value;
+
+            if (user === 'gostosao' && pass === '245677') {
+                isAdminLoggedIn = true;
+                toggleModal('loginModal');
+                renderAdminSortableList();
+                toggleModal('adminPanelModal');
+                document.getElementById('adminUser').value = '';
+                document.getElementById('adminPass').value = '';
+            } else {
+                alert("[ACESSO NEGADO]: Credenciais de moderação incorretas.");
+            }
+        }
+
+        // ANTI-CLIQUE DIREITO EMBUTIDO
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            alert("[SISTEMA DE SEGURANÇA]: Essa função foi desativada.");
+        });
     </script>
 </body>
 </html>
