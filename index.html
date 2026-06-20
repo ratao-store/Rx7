@@ -1094,7 +1094,7 @@
             const user = document.getElementById('adminUser').value;
             const pass = document.getElementById('adminPass').value;
 
-            if (user === 'ratao246' && pass === '245677') {
+            if (user === 'gostosao' && pass === '245677') {
                 isAdminLoggedIn = true;
                 toggleModal('loginModal');
                 renderAdminSortableList();
@@ -1102,7 +1102,7 @@
                 document.getElementById('adminUser').value = '';
                 document.getElementById('adminPass').value = '';
             } else {
-                alert("[ALERTA CRÍTICO]: Credenciais de moderação incorretas.");
+                alert("[ACESSO NEGADO]: Credenciais de moderação incorretas.");
             }
         }
 
