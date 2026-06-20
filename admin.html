@@ -14,56 +14,56 @@ content="width=device-width,initial-scale=1">
 <style>
 
 body{
-
+margin:0;
 background:#050505;
-
 color:white;
-
 font-family:Arial;
-
-padding:40px;
-
 }
 
-.box{
-
-max-width:500px;
-
+.container{
+max-width:700px;
 margin:auto;
-
-background:#101010;
-
 padding:30px;
-
-border-radius:20px;
-
 }
 
-input{
+.card{
+background:#101010;
+padding:25px;
+border-radius:24px;
+margin-top:20px;
+}
+
+input,textarea{
 
 width:100%;
 
 padding:16px;
 
+margin-top:10px;
+
+background:#171717;
+
+color:white;
+
 border:none;
 
-border-radius:14px;
+border-radius:16px;
 
-margin-top:20px;
+box-sizing:border-box;
 
 }
 
 button{
 
-margin-top:20px;
-
 width:100%;
 
-padding:16px;
+padding:18px;
+
+margin-top:20px;
 
 border:none;
 
-border-radius:14px;
+border-radius:16px;
 
 background:#5B7FFF;
 
@@ -74,22 +74,16 @@ cursor:pointer;
 }
 
 #painel{
-
 display:none;
-
-margin-top:30px;
-
 }
 
-.card{
+img{
 
-background:#171717;
+width:100%;
 
-padding:20px;
+border-radius:20px;
 
-border-radius:16px;
-
-margin-top:14px;
+margin-top:20px;
 
 }
 
@@ -99,9 +93,11 @@ margin-top:14px;
 
 <body>
 
-<div class="box">
+<div class="container">
 
 <div id="login">
+
+<div class="card">
 
 <h1>
 
@@ -112,7 +108,7 @@ Painel RX7
 <input
 id="senha"
 type="password"
-placeholder="Senha Admin">
+placeholder="Senha">
 
 <button
 onclick="entrar()">
@@ -123,26 +119,52 @@ Entrar
 
 </div>
 
+</div>
+
 <div id="painel">
+
+<div class="card">
 
 <h2>
 
-Painel Administrativo
+Editar Produto
 
 </h2>
 
-<div class="card">
+<input
+id="nome"
+placeholder="Nome">
 
-Editar produtos
-<br><br>
+<input
+id="preco"
+placeholder="Preço">
 
-Em breve
+<input
+id="imagem"
+placeholder="Link da imagem">
 
-</div>
+<textarea
+id="descricao"
+placeholder="Descrição">
 
-<div class="card">
+</textarea>
 
-Pedidos
+<img
+id="preview">
+
+<button
+onclick="mostrarImagem()">
+
+Ver Imagem
+
+</button>
+
+<button
+onclick="salvar()">
+
+Salvar Produto
+
+</button>
 
 </div>
 
@@ -155,34 +177,17 @@ Pedidos
 function entrar(){
 
 if(
-
-document
-.getElementById(
-"senha"
-)
-.value
-
-===
-
-"admin1234"
-
+senha.value
+==="admin1234"
 ){
 
-document
-.getElementById(
-"login"
-)
-.style.display=
-
+login.style.display=
 "none"
 
-document
-.getElementById(
-"painel"
-)
-.style.display=
-
+painel.style.display=
 "block"
+
+carregar()
 
 }
 
@@ -193,6 +198,80 @@ alert(
 )
 
 }
+
+}
+
+function mostrarImagem(){
+
+preview.src=
+imagem.value
+
+}
+
+function salvar(){
+
+const produto={
+
+nome:
+nome.value,
+
+preco:
+preco.value,
+
+imagem:
+imagem.value,
+
+descricao:
+descricao.value
+
+}
+
+localStorage.setItem(
+
+"rx7_produto",
+
+JSON.stringify(
+produto
+)
+
+)
+
+alert(
+"Produto salvo"
+
+)
+
+}
+
+function carregar(){
+
+const p=
+
+JSON.parse(
+
+localStorage.getItem(
+"rx7_produto"
+)
+
+)
+
+if(!p)
+return
+
+nome.value=
+p.nome||""
+
+preco.value=
+p.preco||""
+
+imagem.value=
+p.imagem||""
+
+descricao.value=
+p.descricao||""
+
+preview.src=
+p.imagem||""
 
 }
 
