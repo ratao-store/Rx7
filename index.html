@@ -31,7 +31,7 @@
                 radial-gradient(at 0% 0%, rgba(176, 38, 255, 0.15) 0px, transparent 50%),
                 radial-gradient(at 100% 100%, rgba(0, 243, 255, 0.15) 0px, transparent 50%);
             background-attachment: fixed;
-            user-select: none; /* Impede que fiquem selecionando textos do site */
+            user-select: none;
         }
 
         body::before {
@@ -502,6 +502,9 @@
             user-select: all;
         }
     </style>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
 <body>
 
@@ -596,7 +599,7 @@
                         </div>
                         <div class="form-group">
                             <label>Preço (R$)</label>
-                            <input type="number" id="prodPrice" class="form-control" required placeholder="30">
+                            <input type="number" id="prodPrice" class="form-control" step="0.01" required placeholder="30">
                         </div>
                         <div class="form-group">
                             <label>Descrição do Produto</label>
@@ -627,28 +630,54 @@
     </div>
 
     <script>
-        // ==========================================
-        // CONFIGURAÇÕES DA SUA LOJA JÁ ATUALIZADAS
-        // ==========================================
+        // ========================================================
+        // AS SUAS CREDENCIAIS DO FIREBASE JÁ ESTÃO CONFIGURADAS AQUI
+        // ========================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyB7cxrpXsf_abhtCeEsh9yURrt9GNcn1eM",
+            authDomain: "rx7-store.firebaseapp.com",
+            databaseURL: "https://rx7-store-default-rtdb.firebaseio.com",
+            projectId: "rx7-store",
+            storageBucket: "rx7-store.firebasestorage.app",
+            messagingSenderId: "782894155670",
+            appId: "1:782894155670:web:0ba17769fc39a0aa333fb7"
+        };
+        
+        // Inicializando o sistema na nuvem
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        // ========================================================
+
+        // INFORMAÇÕES DA RX-7 STORE
         const WHATSAPP_NUMBER = "5519997663848"; 
         const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1517720759101952183/4Rzh6HdmlC-UW4sVYuDFkoGKVvv5rKM0i3HcoIedx7Iy013CDnMGkGmOLGLx_qxV7RaY"; 
-        // ==========================================
 
         document.getElementById('mainWhatsappBtn').href = `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=Olá! Estou no site da RX-7 Store e gostaria de tirar uma dúvida.`;
 
-        let initialProducts = [
-            { id: 1, name: "Servidor Comunidade Standard", price: 30.00, desc: "Servidor básico e otimizado para comunidades. Configuração de cargos essenciais, bots de boas-vindas e suporte pós-compra para ajustes inclusos." },
-            { id: 2, name: "Servidor Gamer Premium + 14 Boosts", price: 90.00, desc: "Combo completo: Servidor gamer profissional configurado de ponta a ponta + Adicional de 14 Boosts inclusos. Suporte total pós-venda para alterações de salas." },
-            { id: 3, name: "Pacote de Impulsos: 14 Boosts", price: 60.00, desc: "Apenas os 14 Impulsos aplicados diretamente no seu servidor existente do Discord para atingir os níveis mais altos de vantagens." }
-        ];
-
-        if (!localStorage.getItem('rx7_products')) {
-            localStorage.setItem('rx7_products', JSON.stringify(initialProducts));
-        }
-
-        let products = JSON.parse(localStorage.getItem('rx7_products'));
+        let products = [];
         let cart = [];
         let isAdminLoggedIn = false;
+
+        // PUXA OS PRODUTOS DO FIREBASE EM TEMPO REAL E ATUALIZA SEM PRECISAR DAR F5
+        database.ref('products').on('value', (snapshot) => {
+            const data = snapshot.val();
+            products = [];
+            if (data) {
+                for (let id in data) {
+                    products.push({ id_fb: id, ...data[id] });
+                }
+            } else {
+                // Configuração base da loja caso o seu banco de dados esteja limpo no início
+                const initialProducts = [
+                    { id: 1, name: "Servidor Comunidade Standard", price: 30.00, desc: "Servidor básico e otimizado para comunidades. Configuração de cargos essenciais, bots de boas-vindas e suporte pós-compra para ajustes inclusos." },
+                    { id: 2, name: "Servidor Gamer Premium + 14 Boosts", price: 90.00, desc: "Combo completo: Servidor gamer profissional configurado de ponta a ponta + Adicional de 14 Boosts inclusos. Suporte total pós-venda para alterações de salas." },
+                    { id: 3, name: "Pacote de Impulsos: 14 Boosts", price: 60.00, desc: "Apenas os 14 Impulsos aplicados diretamente no seu servidor existente do Discord para atingir os níveis mais altos de vantagens." }
+                ];
+                initialProducts.forEach(p => database.ref('products').push(p));
+            }
+            renderProducts();
+            if (isAdminLoggedIn) renderAdminTable();
+        });
 
         function renderProducts() {
             const grid = document.getElementById('productsGrid');
@@ -662,7 +691,7 @@
                         </div>
                         <div>
                             <div class="product-price">R$ ${product.price.toFixed(2).replace('.', ',')}</div>
-                            <button class="btn-buy" onclick="addToCart(${product.id})">
+                            <button class="btn-buy" onclick="addToCart('${product.id_fb}')">
                                 <i class="fas fa-cart-plus"></i> Adicionar
                             </button>
                         </div>
@@ -671,8 +700,8 @@
             });
         }
 
-        function addToCart(id) {
-            const product = products.find(p => p.id === id);
+        function addToCart(idFb) {
+            const product = products.find(p => p.id_fb === idFb);
             if (product) {
                 cart.push(product);
                 updateCartUI();
@@ -818,7 +847,6 @@
             }
         }
 
-        // ATUALIZADO: Login agora é "ratao246"
         function handleLogin(e) {
             e.preventDefault();
             const user = document.getElementById('adminUser').value;
@@ -845,8 +873,8 @@
                         <td><span class="badge">Discord</span> ${product.name}</td>
                         <td>R$ ${product.price.toFixed(2)}</td>
                         <td class="action-btns">
-                            <button class="btn-edit" onclick="loadEditProduct(${product.id})"><i class="fas fa-edit"></i></button>
-                            <button class="btn-delete" onclick="deleteProduct(${product.id})"><i class="fas fa-trash"></i></button>
+                            <button class="btn-edit" onclick="loadEditProduct('${product.id_fb}')"><i class="fas fa-edit"></i></button>
+                            <button class="btn-delete" onclick="deleteProduct('${product.id_fb}')"><i class="fas fa-trash"></i></button>
                         </td>
                     </tr>
                 `;
@@ -855,28 +883,27 @@
 
         function handleProductSubmit(e) {
             e.preventDefault();
-            const id = document.getElementById('editProductId').value;
+            const idFb = document.getElementById('editProductId').value;
             const name = document.getElementById('prodName').value;
             const price = parseFloat(document.getElementById('prodPrice').value);
             const desc = document.getElementById('prodDesc').value;
 
-            if (id) {
-                products = products.map(p => p.id == id ? { id: parseInt(id), name, price, desc } : p);
-            } else {
-                const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
-                products.push({ id: newId, name, price, desc });
-            }
+            const productData = { name, price, desc };
 
-            localStorage.setItem('rx7_products', JSON.stringify(products));
-            renderProducts();
-            renderAdminTable();
+            if (idFb) {
+                database.ref('products/' + idFb).set(productData);
+            } else {
+                const nextId = products.length > 0 ? Math.max(...products.map(p => p.id || 0)) + 1 : 1;
+                productData.id = nextId;
+                database.ref('products').push(productData);
+            }
             resetProductForm();
         }
 
-        function loadEditProduct(id) {
-            const product = products.find(p => p.id === id);
+        function loadEditProduct(idFb) {
+            const product = products.find(p => p.id_fb === idFb);
             if (product) {
-                document.getElementById('editProductId').value = product.id;
+                document.getElementById('editProductId').value = product.id_fb;
                 document.getElementById('prodName').value = product.name;
                 document.getElementById('prodPrice').value = product.price;
                 document.getElementById('prodDesc').value = product.desc;
@@ -886,12 +913,9 @@
             }
         }
 
-        function deleteProduct(id) {
-            if (confirm("Deseja realmente apagar este produto?")) {
-                products = products.filter(p => p.id !== id);
-                localStorage.setItem('rx7_products', JSON.stringify(products));
-                renderProducts();
-                renderAdminTable();
+        function deleteProduct(idFb) {
+            if (confirm("Deseja realmente apagar este produto do banco de dados na nuvem?")) {
+                database.ref('products/' + idFb).remove();
             }
         }
 
@@ -906,10 +930,12 @@
         // ==========================================
         // SISTEMA DE SEGURANÇA CONTRA CÓPIAS / CLONES
         // ==========================================
-        document.addEventListener('contextmenu', function(evento) {
+        function blockActions(evento) {
             evento.preventDefault();
             alert("[SISTEMA PROTEGIDO]: O menu de contexto e salvamento de arquivos foi desativado na RX-7 Store.");
-        });
+        }
+
+        document.addEventListener('contextmenu', blockActions);
 
         document.addEventListener('keydown', function(evento) {
             if (evento.ctrlKey && evento.key === 's') {
@@ -926,8 +952,6 @@
                 evento.preventDefault();
             }
         });
-
-        renderProducts();
     </script>
 </body>
 </html>
