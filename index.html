@@ -663,6 +663,12 @@
     </div>
 
     <script>
+
+        // Bloqueia o menu de contexto do clique direito
+window.addEventListener('contextmenu', function (e) {
+    e.preventDefault();
+}, false);
+        
         // ========================================================
         // CREDENCIAIS PRESERVADAS DO SEU PROJETO
         // ========================================================
