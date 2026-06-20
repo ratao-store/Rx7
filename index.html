@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RX-7 Store | Next-Gen Discord Servers</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #0a0a12;
+            --panel-bg: rgba(16, 16, 28, 0.7);
+            --neon-blue: #00f3ff;
+            --neon-purple: #b026ff;
+            --neon-pink: #ff0055;
+            --text-color: #e2e8f0;
+            --border-glow: 0 0 10px rgba(0, 243, 255, 0.5);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(176, 38, 255, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(0, 243, 255, 0.15) 0px, transparent 50%);
+            background-attachment: fixed;
+            user-select: none; /* Impede que fiquem selecionando textos do site */
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border: 1px solid rgba(0, 243, 255, 0.1);
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 5%;
+            background: rgba(10, 10, 18, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid var(--neon-blue);
+            box-shadow: 0 4px 20px rgba(0, 243, 255, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #fff;
+            text-shadow: 0 0 10px var(--neon-blue), 0 0 20px var(--neon-blue);
+        }
+
+        .logo span {
+            color: var(--neon-pink);
+            text-shadow: 0 0 10px var(--neon-pink);
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .btn-icon {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 20px;
+            cursor: pointer;
+            position: relative;
+            transition: 0.3s;
+        }
+
+        .btn-icon:hover {
+            color: var(--neon-blue);
+            text-shadow: 0 0 10px var(--neon-blue);
+        }
+
+        .cart-count {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: var(--neon-pink);
+            color: white;
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 50%;
+            font-weight: bold;
+            box-shadow: 0 0 8px var(--neon-pink);
+        }
+
+        .btn-admin {
+            background: transparent;
+            border: 1px solid var(--neon-purple);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            letter-spacing: 1px;
+            transition: 0.3s;
+            box-shadow: 0 0 5px rgba(176, 38, 255, 0.3);
+        }
+
+        .btn-admin:hover {
+            background: var(--neon-purple);
+            box-shadow: 0 0 15px var(--neon-purple);
+            transform: translateY(-2px);
+        }
+
+        .hero {
+            text-align: center;
+            padding: 60px 20px;
+            position: relative;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            margin-bottom: 10px;
+            color: #fff;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+        }
+
+        .hero p {
+            color: #8a8aa3;
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto 30px;
+        }
+
+        .features-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto 50px;
+            padding: 0 20px;
+        }
+
+        .feature-card {
+            background: var(--panel-bg);
+            border: 1px solid rgba(255, 0, 85, 0.2);
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            backdrop-filter: blur(5px);
+            transition: 0.3s;
+        }
+
+        .feature-card:hover {
+            border-color: var(--neon-pink);
+            box-shadow: 0 0 15px rgba(255, 0, 85, 0.3);
+            transform: translateY(-3px);
+        }
+
+        .feature-card i {
+            font-size: 30px;
+            color: var(--neon-pink);
+            margin-bottom: 15px;
+            text-shadow: 0 0 10px var(--neon-pink);
+        }
+
+        .feature-card h3 {
+            margin-bottom: 8px;
+            font-size: 1.2rem;
+            color: #fff;
+        }
+
+        .feature-card p {
+            font-size: 0.9rem;
+            color: #a0a0ba;
+        }
+
+        .products-section {
+            max-width: 1200px;
+            margin: 0 auto 80px;
+            padding: 0 20px;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 40px;
+            border-left: 4px solid var(--neon-blue);
+            padding-left: 15px;
+            text-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .product-card {
+            background: var(--panel-bg);
+            border: 1px solid rgba(0, 243, 255, 0.2);
+            border-radius: 12px;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+
+        .product-card:hover {
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.4);
+            transform: translateY(-5px);
+        }
+
+        .product-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 3px;
+            background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
+        }
+
+        .product-title {
+            font-size: 1.4rem;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+
+        .product-desc {
+            font-size: 0.9rem;
+            color: #a0a0ba;
+            margin-bottom: 20px;
+            line-height: 1.5;
+            flex-grow: 1;
+        }
+
+        .product-price {
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: var(--neon-blue);
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
+        }
+
+        .btn-buy {
+            background: linear-gradient(135deg, var(--neon-blue), #0088cc);
+            color: #fff;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: 0.3s;
+            width: 100%;
+        }
+
+        .btn-buy:hover {
+            box-shadow: 0 0 15px var(--neon-blue);
+            filter: brightness(1.2);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(5, 5, 10, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: #10101c;
+            border: 2px solid var(--neon-blue);
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.3);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 500px;
+            padding: 30px;
+            position: relative;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content-large {
+            max-width: 900px;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-2px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: #fff;
+            font-size: 22px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .close-modal:hover {
+            color: var(--neon-pink);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #a0a0ba;
+        }
+
+        .form-control {
+            width: 100%;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            padding: 12px;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 1rem;
+            transition: 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.4);
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .cart-item-info h4 {
+            color: #fff;
+            margin-bottom: 5px;
+        }
+
+        .cart-item-info p {
+            color: var(--neon-blue);
+            font-size: 0.9rem;
+        }
+
+        .btn-remove {
+            background: none;
+            border: none;
+            color: var(--neon-pink);
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .cart-total {
+            margin-top: 20px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            color: #fff;
+            border-top: 2px dashed rgba(255,255,255,0.2);
+            padding-top: 15px;
+        }
+
+        .admin-layout {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        @media(min-width: 768px) {
+            .admin-layout { grid-template-columns: 1fr 1.5fr; }
+        }
+
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+
+        .admin-table th, .admin-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .admin-table th {
+            color: var(--neon-blue);
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-edit {
+            background: none;
+            border: none;
+            color: #ffaa00;
+            cursor: pointer;
+        }
+
+        .btn-delete {
+            background: none;
+            border: none;
+            color: var(--neon-pink);
+            cursor: pointer;
+        }
+
+        .badge {
+            background: var(--neon-purple);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+        }
+
+        .whatsapp-float {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background-color: #25d366;
+            color: #fff;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            text-align: center;
+            font-size: 30px;
+            box-shadow: 0 0 15px rgba(37, 211, 102, 0.6);
+            z-index: 999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-decoration: none;
+            transition: 0.3s;
+            animation: pulseWhatsapp 2s infinite;
+        }
+
+        .whatsapp-float:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 25px rgba(37, 211, 102, 0.9);
+        }
+
+        @keyframes pulseWhatsapp {
+            0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(37, 211, 102, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+        }
+
+        .order-success-box {
+            background: rgba(0, 243, 255, 0.05);
+            border: 1px dashed var(--neon-blue);
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+            text-align: center;
+        }
+        .order-id-display {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--neon-pink);
+            letter-spacing: 1px;
+            margin: 10px 0;
+            user-select: all;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">RX-7 <span>Store</span></div>
+        <div class="nav-buttons">
+            <button class="btn-icon" onclick="toggleModal('cartModal')">
+                <i class="fas fa-shopping-cart"></i>
+                <span class="cart-count" id="cartCount">0</span>
+            </button>
+            <button class="btn-admin" onclick="openAdminClick()"><i class="fas fa-user-shield"></i> Admin</button>
+        </div>
+    </header>
+
+    <section class="hero">
+        <h1>Next-Gen Discord Servers</h1>
+        <p>Eleve sua comunidade para o próximo nível com servidores totalmente configurados, design futurista e infraestrutura premium.</p>
+    </section>
+
+    <div class="features-container">
+        <div class="feature-card">
+            <i class="fas fa-bolt"></i>
+            <h3>Boosts de Servidor</h3>
+            <p>Adicional de 14 Impulsos (Boosts) para o seu servidor por apenas <strong>R$ 60,00</strong>.</p>
+        </div>
+        <div class="feature-card">
+            <i class="fas fa-headset"></i>
+            <h3>Pós-Compra Incluído</h3>
+            <p>Suporte técnico completo! Precisa mexer, criar ou configurar novos canais? Nós fazemos tudo para você.</p>
+        </div>
+        <div class="feature-card">
+            <i class="fas fa-shield-halved"></i>
+            <h3>Comunidades Elite</h3>
+            <p>Servidores profissionais e configurados sob medida a partir de <strong>R$ 30,00</strong>.</p>
+        </div>
+    </div>
+
+    <section class="products-section">
+        <h2 class="section-title">Servidores Disponíveis</h2>
+        <div class="products-grid" id="productsGrid"></div>
+    </section>
+
+    <a href="#" class="whatsapp-float" target="_blank" id="mainWhatsappBtn">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <div id="cartModal" class="modal">
+        <div class="modal-content">
+            <i class="fas fa-times close-modal" onclick="toggleModal('cartModal')"></i>
+            <h2 class="section-title" style="margin-bottom: 20px;">Seu Carrinho</h2>
+            <div id="cartItemsContainer"></div>
+            <div class="cart-total">
+                <span>Total:</span>
+                <span id="cartTotalValue">R$ 0,00</span>
+            </div>
+            <div id="orderSuccessArea"></div>
+            <button class="btn-buy" style="margin-top: 20px;" id="btnCheckout" onclick="checkout()">Finalizar Pedido</button>
+        </div>
+    </div>
+
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <i class="fas fa-times close-modal" onclick="toggleModal('loginModal')"></i>
+            <h2 class="section-title" style="margin-bottom: 20px;">Acesso Restrito</h2>
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label>Usuário Admin</label>
+                    <input type="text" id="adminUser" class="form-control" required placeholder="Digite o usuário">
+                </div>
+                <div class="form-group">
+                    <label>Chave de Acesso</label>
+                    <input type="password" id="adminPass" class="form-control" required placeholder="••••">
+                </div>
+                <button type="submit" class="btn-buy">Autenticar Sistema</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="adminPanelModal" class="modal">
+        <div class="modal-content modal-content-large">
+            <i class="fas fa-times close-modal" onclick="toggleModal('adminPanelModal')"></i>
+            <h2 class="section-title" style="margin-bottom: 20px;">Painel de Controle Central</h2>
+            
+            <div class="admin-layout">
+                <div>
+                    <h3 style="color:#fff; margin-bottom: 15px;" id="formAdminTitle">Adicionar Novo Produto</h3>
+                    <form id="productForm" onsubmit="handleProductSubmit(event)">
+                        <input type="hidden" id="editProductId">
+                        <div class="form-group">
+                            <label>Nome do Servidor/Pacote</label>
+                            <input type="text" id="prodName" class="form-control" required placeholder="Ex: Servidor de Games Elite">
+                        </div>
+                        <div class="form-group">
+                            <label>Preço (R$)</label>
+                            <input type="number" id="prodPrice" class="form-control" required placeholder="30">
+                        </div>
+                        <div class="form-group">
+                            <label>Descrição do Produto</label>
+                            <textarea id="prodDesc" class="form-control" rows="4" required placeholder="Ex: Inclui 14 Boosts..."></textarea>
+                        </div>
+                        <button type="submit" class="btn-buy" id="btnSaveProduct">Salvar no Banco de Dados</button>
+                        <button type="button" class="btn-admin" style="width:100%; margin-top:10px; border-color:var(--neon-pink);" id="btnCancelEdit" onclick="resetProductForm()" style="display:none;">Cancelar Edição</button>
+                    </form>
+                </div>
+
+                <div>
+                    <h3 style="color:#fff; margin-bottom: 15px;">Produtos Cadastrados</h3>
+                    <div style="overflow-x: auto;">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Preço</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminProductsTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // CONFIGURAÇÕES DA SUA LOJA JÁ ATUALIZADAS
+        // ==========================================
+        const WHATSAPP_NUMBER = "5519997663848"; 
+        const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1517720759101952183/4Rzh6HdmlC-UW4sVYuDFkoGKVvv5rKM0i3HcoIedx7Iy013CDnMGkGmOLGLx_qxV7RaY"; 
+        // ==========================================
+
+        document.getElementById('mainWhatsappBtn').href = `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=Olá! Estou no site da RX-7 Store e gostaria de tirar uma dúvida.`;
+
+        let initialProducts = [
+            { id: 1, name: "Servidor Comunidade Standard", price: 30.00, desc: "Servidor básico e otimizado para comunidades. Configuração de cargos essenciais, bots de boas-vindas e suporte pós-compra para ajustes inclusos." },
+            { id: 2, name: "Servidor Gamer Premium + 14 Boosts", price: 90.00, desc: "Combo completo: Servidor gamer profissional configurado de ponta a ponta + Adicional de 14 Boosts inclusos. Suporte total pós-venda para alterações de salas." },
+            { id: 3, name: "Pacote de Impulsos: 14 Boosts", price: 60.00, desc: "Apenas os 14 Impulsos aplicados diretamente no seu servidor existente do Discord para atingir os níveis mais altos de vantagens." }
+        ];
+
+        if (!localStorage.getItem('rx7_products')) {
+            localStorage.setItem('rx7_products', JSON.stringify(initialProducts));
+        }
+
+        let products = JSON.parse(localStorage.getItem('rx7_products'));
+        let cart = [];
+        let isAdminLoggedIn = false;
+
+        function renderProducts() {
+            const grid = document.getElementById('productsGrid');
+            grid.innerHTML = '';
+            products.forEach(product => {
+                grid.innerHTML += `
+                    <div class="product-card">
+                        <div>
+                            <h3 class="product-title">${product.name}</h3>
+                            <p class="product-desc">${product.desc}</p>
+                        </div>
+                        <div>
+                            <div class="product-price">R$ ${product.price.toFixed(2).replace('.', ',')}</div>
+                            <button class="btn-buy" onclick="addToCart(${product.id})">
+                                <i class="fas fa-cart-plus"></i> Adicionar
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function addToCart(id) {
+            const product = products.find(p => p.id === id);
+            if (product) {
+                cart.push(product);
+                updateCartUI();
+                document.getElementById('orderSuccessArea').innerHTML = '';
+                document.getElementById('btnCheckout').style.display = 'block';
+            }
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            document.getElementById('cartCount').innerText = cart.length;
+            const container = document.getElementById('cartItemsContainer');
+            container.innerHTML = '';
+            
+            if (cart.length === 0) {
+                container.innerHTML = '<p style="color: #a0a0ba; text-align:center; padding: 20px 0;">Carrinho vazio.</p>';
+                document.getElementById('cartTotalValue').innerText = 'R$ 0,00';
+                return;
+            }
+
+            let total = 0;
+            cart.forEach((item, index) => {
+                total += item.price;
+                container.innerHTML += `
+                    <div class="cart-item">
+                        <div class="cart-item-info">
+                            <h4>${item.name}</h4>
+                            <p>R$ ${item.price.toFixed(2).replace('.', ',')}</p>
+                        </div>
+                        <button class="btn-remove" onclick="removeFromCart(${index})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+            });
+            document.getElementById('cartTotalValue').innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
+        }
+
+        function generateOrderID() {
+            const date = new Date();
+            const year = date.getFullYear().toString().substring(2);
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hour = String(date.getHours()).padStart(2, '0');
+            const min = String(date.getMinutes()).padStart(2, '0');
+            const randomFactor = Math.floor(1000 + Math.random() * 9000);
+            
+            return `RX7-${day}${month}${year}-${hour}${min}-${randomFactor}`;
+        }
+
+        function sendToDiscordWebhook(orderID, itemsList, totalValue) {
+            if (!DISCORD_WEBHOOK_URL) return;
+
+            let descriptionText = "";
+            itemsList.forEach(item => {
+                descriptionText += `• **${item.name}** - R$ ${item.price.toFixed(2)}\n`;
+            });
+
+            const embedData = {
+                username: "RX-7 Store Bot",
+                avatar_url: "https://i.imgur.com/wSTFkRM.png",
+                embeds: [{
+                    title: "📥 NOVO PEDIDO RECEBIDO",
+                    color: 65535,
+                    fields: [
+                        { name: "🆔 ID do Pedido", value: `\`${orderID}\``, inline: false },
+                        { name: "🛒 Produtos Selecionados", value: descriptionText, inline: false },
+                        { name: "💰 Valor Total", value: `**R$ ${totalValue.toFixed(2)}**`, inline: true },
+                        { name: "🛠️ Status", value: "Aguardando contato via WhatsApp", inline: true }
+                    ],
+                    footer: { text: "RX-7 Store | Monitoramento Automático de Vendas" },
+                    timestamp: new Date()
+                }]
+            };
+
+            fetch(DISCORD_WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(embedData)
+            }).catch(err => console.error("Erro ao enviar para o Discord:", err));
+        }
+
+        function checkout() {
+            if (cart.length === 0) {
+                alert("Adicione produtos antes de finalizar!");
+                return;
+            }
+            
+            const orderID = generateOrderID();
+            let total = 0;
+            cart.forEach(item => total += item.price);
+
+            sendToDiscordWebhook(orderID, cart, total);
+            
+            let message = `Olá RX-7 Store! Acabei de fechar um pedido no site.\n\n`;
+            message += `🆔 *ID do Pedido:* ${orderID}\n`;
+            message += `-------------------------\n`;
+            cart.forEach(item => { message += `- ${item.name}\n`; });
+            message += `-------------------------\n`;
+            message += `*Total:* R$ ${total.toFixed(2)}\n\n`;
+            message += `Estou te mandando o ID do pedido para você conferir no Discord!`;
+            
+            let whatsappUrl = `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${encodeURIComponent(message)}`;
+            
+            const successArea = document.getElementById('orderSuccessArea');
+            successArea.innerHTML = `
+                <div class="order-success-box">
+                    <p style="color: var(--neon-blue); font-weight: bold;"><i class="fas fa-check-circle"></i> PEDIDO GERADO NO SISTEMA!</p>
+                    <p style="font-size: 0.85rem; color: #a0a0ba; margin-top:5px;">Copie ou salve o ID abaixo:</p>
+                    <div class="order-id-display">${orderID}</div>
+                    <p style="font-size: 0.8rem; color: #8a8aa3;">Ele já foi enviado para o nosso Discord. Clique no botão abaixo para concluir o contato no WhatsApp.</p>
+                </div>
+            `;
+
+            const btnCheck = document.getElementById('btnCheckout');
+            btnCheck.innerText = "Ir para o WhatsApp agora";
+            btnCheck.onclick = function() {
+                window.open(whatsappUrl, '_blank');
+                cart = [];
+                updateCartUI();
+                toggleModal('cartModal');
+                successArea.innerHTML = '';
+                btnCheck.innerText = "Finalizar Pedido";
+                btnCheck.onclick = checkout;
+            };
+        }
+
+        function toggleModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
+        }
+
+        function openAdminClick() {
+            if (isAdminLoggedIn) {
+                renderAdminTable();
+                toggleModal('adminPanelModal');
+            } else {
+                toggleModal('loginModal');
+            }
+        }
+
+        // ATUALIZADO: Login agora é "ratao246"
+        function handleLogin(e) {
+            e.preventDefault();
+            const user = document.getElementById('adminUser').value;
+            const pass = document.getElementById('adminPass').value;
+
+            if (user === 'ratao246' && pass === '245677') {
+                isAdminLoggedIn = true;
+                toggleModal('loginModal');
+                renderAdminTable();
+                toggleModal('adminPanelModal');
+                document.getElementById('adminUser').value = '';
+                document.getElementById('adminPass').value = '';
+            } else {
+                alert("[ALERTA CRÍTICO]: Credenciais de moderação incorretas.");
+            }
+        }
+
+        function renderAdminTable() {
+            const tbody = document.getElementById('adminProductsTable');
+            tbody.innerHTML = '';
+            products.forEach(product => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td><span class="badge">Discord</span> ${product.name}</td>
+                        <td>R$ ${product.price.toFixed(2)}</td>
+                        <td class="action-btns">
+                            <button class="btn-edit" onclick="loadEditProduct(${product.id})"><i class="fas fa-edit"></i></button>
+                            <button class="btn-delete" onclick="deleteProduct(${product.id})"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function handleProductSubmit(e) {
+            e.preventDefault();
+            const id = document.getElementById('editProductId').value;
+            const name = document.getElementById('prodName').value;
+            const price = parseFloat(document.getElementById('prodPrice').value);
+            const desc = document.getElementById('prodDesc').value;
+
+            if (id) {
+                products = products.map(p => p.id == id ? { id: parseInt(id), name, price, desc } : p);
+            } else {
+                const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
+                products.push({ id: newId, name, price, desc });
+            }
+
+            localStorage.setItem('rx7_products', JSON.stringify(products));
+            renderProducts();
+            renderAdminTable();
+            resetProductForm();
+        }
+
+        function loadEditProduct(id) {
+            const product = products.find(p => p.id === id);
+            if (product) {
+                document.getElementById('editProductId').value = product.id;
+                document.getElementById('prodName').value = product.name;
+                document.getElementById('prodPrice').value = product.price;
+                document.getElementById('prodDesc').value = product.desc;
+                document.getElementById('formAdminTitle').innerText = "Editar Produto Existente";
+                document.getElementById('btnSaveProduct').innerText = "Atualizar Sistema";
+                document.getElementById('btnCancelEdit').style.display = "block";
+            }
+        }
+
+        function deleteProduct(id) {
+            if (confirm("Deseja realmente apagar este produto?")) {
+                products = products.filter(p => p.id !== id);
+                localStorage.setItem('rx7_products', JSON.stringify(products));
+                renderProducts();
+                renderAdminTable();
+            }
+        }
+
+        function resetProductForm() {
+            document.getElementById('editProductId').value = '';
+            document.getElementById('productForm').reset();
+            document.getElementById('formAdminTitle').innerText = "Adicionar Novo Produto";
+            document.getElementById('btnSaveProduct').innerText = "Salvar no Banco de Dados";
+            document.getElementById('btnCancelEdit').style.display = "none";
+        }
+
+        // ==========================================
+        // SISTEMA DE SEGURANÇA CONTRA CÓPIAS / CLONES
+        // ==========================================
+        document.addEventListener('contextmenu', function(evento) {
+            evento.preventDefault();
+            alert("[SISTEMA PROTEGIDO]: O menu de contexto e salvamento de arquivos foi desativado na RX-7 Store.");
+        });
+
+        document.addEventListener('keydown', function(evento) {
+            if (evento.ctrlKey && evento.key === 's') {
+                evento.preventDefault();
+                alert("[ALERTA]: Clonagem de dados locais bloqueada.");
+            }
+            if (evento.ctrlKey && evento.key === 'u') {
+                evento.preventDefault();
+            }
+            if (evento.key === 'F12') {
+                evento.preventDefault();
+            }
+            if (evento.ctrlKey && evento.shiftKey && evento.key === 'I') {
+                evento.preventDefault();
+            }
+        });
+
+        renderProducts();
+    </script>
+</body>
+</html>
