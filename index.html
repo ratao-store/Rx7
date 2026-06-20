@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rx7 Store - Web site</title>
     
-    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1ZtC-xNfL3pD6fD6x9v60O23p9_Z9_m60">
+    <link rel="icon" type="image/jpeg" href="favicon.jpeg">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -60,13 +60,25 @@
             z-index: 100;
         }
 
+        /* AJUSTE NA LOGO PARA ALINHAR A IMAGEM COM O TEXTO */
         .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
             font-size: 24px;
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 2px;
             color: #fff;
             text-shadow: 0 0 10px var(--neon-blue), 0 0 20px var(--neon-blue);
+        }
+
+        .logo img {
+            width: 42px;
+            height: 42px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px var(--neon-blue);
+            object-fit: cover;
         }
 
         .logo span {
@@ -260,7 +272,6 @@
             white-space: pre-wrap;
         }
 
-        /* ESTILIZAÇÃO DO LINK DO DISCORD DENTRO DA DESCRIÇÃO */
         .product-desc a {
             color: var(--neon-blue);
             text-decoration: underline;
@@ -559,7 +570,10 @@
 <body>
 
     <header>
-        <div class="logo">RX7 <span>Store</span></div>
+        <div class="logo">
+            <img src="favicon.jpeg" alt="Logo Rx7">
+            RX7 <span>Store</span>
+        </div>
         <div class="nav-buttons">
             <button class="btn-icon" onclick="toggleModal('cartModal')">
                 <i class="fas fa-shopping-cart"></i>
@@ -593,7 +607,7 @@
     </div>
 
     <section class="products-section" id="shopContentArea">
-        </section>
+    </section>
 
     <a href="#" class="whatsapp-float" target="_blank" id="mainWhatsappBtn">
         <i class="fab fa-whatsapp"></i>
@@ -702,10 +716,8 @@
         let cart = [];
         let isAdminLoggedIn = false;
 
-        // FUNÇÃO PARA PEGAR O TEXTO DO FIREBASE E TRANSFORMAR OS LINKS EM AZUL CLICÁVEL
         function formatTextWithLinks(text) {
             if (!text) return "";
-            // Expressão regular para achar links que começam com http:// ou https://
             const urlPattern = /(\b(https?):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gim;
             return text.replace(urlPattern, '<a href="$1" target="_blank">$1</a>');
         }
@@ -757,7 +769,6 @@
                 `;
 
                 categoriesMap[categoryTitle].forEach(product => {
-                    // Aqui aplicamos a função de formatar os links para rodar em tempo real
                     const descriptionFormatted = formatTextWithLinks(product.desc);
 
                     categoryHtml += `
