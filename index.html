@@ -741,56 +741,6 @@
                 `;
 
                 categoriesMap[categoryTitle].forEach(product => {
-                    // ========================================================
-                    // DETECTOR AUTOMÁTICO DE LINKS DO DISCORD
-                    // ========================================================
-                    let formattedDesc = product.desc;
-                    const discordLinkRegex = /(https?:\/\/discord\.(gg|com)\/[^\s]+)/g;
-                    
-                    if (discordLinkRegex.test(formattedDesc)) {
-                        formattedDesc = formattedDesc.replace(discordLinkRegex, (match) => {
-                            return `<a href="${match}" target="_blank" style="color: var(--neon-blue); text-decoration: underline; font-weight: 600; text-shadow: 0 0 8px rgba(0, 243, 255, 0.4); pointer-events: auto;">${match}</a>`;
-                        });
-                    }
-
-                    categoryHtml += `
-                        <div class="product-card">
-                            <div>
-                                <h3 class="product-title">${product.name}</h3>
-                                <p class="product-desc">${formattedDesc}</p>
-                            </div>
-                            <div>
-                                <div class="product-price">R$ ${product.price.toFixed(2).replace('.', ',')}</div>
-                                <button class="btn-buy" onclick="addToCart('${product.id_fb}')">
-                                    <i class="fas fa-cart-plus"></i> Adicionar
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                });
-
-                categoryHtml += `</div></div>`;
-                shopArea.innerHTML += categoryHtml;
-            }
-        }
-
-            // Separa os itens em caixas de categorias
-            const categoriesMap = {};
-            products.forEach(product => {
-                const catName = product.category || "Geral";
-                if (!categoriesMap[catName]) categoriesMap[catName] = [];
-                categoriesMap[catName].push(product);
-            });
-
-            // Cria o HTML na tela para cada categoria separadamente
-            for (let categoryTitle in categoriesMap) {
-                let categoryHtml = `
-                    <div class="category-container">
-                        <h2 class="section-title">${categoryTitle}</h2>
-                        <div class="products-grid">
-                `;
-
-                categoriesMap[categoryTitle].forEach(product => {
                     categoryHtml += `
                         <div class="product-card">
                             <div>
