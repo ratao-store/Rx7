@@ -257,6 +257,20 @@
             white-space: pre-wrap;
         }
 
+        /* ESTILIZAÇÃO DO LINK DO DISCORD DENTRO DA DESCRIÇÃO */
+        .product-desc a {
+            color: var(--neon-blue);
+            text-decoration: underline;
+            font-weight: 600;
+            transition: 0.2s;
+            word-break: break-all;
+        }
+
+        .product-desc a:hover {
+            color: #fff;
+            text-shadow: 0 0 8px var(--neon-blue);
+        }
+
         .product-price {
             font-size: 1.6rem;
             font-weight: bold;
@@ -410,7 +424,6 @@
             .admin-layout { grid-template-columns: 1fr 1.2fr; }
         }
 
-        /* ESTILOS DA LISTA ARRÁSTAVEL */
         .sortable-list {
             background: rgba(255, 255, 255, 0.02);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -664,9 +677,6 @@
     </div>
 
     <script>
-        // ========================================================
-        // CREDENCIAIS PRESERVADAS DO SEU PROJETO
-        // ========================================================
         const firebaseConfig = {
             apiKey: "AIzaSyB7cxrpXsf_abhtCeEsh9yURrt9GNcn1eM",
             authDomain: "rx7-store.firebaseapp.com",
@@ -689,7 +699,14 @@
         let cart = [];
         let isAdminLoggedIn = false;
 
-        // PUXA OS PRODUTOS ORDENADOS DO FIREBASE
+        // FUNÇÃO PARA PEGAR O TEXTO DO FIREBASE E TRANSFORMAR OS LINKS EM AZUL CLICÁVEL
+        function formatTextWithLinks(text) {
+            if (!text) return "";
+            // Expressão regular para achar links que começam com http:// ou https://
+            const urlPattern = /(\b(https?):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gim;
+            return text.replace(urlPattern, '<a href="$1" target="_blank">$1</a>');
+        }
+
         database.ref('products').on('value', (snapshot) => {
             const data = snapshot.val();
             products = [];
@@ -697,7 +714,6 @@
                 for (let id in data) {
                     products.push({ id_fb: id, ...data[id] });
                 }
-                // Ordena os produtos pela propriedade 'displayOrder' se ela existir
                 products.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
             } else {
                 const initialProducts = [
@@ -714,7 +730,6 @@
             if (isAdminLoggedIn) renderAdminSortableList();
         });
 
-        // EXIBE OS PRODUTOS NA VITRINE AGRUPADOS POR SEÇÃO (CATEGORIA)
         function renderStorefront() {
             const shopArea = document.getElementById('shopContentArea');
             shopArea.innerHTML = '';
@@ -724,7 +739,6 @@
                 return;
             }
 
-            // Separa os itens em caixas de categorias
             const categoriesMap = {};
             products.forEach(product => {
                 const catName = product.category || "Geral";
@@ -732,7 +746,6 @@
                 categoriesMap[catName].push(product);
             });
 
-            // Cria o HTML na tela para cada categoria separadamente
             for (let categoryTitle in categoriesMap) {
                 let categoryHtml = `
                     <div class="category-container">
@@ -741,11 +754,14 @@
                 `;
 
                 categoriesMap[categoryTitle].forEach(product => {
+                    // Aqui aplicamos a função de formatar os links para rodar em tempo real
+                    const descriptionFormatted = formatTextWithLinks(product.desc);
+
                     categoryHtml += `
                         <div class="product-card">
                             <div>
                                 <h3 class="product-title">${product.name}</h3>
-                                <p class="product-desc">${product.desc}</p>
+                                <p class="product-desc">${descriptionFormatted}</p>
                             </div>
                             <div>
                                 <div class="product-price">R$ ${product.price.toFixed(2).replace('.', ',')}</div>
@@ -762,7 +778,6 @@
             }
         }
 
-        // MONTA A LISTA DE ARRASTAR NO ADMIN
         function renderAdminSortableList() {
             const container = document.getElementById('sortableListContainer');
             container.innerHTML = '';
@@ -794,7 +809,6 @@
             initDragAndDrop();
         }
 
-        // CONTROLE VISUAL DO SELETOR DE NOVA CATEGORIA
         function checkNewCategoryField() {
             const select = document.getElementById('prodCategorySelect');
             const newField = document.getElementById('prodCategoryNew');
@@ -807,12 +821,10 @@
             }
         }
 
-        // MANTÉM AS CATEGORIAS DO MENU ATUALIZADAS CONFORME O QUE JÁ EXISTE NO BANCO
         function updateCategorySelectors() {
             const select = document.getElementById('prodCategorySelect');
             const savedValue = select.value;
             
-            // Pega categorias únicas criadas
             const distinctCategories = [];
             products.forEach(p => {
                 if (p.category && !distinctCategories.includes(p.category)) {
@@ -820,7 +832,6 @@
                 }
             });
 
-            // Se não houver nada cadastrado ainda, mantém padrões seguros
             if (!distinctCategories.includes("Servidores")) distinctCategories.push("Servidores");
             if (!distinctCategories.includes("Impulsos")) distinctCategories.push("Impulsos");
 
@@ -835,7 +846,6 @@
             }
         }
 
-        // LÓGICA COMPLETA DE ARRASTAR E REORDENAR COM O MOUSE
         function initDragAndDrop() {
             const list = document.getElementById('sortableListContainer');
             const items = list.querySelectorAll('.sortable-item');
@@ -863,21 +873,18 @@
             });
         }
 
-        // SALVA A ORDEM DA LISTA ARRASTADA DIRETO NO FIREBASE
         function saveNewOrderToFirebase() {
             const list = document.getElementById('sortableListContainer');
             const items = [...list.querySelectorAll('.sortable-item')];
             
             items.forEach((item, index) => {
                 const idFb = item.getAttribute('data-id');
-                // Salva o número da nova posição (displayOrder)
                 database.ref(`products/${idFb}`).update({
                     displayOrder: index + 1
                 });
             });
         }
 
-        // PREENCHE OS CAMPOS PARA EDITAR UM PRODUTO EXISTENTE
         function loadEditProduct(idFb) {
             const product = products.find(p => p.id_fb === idFb);
             if (!product) return;
@@ -897,7 +904,6 @@
             document.getElementById('btnCancelEdit').style.display = "block";
         }
 
-        // ADICIONA OU ATUALIZA PRODUTOS NO BANCO DE DADOS
         function handleProductSubmit(e) {
             e.preventDefault();
             const idFb = document.getElementById('editProductId').value;
@@ -913,11 +919,9 @@
             if (!category) category = "Geral";
 
             if (idFb) {
-                // Atualiza produto mantendo a ordem atual
                 database.ref(`products/${idFb}`).update({ name, price, desc, category })
                     .then(() => resetProductForm());
             } else {
-                // Adiciona um novo produto no final da fila da listagem
                 const nextOrder = products.length > 0 ? Math.max(...products.map(p => p.displayOrder || 0)) + 1 : 1;
                 const newProduct = { name, price, desc, category, displayOrder: nextOrder };
                 
@@ -942,7 +946,6 @@
             document.getElementById('btnCancelEdit').style.display = "none";
         }
 
-        // SISTEMA DO CARRINHO
         function addToCart(idFb) {
             const product = products.find(p => p.id_fb === idFb);
             if (product) {
@@ -1106,7 +1109,6 @@
             }
         }
 
-        // ANTI-CLIQUE DIREITO EMBUTIDO
         document.addEventListener('contextmenu', function(e) {
             e.preventDefault();
             alert("[SISTEMA DE SEGURANÇA]: Essa função foi desativada.");
@@ -1114,4 +1116,3 @@
     </script>
 </body>
 </html>
-
