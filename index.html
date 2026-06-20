@@ -714,7 +714,7 @@
             if (isAdminLoggedIn) renderAdminSortableList();
         });
 
-        // EXIBE OS PRODUTOS NA VITRINE AGRUPADOS POR SEÇÃO (CATEGORIA)
+// EXIBE OS PRODUTOS NA VITRINE AGRUPADOS POR SEÇÃO (CATEGORIA)
         function renderStorefront() {
             const shopArea = document.getElementById('shopContentArea');
             shopArea.innerHTML = '';
@@ -741,11 +741,23 @@
                 `;
 
                 categoriesMap[categoryTitle].forEach(product => {
+                    // ========================================================
+                    // DETECTOR AUTOMÁTICO DE LINKS DO DISCORD
+                    // ========================================================
+                    let formattedDesc = product.desc;
+                    const discordLinkRegex = /(https?:\/\/discord\.(gg|com)\/[^\s]+)/g;
+                    
+                    if (discordLinkRegex.test(formattedDesc)) {
+                        formattedDesc = formattedDesc.replace(discordLinkRegex, (match) => {
+                            return `<a href="${match}" target="_blank" style="color: var(--neon-blue); text-decoration: underline; font-weight: 600; text-shadow: 0 0 8px rgba(0, 243, 255, 0.4); pointer-events: auto;">${match}</a>`;
+                        });
+                    }
+
                     categoryHtml += `
                         <div class="product-card">
                             <div>
                                 <h3 class="product-title">${product.name}</h3>
-                                <p class="product-desc">${product.desc}</p>
+                                <p class="product-desc">${formattedDesc}</p>
                             </div>
                             <div>
                                 <div class="product-price">R$ ${product.price.toFixed(2).replace('.', ',')}</div>
@@ -761,7 +773,6 @@
                 shopArea.innerHTML += categoryHtml;
             }
         }
-
         // MONTA A LISTA DE ARRASTAR NO ADMIN
         function renderAdminSortableList() {
             const container = document.getElementById('sortableListContainer');
