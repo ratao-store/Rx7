@@ -618,44 +618,90 @@
             user-select: all;
         }
 
-        /* ESTILIZAÇÃO DO NOVO RODAPÉ (TERMOS E GARANTIA) */
+        /* AJUSTE DO BOTÃO DE TERMOS DO RODAPÉ (CONFORME IMAGEM) */
+        .terms-footer-link {
+            background: none;
+            border: none;
+            color: var(--neon-blue);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
+            transition: 0.3s;
+            text-decoration: none;
+        }
+
+        .terms-footer-link:hover {
+            color: #fff;
+            text-shadow: 0 0 10px var(--neon-blue);
+        }
+
+        /* ESTILIZAÇÃO DO NOVO RODAPÉ TOTALMENTE LIMPO */
         footer {
             background: rgba(10, 10, 18, 0.9);
             border-top: 1px solid rgba(0, 243, 255, 0.2);
-            padding: 40px 5% 20px;
+            padding: 30px 5% 20px;
             margin-top: 50px;
         }
 
-        .footer-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 30px;
+        .footer-bottom {
+            text-align: center;
+            font-size: 0.85rem;
+            color: #656582;
+            line-height: 1.8;
         }
 
-        .footer-section h3 {
+        /* ESTILO INTERNO DO MODAL DE TERMOS */
+        .terms-modal-body {
+            max-height: 60vh;
+            overflow-y: auto;
+            padding-right: 10px;
+            margin-top: 20px;
+        }
+
+        .terms-modal-body::-webkit-scrollbar {
+            width: 6px;
+        }
+        .terms-modal-body::-webkit-scrollbar-thumb {
+            background: var(--neon-blue);
+            border-radius: 4px;
+        }
+
+        .terms-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 25px;
+        }
+
+        @media(min-width: 768px) {
+            .terms-grid { grid-template-columns: 1fr 1fr; }
+        }
+
+        .terms-block h3 {
             color: #fff;
             font-size: 1.1rem;
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             border-left: 3px solid var(--neon-pink);
             padding-left: 10px;
         }
 
-        .footer-section p {
-            font-size: 0.85rem;
+        .terms-block p {
+            font-size: 0.9rem;
             color: #a0a0ba;
             line-height: 1.6;
         }
 
-        .footer-section ul {
+        .terms-block ul {
             list-style: none;
         }
 
-        .footer-section ul li {
-            font-size: 0.85rem;
+        .terms-block ul li {
+            font-size: 0.9rem;
             color: #a0a0ba;
             margin-bottom: 8px;
             display: flex;
@@ -663,18 +709,9 @@
             gap: 8px;
         }
 
-        .footer-section ul li i {
+        .terms-block ul li i {
             color: var(--neon-blue);
             font-size: 12px;
-        }
-
-        .footer-bottom {
-            text-align: center;
-            margin-top: 35px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-            font-size: 0.8rem;
-            color: #656582;
         }
     </style>
 
@@ -701,6 +738,7 @@
                 <div class="dropdown-menu" id="adminDropdown">
                     <a href="#shopContentArea">Ver Produtos</a>
                     <a href="https://discord.gg/SEU_CONVITE" target="_blank">Nosso Discord</a>
+                    <button onclick="toggleModal('termsModal')">Termos de Uso</button>
                     <button onclick="openAdminClick()">Painel Admin</button>
                 </div>
             </div>
@@ -734,32 +772,45 @@
     </section>
 
     <footer>
-        <div class="footer-container">
-            <div class="footer-section">
-                <h3>Termos de Serviço</h3>
-                <p>Ao realizar um pedido em nossa plataforma, você concorda com a entrega direta via Discord ou WhatsApp. O prazo padrão de início do atendimento varia conforme a fila de produção ativa na central.</p>
-            </div>
-            <div class="footer-section">
-                <h3>Garantia e Suporte</h3>
-                <p>Oferecemos garantia de estabilidade estrutural em todos os servidores entregues de forma personalizada. Alterações básicas, ajustes e pós-venda técnico estão cobertos conforme o pacote adquirido.</p>
-            </div>
-            <div class="footer-section">
-                <h3>Regras de Uso</h3>
-                <ul>
-                    <li><i class="fas fa-check"></i> Proibida a revenda sem autorização expressa.</li>
-                    <li><i class="fas fa-check"></i> Suporte oficial ativo apenas pelos nossos canais.</li>
-                    <li><i class="fas fa-check"></i> Transações seguras integradas diretamente com PIX.</li>
-                </ul>
-            </div>
-        </div>
         <div class="footer-bottom">
-            &copy; 2026 RX7 Store. Todos os direitos reservados. Design e Infraestrutura de Comunidades Elite.
+            &copy; 2026 RX7 Store. Todos os direitos reservados.<br>
+            <button class="terms-footer-link" onclick="toggleModal('termsModal')">
+                <i class="fa-regular fa-file-lines"></i> Termos de Uso & Garantia
+            </button>
         </div>
     </footer>
 
     <a href="#" class="whatsapp-float" target="_blank" id="mainWhatsappBtn">
         <i class="fab fa-whatsapp"></i>
     </a>
+
+    <div id="termsModal" class="modal">
+        <div class="modal-content modal-content-large" style="max-width: 800px;">
+            <i class="fas fa-times close-modal" onclick="toggleModal('termsModal')"></i>
+            <h2 class="section-title" style="margin-bottom: 10px;">Termos de Uso & Diretrizes</h2>
+            
+            <div class="terms-modal-body">
+                <div class="terms-grid">
+                    <div class="terms-block">
+                        <h3>Termos de Serviço</h3>
+                        <p>Ao realizar um pedido em nossa plataforma, você concorda com a entrega direta via Discord ou WhatsApp. O prazo padrão de início do atendimento varia conforme a fila de produção ativa na central.</p>
+                    </div>
+                    <div class="terms-block">
+                        <h3>Garantia e Suporte</h3>
+                        <p>Oferecemos garantia de estabilidade estrutural em todos os servidores entregues de forma personalizada. Alterações básicas, ajustes e pós-venda técnico estão cobertos conforme o pacote adquirido.</p>
+                    </div>
+                    <div class="terms-block" style="grid-column: 1 / -1;">
+                        <h3>Regras de Uso</h3>
+                        <ul>
+                            <li><i class="fas fa-check"></i> Proibida a revenda sem autorização expressa.</li>
+                            <li><i class="fas fa-check"></i> Suporte oficial ativo apenas pelos nossos canais.</li>
+                            <li><i class="fas fa-check"></i> Transações seguras integradas diretamente com PIX.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div id="cartModal" class="modal">
         <div class="modal-content">
