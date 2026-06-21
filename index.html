@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rx7 Store - Web site</title>
     
-    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1ZtC-xNfL3pD6fD6x9v60O23p9_Z9_m60">
+    <link rel="icon" type="image/jpeg" href="favicon.jpeg">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -61,12 +61,23 @@
         }
 
         .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
             font-size: 24px;
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 2px;
             color: #fff;
             text-shadow: 0 0 10px var(--neon-blue), 0 0 20px var(--neon-blue);
+        }
+
+        .logo img {
+            width: 42px;
+            height: 42px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px var(--neon-blue);
+            object-fit: cover;
         }
 
         .logo span {
@@ -78,6 +89,7 @@
             display: flex;
             gap: 20px;
             align-items: center;
+            position: relative;
         }
 
         .btn-icon {
@@ -108,140 +120,58 @@
             box-shadow: 0 0 8px var(--neon-pink);
         }
 
-        .btn-admin {
-            background: transparent;
-            border: 1px solid var(--neon-purple);
-            color: #fff;
-            padding: 8px 16px;
-            border-radius: 4px;
+        /* MENU DISCRETO DE TRÊS PONTINHOS AJUSTADO PARA A DIREITA */
+        .admin-dropdown-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .btn-dots {
+            background: none;
+            border: none;
+            color: #8a8aa3;
+            font-size: 18px;
             cursor: pointer;
-            font-weight: 600;
-            letter-spacing: 1px;
-            transition: 0.3s;
-            box-shadow: 0 0 5px rgba(176, 38, 255, 0.3);
-        }
-
-        .btn-admin:hover {
-            background: var(--neon-purple);
-            box-shadow: 0 0 15px var(--neon-purple);
-            transform: translateY(-2px);
-        }
-
-        /* ESTILIZAÇÃO DO MENU LATERAL (SIDEBAR) */
-        .sidebar-menu {
-            position: fixed;
-            top: 0;
-            right: -300px;
-            width: 300px;
-            height: 100%;
-            background: #0e0e1a;
-            border-left: 2px solid var(--neon-blue);
-            box-shadow: -5px 0 20px rgba(0, 243, 255, 0.2);
-            z-index: 1000;
-            transition: 0.4s ease;
-            padding: 30px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .sidebar-menu.active {
-            right: 0;
-        }
-
-        .sidebar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 40px;
-            border-bottom: 1px solid rgba(0, 243, 255, 0.2);
-            padding-bottom: 15px;
-        }
-
-        .sidebar-header h3 {
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #fff;
-            font-size: 1.2rem;
-            text-shadow: 0 0 8px var(--neon-blue);
-        }
-
-        .sidebar-close {
-            color: #fff;
-            font-size: 22px;
-            cursor: pointer;
+            padding: 5px;
             transition: 0.3s;
         }
 
-        .sidebar-close:hover {
-            color: var(--neon-pink);
-        }
-
-        .sidebar-links {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .sidebar-links a {
-            color: var(--text-color);
-            text-decoration: none;
-            font-size: 1.1rem;
-            font-weight: 500;
-            transition: 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .sidebar-links a:hover {
+        .btn-dots:hover {
             color: var(--neon-blue);
-            text-shadow: 0 0 8px var(--neon-blue);
-            transform: translateX(5px);
+            text-shadow: 0 0 10px var(--neon-blue);
         }
 
-        .sidebar-links .admin-link {
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px dashed rgba(255, 255, 255, 0.1);
-        }
-
-        .sidebar-links .admin-link a {
-            color: #a0a0ba;
-        }
-
-        .sidebar-links .admin-link a:hover {
-            color: var(--neon-purple);
-            text-shadow: 0 0 8px var(--neon-purple);
-        }
-
-        /* ESTILOS DE DESCONTO E PROMOÇÃO */
-        .price-container {
-            display: flex;
-            flex-direction: column;
-            margin-bottom: 20px;
-        }
-
-        .old-price {
-            font-size: 1rem;
-            color: #71718a;
-            text-decoration: line-through;
-            margin-bottom: 2px;
-        }
-
-        .discount-badge {
+        .dropdown-menu {
+            display: none;
             position: absolute;
-            top: 15px;
-            right: 15px;
-            background: linear-gradient(135deg, var(--neon-pink), #ff00a0);
-            color: #fff;
-            font-size: 0.75rem;
-            font-weight: bold;
-            padding: 4px 8px;
-            border-radius: 4px;
-            text-transform: uppercase;
-            box-shadow: 0 0 10px var(--neon-pink);
-            z-index: 2;
+            right: 0;
+            top: 35px;
+            background: #10101c;
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            border-radius: 6px;
+            min-width: 150px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            z-index: 200;
+        }
+
+        .dropdown-menu button, .dropdown-menu a {
+            display: block;
+            background: none;
+            border: none;
+            color: #a0a0ba;
+            width: 100%;
+            padding: 12px 15px;
+            text-align: left;
+            font-size: 0.9rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: 0.2s;
+            box-sizing: border-box;
+        }
+
+        .dropdown-menu button:hover, .dropdown-menu a:hover {
+            background: rgba(0, 243, 255, 0.1);
+            color: var(--neon-blue);
         }
 
         .hero {
@@ -377,7 +307,6 @@
             white-space: pre-wrap;
         }
 
-        /* ESTILIZAÇÃO DO LINK DO DISCORD DENTRO DA DESCRIÇÃO */
         .product-desc a {
             color: var(--neon-blue);
             text-decoration: underline;
@@ -395,8 +324,28 @@
             font-size: 1.6rem;
             font-weight: bold;
             color: var(--neon-blue);
-            margin-bottom: 0px;
+            margin-bottom: 20px;
             text-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
+        }
+
+        .price-original {
+            font-size: 1.1rem;
+            color: #656582;
+            text-decoration: line-through;
+            margin-right: 8px;
+            font-weight: normal;
+        }
+
+        .discount-badge {
+            background: var(--neon-pink);
+            color: white;
+            font-size: 0.75rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 8px;
+            vertical-align: middle;
+            text-shadow: none;
+            box-shadow: 0 0 8px var(--neon-pink);
         }
 
         .btn-buy {
@@ -668,6 +617,65 @@
             margin: 10px 0;
             user-select: all;
         }
+
+        /* ESTILIZAÇÃO DO NOVO RODAPÉ (TERMOS E GARANTIA) */
+        footer {
+            background: rgba(10, 10, 18, 0.9);
+            border-top: 1px solid rgba(0, 243, 255, 0.2);
+            padding: 40px 5% 20px;
+            margin-top: 50px;
+        }
+
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+        }
+
+        .footer-section h3 {
+            color: #fff;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--neon-pink);
+            padding-left: 10px;
+        }
+
+        .footer-section p {
+            font-size: 0.85rem;
+            color: #a0a0ba;
+            line-height: 1.6;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section ul li {
+            font-size: 0.85rem;
+            color: #a0a0ba;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .footer-section ul li i {
+            color: var(--neon-blue);
+            font-size: 12px;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            margin-top: 35px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.8rem;
+            color: #656582;
+        }
     </style>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -676,36 +684,31 @@
 <body>
 
     <header>
-        <div class="logo">RX7 <span>Store</span></div>
+        <div class="logo">
+            <img src="favicon.jpeg" alt="Logo Rx7">
+            RX7 <span>Store</span>
+        </div>
         <div class="nav-buttons">
             <button class="btn-icon" onclick="toggleModal('cartModal')">
                 <i class="fas fa-shopping-cart"></i>
                 <span class="cart-count" id="cartCount">0</span>
             </button>
-            <button class="btn-icon" onclick="toggleSidebar()">
-                <i class="fas fa-ellipsis-v"></i>
-            </button>
+            
+            <div class="admin-dropdown-container">
+                <button class="btn-dots" onclick="toggleDropdown(event)">
+                    <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <div class="dropdown-menu" id="adminDropdown">
+                    <a href="#shopContentArea">Ver Produtos</a>
+                    <a href="https://discord.gg/SEU_CONVITE" target="_blank">Nosso Discord</a>
+                    <button onclick="openAdminClick()">Painel Admin</button>
+                </div>
+            </div>
         </div>
     </header>
 
-    <div id="sidebarMenu" class="sidebar-menu">
-        <div class="sidebar-header">
-            <h3>Opções da Loja</h3>
-            <i class="fas fa-times sidebar-close" onclick="toggleSidebar()"></i>
-        </div>
-        <ul class="sidebar-links">
-            <li><a href="#shopContentArea" onclick="toggleSidebar()"><i class="fas fa-store"></i> Ver Produtos</a></li>
-            <li><a href="#" onclick="toggleSidebar(); toggleModal('cartModal')"><i class="fas fa-shopping-basket"></i> Meu Carrinho</a></li>
-            <li><a href="https://discord.gg/" target="_blank"><i class="fab fa-discord"></i> Nosso Discord</a></li>
-            
-            <li class="admin-link">
-                <a href="#" onclick="toggleSidebar(); openAdminClick()"><i class="fas fa-user-shield"></i> Moderação (Painel Admin)</a>
-            </li>
-        </ul>
-    </div>
-
     <section class="hero">
-        <h1>Discord Servers</h1>
+        <h1>Arraste para baixo</h1>
         <p>Eleve sua comunidade para o próximo nível com servidores totalmente configurados, design futurista e infraestrutura premium.</p>
     </section>
     
@@ -718,7 +721,7 @@
         <div class="feature-card">
             <i class="fas fa-headset"></i>
             <h3>Pós-Compra Incluído</h3>
-            <p>Suporte técnico completo! Precisa mexer, criar ou configurar novos canais? Nós fazemos tudo para você.</p>
+            <p>Suporte técnico completo! Precisa mexer, criar ou configure novos canais? Nós fazemos tudo para você.</p>
         </div>
         <div class="feature-card">
             <i class="fas fa-shield-halved"></i>
@@ -728,7 +731,31 @@
     </div>
 
     <section class="products-section" id="shopContentArea">
-        </section>
+    </section>
+
+    <footer>
+        <div class="footer-container">
+            <div class="footer-section">
+                <h3>Termos de Serviço</h3>
+                <p>Ao realizar um pedido em nossa plataforma, você concorda com a entrega direta via Discord ou WhatsApp. O prazo padrão de início do atendimento varia conforme a fila de produção ativa na central.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Garantia e Suporte</h3>
+                <p>Oferecemos garantia de estabilidade estrutural em todos os servidores entregues de forma personalizada. Alterações básicas, ajustes e pós-venda técnico estão cobertos conforme o pacote adquirido.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Regras de Uso</h3>
+                <ul>
+                    <li><i class="fas fa-check"></i> Proibida a revenda sem autorização expressa.</li>
+                    <li><i class="fas fa-check"></i> Suporte oficial ativo apenas pelos nossos canais.</li>
+                    <li><i class="fas fa-check"></i> Transações seguras integradas diretamente com PIX.</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            &copy; 2026 RX7 Store. Todos os direitos reservados. Design e Infraestrutura de Comunidades Elite.
+        </div>
+    </footer>
 
     <a href="#" class="whatsapp-float" target="_blank" id="mainWhatsappBtn">
         <i class="fab fa-whatsapp"></i>
@@ -780,15 +807,14 @@
                             <label>Nome do Servidor/Pacote</label>
                             <input type="text" id="prodName" class="form-control" required placeholder="Ex: Servidor de Games Elite">
                         </div>
-                        
                         <div class="form-group">
-                            <label>Preço Antigo / Sem Desconto (R$ - Opcional)</label>
-                            <input type="number" id="prodOldPrice" class="form-control" step="0.01" placeholder="Ex: 50.00 (Deixe vazio se não houver promoção)">
+                            <label>Preço original (R$)</label>
+                            <input type="number" id="prodPrice" class="form-control" step="0.01" required placeholder="30">
                         </div>
 
                         <div class="form-group">
-                            <label>Preço Atual / Com Desconto (R$)</label>
-                            <input type="number" id="prodPrice" class="form-control" step="0.01" required placeholder="30">
+                            <label>Desconto (%)</label>
+                            <input type="number" id="prodDiscount" class="form-control" min="0" max="100" value="0" placeholder="Ex: 10 para 10% de desconto">
                         </div>
 
                         <div class="form-group">
@@ -843,16 +869,18 @@
         let cart = [];
         let isAdminLoggedIn = false;
 
-        // CONTROLE DO MENU LATERAL (SIDEBAR)
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebarMenu');
-            sidebar.classList.toggle('active');
+        function toggleDropdown(event) {
+            event.stopPropagation();
+            const dropdown = document.getElementById('adminDropdown');
+            dropdown.style.display = (dropdown.style.display === 'block') ? 'none' : 'block';
         }
 
-        // FUNÇÃO PARA PEGAR O TEXTO DO FIREBASE E TRANSFORMAR OS LINKS EM AZUL CLICÁVEL
+        document.addEventListener('click', function() {
+            document.getElementById('adminDropdown').style.display = 'none';
+        });
+
         function formatTextWithLinks(text) {
             if (!text) return "";
-            // Expressão regular para achar links que começam com http:// ou https://
             const urlPattern = /(\b(https?):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gim;
             return text.replace(urlPattern, '<a href="$1" target="_blank">$1</a>');
         }
@@ -867,9 +895,9 @@
                 products.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
             } else {
                 const initialProducts = [
-                    { name: "Servidor Comunidade Standard", price: 30.00, oldPrice: 45.00, desc: "Servidor básico e otimizado para comunidades. Configuração de cargos essenciais, bots de boas-vindas e suporte pós-compra para ajustes inclusos.", category: "Servidores", displayOrder: 1 },
-                    { name: "Servidor Gamer Premium + 14 Boosts", price: 90.00, oldPrice: 120.00, desc: "Combo completo: Servidor gamer profissional configurado de ponta a ponta + Adicional de 14 Boosts inclusos. Suporte total pós-venda para alterações de salas.", category: "Servidores", displayOrder: 2 },
-                    { name: "Pacote de Impulsos: 14 Boosts", price: 60.00, desc: "Apenas os 14 Impulsos aplicados diretamente no seu servidor existente do Discord para atingir os níveis mais altos de vantagens.", category: "Impulsos", displayOrder: 3 }
+                    { name: "Servidor Comunidade Standard", price: 30.00, discount: 0, desc: "Servidor básico e otimizado para comunidades. Configuração de cargos essenciais, bots de boas-vindas e suporte pós-compra para ajustes inclusos.", category: "Servidores", displayOrder: 1 },
+                    { name: "Servidor Gamer Premium + 14 Boosts", price: 90.00, discount: 10, desc: "Combo completo: Servidor gamer profissional configurado de ponta a ponta + Adicional de 14 Boosts inclusos. Suporte total pós-venda para alterações de salas.", category: "Servidores", displayOrder: 2 },
+                    { name: "Pacote de Impulsos: 14 Boosts", price: 60.00, discount: 0, desc: "Apenas os 14 Impulsos aplicados diretamente no seu servidor existente do Discord para atingir os níveis mais altos de vantagens.", category: "Impulsos", displayOrder: 3 }
                 ];
                 initialProducts.forEach((p, idx) => {
                     database.ref('products').push(p);
@@ -904,32 +932,27 @@
                 `;
 
                 categoriesMap[categoryTitle].forEach(product => {
-                    // Aqui aplicamos a função de formatar os links para rodar em tempo real
                     const descriptionFormatted = formatTextWithLinks(product.desc);
                     
-                    let discountBadgeHtml = "";
+                    // CALCULA O PREÇO SE HOUVER DESCONTO ATIVO
+                    const discount = parseInt(product.discount) || 0;
                     let priceHtml = "";
+                    let finalPrice = product.price;
 
-                    if (product.oldPrice && product.oldPrice > product.price) {
-                        let percent = Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100);
-                        discountBadgeHtml = `<div class="discount-badge">-${percent}% OFF</div>`;
+                    if (discount > 0) {
+                        finalPrice = product.price - (product.price * (discount / 100));
                         priceHtml = `
-                            <div class="price-container">
-                                <span class="old-price">R$ ${product.oldPrice.toFixed(2).replace('.', ',')}</span>
-                                <span class="product-price">R$ ${product.price.toFixed(2).replace('.', ',')}</span>
-                            </div>
-                        `;
+                            <div class="product-price">
+                                <span class="price-original">R$ ${product.price.toFixed(2).replace('.', ',')}</span>
+                                R$ ${finalPrice.toFixed(2).replace('.', ',')}
+                                <span class="discount-badge">-${discount}%</span>
+                            </div>`;
                     } else {
-                        priceHtml = `
-                            <div class="price-container">
-                                <span class="product-price">R$ ${product.price.toFixed(2).replace('.', ',')}</span>
-                            </div>
-                        `;
+                        priceHtml = `<div class="product-price">R$ ${product.price.toFixed(2).replace('.', ',')}</div>`;
                     }
 
                     categoryHtml += `
                         <div class="product-card">
-                            ${discountBadgeHtml}
                             <div>
                                 <h3 class="product-title">${product.name}</h3>
                                 <p class="product-desc">${descriptionFormatted}</p>
@@ -960,13 +983,14 @@
 
             products.forEach(product => {
                 const cat = product.category || "Geral";
+                const disc = product.discount > 0 ? ` (-${product.discount}%)` : '';
                 container.innerHTML += `
                     <div class="sortable-item" draggable="true" data-id="${product.id_fb}">
                         <div class="item-drag-info">
                             <i class="fas fa-bars"></i>
                             <div>
                                 <h4>${product.name}</h4>
-                                <span>R$ ${product.price.toFixed(2)} <span class="badge" style="margin-left:5px; font-size:0.65rem;">${cat}</span></span>
+                                <span>R$ ${product.price.toFixed(2)}${disc} <span class="badge" style="margin-left:5px; font-size:0.65rem;">${cat}</span></span>
                             </div>
                         </div>
                         <div class="action-btns">
@@ -1063,7 +1087,7 @@
             document.getElementById('editProductId').value = idFb;
             document.getElementById('prodName').value = product.name;
             document.getElementById('prodPrice').value = product.price;
-            document.getElementById('prodOldPrice').value = product.oldPrice || '';
+            document.getElementById('prodDiscount').value = product.discount || 0;
             document.getElementById('prodDesc').value = product.desc;
             
             const select = document.getElementById('prodCategorySelect');
@@ -1081,8 +1105,7 @@
             const idFb = document.getElementById('editProductId').value;
             const name = document.getElementById('prodName').value;
             const price = parseFloat(document.getElementById('prodPrice').value);
-            const oldPriceValue = document.getElementById('prodOldPrice').value;
-            const oldPrice = oldPriceValue ? parseFloat(oldPriceValue) : null;
+            const discount = parseInt(document.getElementById('prodDiscount').value) || 0;
             const desc = document.getElementById('prodDesc').value;
             
             let category = document.getElementById('prodCategorySelect').value;
@@ -1092,22 +1115,14 @@
 
             if (!category) category = "Geral";
 
-            const productData = { name, price, desc, category };
-            if (oldPrice) {
-                productData.oldPrice = oldPrice;
-            } else {
-                // Remove o campo oldPrice caso não seja fornecido
-                productData.oldPrice = null;
-            }
-
             if (idFb) {
-                database.ref(`products/${idFb}`).update(productData)
+                database.ref(`products/${idFb}`).update({ name, price, discount, desc, category })
                     .then(() => resetProductForm());
             } else {
                 const nextOrder = products.length > 0 ? Math.max(...products.map(p => p.displayOrder || 0)) + 1 : 1;
-                productData.displayOrder = nextOrder;
+                const newProduct = { name, price, discount, desc, category, displayOrder: nextOrder };
                 
-                database.ref('products').push(productData)
+                database.ref('products').push(newProduct)
                     .then(() => resetProductForm());
             }
         }
@@ -1121,6 +1136,7 @@
         function resetProductForm() {
             document.getElementById('editProductId').value = '';
             document.getElementById('productForm').reset();
+            document.getElementById('prodDiscount').value = 0;
             document.getElementById('prodCategoryNew').style.display = "none";
             document.getElementById('prodCategoryNew').required = false;
             document.getElementById('formAdminTitle').innerText = "Adicionar Novo Produto";
@@ -1144,7 +1160,7 @@
         }
 
         function updateCartUI() {
-            document.getElementById('cartCount').innerText = cart.length;
+            document.getElementById('cartCount').innerText = Math.max(0, cart.length);
             const container = document.getElementById('cartItemsContainer');
             container.innerHTML = '';
             
@@ -1156,12 +1172,15 @@
 
             let total = 0;
             cart.forEach((item, index) => {
-                total += item.price;
+                const discount = parseInt(item.discount) || 0;
+                const finalPrice = discount > 0 ? item.price - (item.price * (discount / 100)) : item.price;
+                total += finalPrice;
+                
                 container.innerHTML += `
                     <div class="cart-item">
                         <div class="cart-item-info">
                             <h4>${item.name}</h4>
-                            <p>R$ ${item.price.toFixed(2).replace('.', ',')}</p>
+                            <p>R$ ${finalPrice.toFixed(2).replace('.', ',')}</p>
                         </div>
                         <button class="btn-remove" onclick="removeFromCart(${index})">
                             <i class="fas fa-trash"></i>
@@ -1188,7 +1207,9 @@
 
             let descriptionText = "";
             itemsList.forEach(item => {
-                descriptionText += `• **${item.name}** - R$ ${item.price.toFixed(2)}\n`;
+                const discount = parseInt(item.discount) || 0;
+                const finalPrice = discount > 0 ? item.price - (item.price * (discount / 100)) : item.price;
+                descriptionText += `• **${item.name}** - R$ ${finalPrice.toFixed(2)}\n`;
             });
 
             const embedData = {
@@ -1223,7 +1244,11 @@
             
             const orderID = generateOrderID();
             let total = 0;
-            cart.forEach(item => total += item.price);
+            cart.forEach(item => {
+                const discount = parseInt(item.discount) || 0;
+                const finalPrice = discount > 0 ? item.price - (item.price * (discount / 100)) : item.price;
+                total += finalPrice;
+            });
 
             sendToDiscordWebhook(orderID, cart, total);
             
