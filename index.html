@@ -58,6 +58,7 @@
             position: sticky;
             top: 0;
             z-index: 100;
+            cursor: pointer; /* Indica que a barra é clicável para o admin secreto */
         }
 
         .logo {
@@ -108,26 +109,7 @@
             box-shadow: 0 0 8px var(--neon-pink);
         }
 
-        .btn-admin {
-            background: transparent;
-            border: 1px solid var(--neon-purple);
-            color: #fff;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 600;
-            letter-spacing: 1px;
-            transition: 0.3s;
-            box-shadow: 0 0 5px rgba(176, 38, 255, 0.3);
-        }
-
-        .btn-admin:hover {
-            background: var(--neon-purple);
-            box-shadow: 0 0 15px var(--neon-purple);
-            transform: translateY(-2px);
-        }
-
-        /* ESTILIZAÇÃO DO MENU LATERAL (SIDEBAR DOS TRÊS PONTINHOS) */
+        /* ESTILIZAÇÃO DO MENU LATERAL (SIDEBAR) */
         .sidebar-menu {
             position: fixed;
             top: 0;
@@ -628,17 +610,16 @@
 </head>
 <body>
 
-    <header>
+    <header ondblclick="openAdminClick()">
         <div class="logo">RX7 <span>Store</span></div>
         <div class="nav-buttons">
             <button class="btn-icon" onclick="toggleSidebar()"><i class="fas fa-ellipsis-v"></i></button>
-            
+
             <button class="btn-icon" onclick="toggleModal('cartModal')">
                 <i class="fas fa-shopping-cart"></i>
                 <span class="cart-count" id="cartCount">0</span>
             </button>
-            <button class="btn-admin" onclick="openAdminClick()"><i class="fas fa-user-shield"></i></button>
-        </div>
+            </div>
     </header>
 
     <div id="sidebarMenu" class="sidebar-menu">
@@ -654,7 +635,7 @@
     </div>
 
     <section class="hero">
-        <h1>Arraste para baixo</h1>
+        <h1>Discord Servers</h1>
         <p>Eleve sua comunidade para o próximo nível com servidores totalmente configurados, design futurista e infraestrutura premium.</p>
     </section>
     
@@ -786,7 +767,7 @@
         let cart = [];
         let isAdminLoggedIn = false;
 
-        // FUNÇÃO DO NOVO MENU LATERAL
+        // CONTROLE DO MENU LATERAL
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebarMenu');
             sidebar.classList.toggle('active');
