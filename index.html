@@ -127,6 +127,123 @@
             transform: translateY(-2px);
         }
 
+        /* ESTILIZAÇÃO DO MENU LATERAL (SIDEBAR) */
+        .sidebar-menu {
+            position: fixed;
+            top: 0;
+            right: -300px;
+            width: 300px;
+            height: 100%;
+            background: #0e0e1a;
+            border-left: 2px solid var(--neon-blue);
+            box-shadow: -5px 0 20px rgba(0, 243, 255, 0.2);
+            z-index: 1000;
+            transition: 0.4s ease;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-menu.active {
+            right: 0;
+        }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            border-bottom: 1px solid rgba(0, 243, 255, 0.2);
+            padding-bottom: 15px;
+        }
+
+        .sidebar-header h3 {
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #fff;
+            font-size: 1.2rem;
+            text-shadow: 0 0 8px var(--neon-blue);
+        }
+
+        .sidebar-close {
+            color: #fff;
+            font-size: 22px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .sidebar-close:hover {
+            color: var(--neon-pink);
+        }
+
+        .sidebar-links {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .sidebar-links a {
+            color: var(--text-color);
+            text-decoration: none;
+            font-size: 1.1rem;
+            font-weight: 500;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sidebar-links a:hover {
+            color: var(--neon-blue);
+            text-shadow: 0 0 8px var(--neon-blue);
+            transform: translateX(5px);
+        }
+
+        .sidebar-links .admin-link {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px dashed rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-links .admin-link a {
+            color: #a0a0ba;
+        }
+
+        .sidebar-links .admin-link a:hover {
+            color: var(--neon-purple);
+            text-shadow: 0 0 8px var(--neon-purple);
+        }
+
+        /* ESTILOS DE DESCONTO E PROMOÇÃO */
+        .price-container {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 20px;
+        }
+
+        .old-price {
+            font-size: 1rem;
+            color: #71718a;
+            text-decoration: line-through;
+            margin-bottom: 2px;
+        }
+
+        .discount-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: linear-gradient(135deg, var(--neon-pink), #ff00a0);
+            color: #fff;
+            font-size: 0.75rem;
+            font-weight: bold;
+            padding: 4px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            box-shadow: 0 0 10px var(--neon-pink);
+            z-index: 2;
+        }
+
         .hero {
             text-align: center;
             padding: 60px 20px;
@@ -278,7 +395,7 @@
             font-size: 1.6rem;
             font-weight: bold;
             color: var(--neon-blue);
-            margin-bottom: 20px;
+            margin-bottom: 0px;
             text-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
         }
 
@@ -551,54 +668,6 @@
             margin: 10px 0;
             user-select: all;
         }
-
-        /* ESTILIZAÇÃO DO RODAPÉ (FOOTER) */
-        footer {
-            text-align: center;
-            padding: 30px 20px;
-            margin-top: 50px;
-            border-top: 1px solid rgba(0, 243, 255, 0.1);
-            background: rgba(10, 10, 18, 0.5);
-        }
-
-        footer p {
-            color: #71718a;
-            font-size: 0.9rem;
-            margin-bottom: 8px;
-        }
-
-        .footer-link {
-            color: var(--neon-blue);
-            text-decoration: none;
-            font-size: 0.85rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.3s;
-            text-shadow: 0 0 5px rgba(0, 243, 255, 0.2);
-        }
-
-        .footer-link:hover {
-            color: #fff;
-            text-shadow: 0 0 10px var(--neon-blue);
-        }
-
-        .terms-text {
-            color: #a0a0ba;
-            font-size: 0.9rem;
-            line-height: 1.6;
-            max-height: 60vh;
-            overflow-y: auto;
-            padding-right: 10px;
-            text-align: left;
-        }
-
-        .terms-text h3 {
-            color: #fff;
-            margin: 15px 0 5px;
-            font-size: 1.05rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
     </style>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -613,9 +682,27 @@
                 <i class="fas fa-shopping-cart"></i>
                 <span class="cart-count" id="cartCount">0</span>
             </button>
-            <button class="btn-admin" onclick="openAdminClick()"><i class="fas fa-user-shield"></i></button>
+            <button class="btn-icon" onclick="toggleSidebar()">
+                <i class="fas fa-ellipsis-v"></i>
+            </button>
         </div>
     </header>
+
+    <div id="sidebarMenu" class="sidebar-menu">
+        <div class="sidebar-header">
+            <h3>Opções da Loja</h3>
+            <i class="fas fa-times sidebar-close" onclick="toggleSidebar()"></i>
+        </div>
+        <ul class="sidebar-links">
+            <li><a href="#shopContentArea" onclick="toggleSidebar()"><i class="fas fa-store"></i> Ver Produtos</a></li>
+            <li><a href="#" onclick="toggleSidebar(); toggleModal('cartModal')"><i class="fas fa-shopping-basket"></i> Meu Carrinho</a></li>
+            <li><a href="https://discord.gg/" target="_blank"><i class="fab fa-discord"></i> Nosso Discord</a></li>
+            
+            <li class="admin-link">
+                <a href="#" onclick="toggleSidebar(); openAdminClick()"><i class="fas fa-user-shield"></i> Moderação (Painel Admin)</a>
+            </li>
+        </ul>
+    </div>
 
     <section class="hero">
         <h1>Discord Servers</h1>
@@ -641,34 +728,11 @@
     </div>
 
     <section class="products-section" id="shopContentArea">
-    </section>
+        </section>
 
     <a href="#" class="whatsapp-float" target="_blank" id="mainWhatsappBtn">
         <i class="fab fa-whatsapp"></i>
     </a>
-
-    <div id="termsModal" class="modal">
-        <div class="modal-content modal-content-large" style="max-width: 650px;">
-            <i class="fas fa-times close-modal" onclick="toggleModal('termsModal')"></i>
-            <h2 class="section-title" style="margin-bottom: 20px;">Termos & Garantia</h2>
-            <div class="terms-text">
-                <p>Ao adquirir qualquer produto ou serviço da <strong>RX7 Store</strong>, você concorda integralmente com as diretrizes e regras operacionais estabelecidas abaixo:</p>
-                
-                <h3>1. Entrega e Prazos</h3>
-                <p>A entrega dos servidores prontos, configurações customizadas ou ativações de pacotes de impulsos é iniciada logo após a confirmação do pagamento e alinhamento dos detalhes através do nosso canal de atendimento no WhatsApp ou Discord.</p>
-                
-                <h3>2. Garantia e Suporte Pós-Compra</h3>
-                <p>Garantimos suporte completo para quaisquer problemas técnicos estruturais decorrentes da nossa entrega inicial. Modificações pesadas solicitadas semanas após o encerramento do escopo padrão poderão passar por nova avaliação de orçamento.</p>
-                
-                <h3>3. Políticas de Reembolso</h3>
-                <p>Por se tratar de produtos e serviços puramente digitais e customizados diretamente na infraestrutura do cliente, reembolsos totais não serão aplicados após a conclusão ou entrega integral do serviço contratado.</p>
-                
-                <h3>4. Responsabilidade</h3>
-                <p>Não nos responsabilizamos por ações tomadas por terceiros ou modificações indevidas feitas na administração de sua comunidade após a entrega das chaves e cargos de propriedade.</p>
-            </div>
-            <button class="btn-buy" style="margin-top: 25px;" onclick="toggleModal('termsModal')">Entendido e de Acordo</button>
-        </div>
-    </div>
 
     <div id="cartModal" class="modal">
         <div class="modal-content">
@@ -716,8 +780,14 @@
                             <label>Nome do Servidor/Pacote</label>
                             <input type="text" id="prodName" class="form-control" required placeholder="Ex: Servidor de Games Elite">
                         </div>
+                        
                         <div class="form-group">
-                            <label>Preço (R$)</label>
+                            <label>Preço Antigo / Sem Desconto (R$ - Opcional)</label>
+                            <input type="number" id="prodOldPrice" class="form-control" step="0.01" placeholder="Ex: 50.00 (Deixe vazio se não houver promoção)">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Preço Atual / Com Desconto (R$)</label>
                             <input type="number" id="prodPrice" class="form-control" step="0.01" required placeholder="30">
                         </div>
 
@@ -750,11 +820,6 @@
         </div>
     </div>
 
-    <footer>
-        <p>&copy; 2026 RX7 Store. Todos os direitos reservados.</p>
-        <a class="footer-link" onclick="toggleModal('termsModal')"><i class="fas fa-file-contract"></i> Termos de Uso & Garantia</a>
-    </footer>
-
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyB7cxrpXsf_abhtCeEsh9yURrt9GNcn1eM",
@@ -778,6 +843,12 @@
         let cart = [];
         let isAdminLoggedIn = false;
 
+        // CONTROLE DO MENU LATERAL (SIDEBAR)
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebarMenu');
+            sidebar.classList.toggle('active');
+        }
+
         // FUNÇÃO PARA PEGAR O TEXTO DO FIREBASE E TRANSFORMAR OS LINKS EM AZUL CLICÁVEL
         function formatTextWithLinks(text) {
             if (!text) return "";
@@ -796,8 +867,8 @@
                 products.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
             } else {
                 const initialProducts = [
-                    { name: "Servidor Comunidade Standard", price: 30.00, desc: "Servidor básico e otimizado para comunidades. Configuração de cargos essenciais, bots de boas-vindas e suporte pós-compra para ajustes inclusos.", category: "Servidores", displayOrder: 1 },
-                    { name: "Servidor Gamer Premium + 14 Boosts", price: 90.00, desc: "Combo completo: Servidor gamer profissional configurado de ponta a ponta + Adicional de 14 Boosts inclusos. Suporte total pós-venda para alterações de salas.", category: "Servidores", displayOrder: 2 },
+                    { name: "Servidor Comunidade Standard", price: 30.00, oldPrice: 45.00, desc: "Servidor básico e otimizado para comunidades. Configuração de cargos essenciais, bots de boas-vindas e suporte pós-compra para ajustes inclusos.", category: "Servidores", displayOrder: 1 },
+                    { name: "Servidor Gamer Premium + 14 Boosts", price: 90.00, oldPrice: 120.00, desc: "Combo completo: Servidor gamer profissional configurado de ponta a ponta + Adicional de 14 Boosts inclusos. Suporte total pós-venda para alterações de salas.", category: "Servidores", displayOrder: 2 },
                     { name: "Pacote de Impulsos: 14 Boosts", price: 60.00, desc: "Apenas os 14 Impulsos aplicados diretamente no seu servidor existente do Discord para atingir os níveis mais altos de vantagens.", category: "Impulsos", displayOrder: 3 }
                 ];
                 initialProducts.forEach((p, idx) => {
@@ -835,15 +906,36 @@
                 categoriesMap[categoryTitle].forEach(product => {
                     // Aqui aplicamos a função de formatar os links para rodar em tempo real
                     const descriptionFormatted = formatTextWithLinks(product.desc);
+                    
+                    let discountBadgeHtml = "";
+                    let priceHtml = "";
+
+                    if (product.oldPrice && product.oldPrice > product.price) {
+                        let percent = Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100);
+                        discountBadgeHtml = `<div class="discount-badge">-${percent}% OFF</div>`;
+                        priceHtml = `
+                            <div class="price-container">
+                                <span class="old-price">R$ ${product.oldPrice.toFixed(2).replace('.', ',')}</span>
+                                <span class="product-price">R$ ${product.price.toFixed(2).replace('.', ',')}</span>
+                            </div>
+                        `;
+                    } else {
+                        priceHtml = `
+                            <div class="price-container">
+                                <span class="product-price">R$ ${product.price.toFixed(2).replace('.', ',')}</span>
+                            </div>
+                        `;
+                    }
 
                     categoryHtml += `
                         <div class="product-card">
+                            ${discountBadgeHtml}
                             <div>
                                 <h3 class="product-title">${product.name}</h3>
                                 <p class="product-desc">${descriptionFormatted}</p>
                             </div>
                             <div>
-                                <div class="product-price">R$ ${product.price.toFixed(2).replace('.', ',')}</div>
+                                ${priceHtml}
                                 <button class="btn-buy" onclick="addToCart('${product.id_fb}')">
                                     <i class="fas fa-cart-plus"></i> Adicionar
                                 </button>
@@ -971,6 +1063,7 @@
             document.getElementById('editProductId').value = idFb;
             document.getElementById('prodName').value = product.name;
             document.getElementById('prodPrice').value = product.price;
+            document.getElementById('prodOldPrice').value = product.oldPrice || '';
             document.getElementById('prodDesc').value = product.desc;
             
             const select = document.getElementById('prodCategorySelect');
@@ -988,6 +1081,8 @@
             const idFb = document.getElementById('editProductId').value;
             const name = document.getElementById('prodName').value;
             const price = parseFloat(document.getElementById('prodPrice').value);
+            const oldPriceValue = document.getElementById('prodOldPrice').value;
+            const oldPrice = oldPriceValue ? parseFloat(oldPriceValue) : null;
             const desc = document.getElementById('prodDesc').value;
             
             let category = document.getElementById('prodCategorySelect').value;
@@ -997,14 +1092,22 @@
 
             if (!category) category = "Geral";
 
+            const productData = { name, price, desc, category };
+            if (oldPrice) {
+                productData.oldPrice = oldPrice;
+            } else {
+                // Remove o campo oldPrice caso não seja fornecido
+                productData.oldPrice = null;
+            }
+
             if (idFb) {
-                database.ref(`products/${idFb}`).update({ name, price, desc, category })
+                database.ref(`products/${idFb}`).update(productData)
                     .then(() => resetProductForm());
             } else {
                 const nextOrder = products.length > 0 ? Math.max(...products.map(p => p.displayOrder || 0)) + 1 : 1;
-                const newProduct = { name, price, desc, category, displayOrder: nextOrder };
+                productData.displayOrder = nextOrder;
                 
-                database.ref('products').push(newProduct)
+                database.ref('products').push(productData)
                     .then(() => resetProductForm());
             }
         }
