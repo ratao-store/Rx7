@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rx7 Store - Web site</title>
     
-    <link class="favicon" rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1ZtC-xNfL3pD6fD6x9v60O23p9_Z9_m60">
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1ZtC-xNfL3pD6fD6x9v60O23p9_Z9_m60">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -127,6 +127,77 @@
             transform: translateY(-2px);
         }
 
+        /* ESTILIZAÇÃO DO MENU LATERAL (SIDEBAR DOS TRÊS PONTINHOS) */
+        .sidebar-menu {
+            position: fixed;
+            top: 0;
+            right: -300px;
+            width: 300px;
+            height: 100%;
+            background: #0e0e1a;
+            border-left: 2px solid var(--neon-blue);
+            box-shadow: -5px 0 20px rgba(0, 243, 255, 0.2);
+            z-index: 1000;
+            transition: 0.4s ease;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-menu.active {
+            right: 0;
+        }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .sidebar-header h3 {
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #fff;
+            font-size: 1.2rem;
+            text-shadow: 0 0 8px var(--neon-blue);
+        }
+
+        .sidebar-close {
+            color: #fff;
+            font-size: 22px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .sidebar-close:hover {
+            color: var(--neon-pink);
+        }
+
+        .sidebar-links {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .sidebar-links a {
+            color: var(--text-color);
+            text-decoration: none;
+            font-size: 1.1rem;
+            font-weight: 500;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar-links a:hover {
+            color: var(--neon-blue);
+            text-shadow: 0 0 8px var(--neon-blue);
+            transform: translateX(5px);
+        }
+
         .hero {
             text-align: center;
             padding: 60px 20px;
@@ -245,32 +316,10 @@
             background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
         }
 
-        /* BANNER DE PROMOÇÃO DA VITRINE */
-        .promo-badge {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: var(--neon-pink);
-            color: #fff;
-            font-size: 0.75rem;
-            font-weight: bold;
-            padding: 4px 8px;
-            border-radius: 4px;
-            text-transform: uppercase;
-            box-shadow: 0 0 10px var(--neon-pink);
-            animation: pulsePromo 1.5s infinite alternate;
-        }
-
-        @keyframes pulsePromo {
-            0% { transform: scale(1); box-shadow: 0 0 8px var(--neon-pink); }
-            100% { transform: scale(1.05); box-shadow: 0 0 15px var(--neon-pink); }
-        }
-
         .product-title {
             font-size: 1.4rem;
             margin-bottom: 10px;
             color: #fff;
-            padding-right: 60px;
         }
 
         .product-desc {
@@ -295,24 +344,11 @@
             text-shadow: 0 0 8px var(--neon-blue);
         }
 
-        /* PREÇOS DA VITRINE */
-        .price-container {
-            margin-bottom: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-
-        .product-old-price {
-            font-size: 0.9rem;
-            color: #656582;
-            text-decoration: line-through;
-        }
-
         .product-price {
             font-size: 1.6rem;
             font-weight: bold;
             color: var(--neon-blue);
+            margin-bottom: 20px;
             text-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
         }
 
@@ -363,25 +399,6 @@
             max-width: 1000px;
             max-height: 90vh;
             overflow-y: auto;
-        }
-
-        /* TEXTO INTERNO DO MODAL DE TERMOS */
-        .modal-text-content {
-            color: #a0a0ba;
-            font-size: 0.95rem;
-            line-height: 1.6;
-            max-height: 55vh;
-            overflow-y: auto;
-            padding-right: 10px;
-            margin-bottom: 5px;
-        }
-
-        .modal-text-content h4 {
-            color: #fff;
-            margin: 18px 0 6px 0;
-            text-transform: uppercase;
-            font-size: 0.95rem;
-            letter-spacing: 1px;
         }
 
         @keyframes fadeIn {
@@ -604,33 +621,6 @@
             margin: 10px 0;
             user-select: all;
         }
-
-        /* FOOTER DECORADO */
-        footer {
-            text-align: center;
-            padding: 40px 20px;
-            margin-top: 60px;
-            border-top: 1px solid rgba(0, 243, 255, 0.1);
-            background: rgba(10, 10, 18, 0.5);
-            font-size: 0.9rem;
-            color: #656582;
-        }
-
-        footer button {
-            background: none;
-            border: none;
-            color: var(--neon-blue);
-            cursor: pointer;
-            text-decoration: underline;
-            font-weight: 500;
-            margin-left: 5px;
-            transition: 0.2s;
-        }
-
-        footer button:hover {
-            color: #fff;
-            text-shadow: 0 0 8px var(--neon-blue);
-        }
     </style>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -641,6 +631,8 @@
     <header>
         <div class="logo">RX7 <span>Store</span></div>
         <div class="nav-buttons">
+            <button class="btn-icon" onclick="toggleSidebar()"><i class="fas fa-ellipsis-v"></i></button>
+            
             <button class="btn-icon" onclick="toggleModal('cartModal')">
                 <i class="fas fa-shopping-cart"></i>
                 <span class="cart-count" id="cartCount">0</span>
@@ -648,6 +640,18 @@
             <button class="btn-admin" onclick="openAdminClick()"><i class="fas fa-user-shield"></i></button>
         </div>
     </header>
+
+    <div id="sidebarMenu" class="sidebar-menu">
+        <div class="sidebar-header">
+            <h3>Opções</h3>
+            <i class="fas fa-times sidebar-close" onclick="toggleSidebar()"></i>
+        </div>
+        <ul class="sidebar-links">
+            <li><a href="#shopContentArea" onclick="toggleSidebar()"><i class="fas fa-store"></i> Ver Produtos</a></li>
+            <li><a href="#" onclick="toggleSidebar(); toggleModal('cartModal')"><i class="fas fa-shopping-basket"></i> Meu Carrinho</a></li>
+            <li><a href="https://discord.gg/" target="_blank"><i class="fab fa-discord"></i> Nosso Discord</a></li>
+        </ul>
+    </div>
 
     <section class="hero">
         <h1>Discord Servers</h1>
@@ -725,16 +729,9 @@
                             <label>Nome do Servidor/Pacote</label>
                             <input type="text" id="prodName" class="form-control" required placeholder="Ex: Servidor de Games Elite">
                         </div>
-                        
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                            <div class="form-group">
-                                <label>Preço Atual (R$)</label>
-                                <input type="number" id="prodPrice" class="form-control" step="0.01" required placeholder="30.00">
-                            </div>
-                            <div class="form-group">
-                                <label>Preço Antigo (Opcional R$)</label>
-                                <input type="number" id="prodOldPrice" class="form-control" step="0.01" placeholder="Ex: 45.00">
-                            </div>
+                        <div class="form-group">
+                            <label>Preço (R$)</label>
+                            <input type="number" id="prodPrice" class="form-control" step="0.01" required placeholder="30">
                         </div>
 
                         <div class="form-group">
@@ -766,32 +763,6 @@
         </div>
     </div>
 
-    <div id="termsModal" class="modal">
-        <div class="modal-content">
-            <i class="fas fa-times close-modal" onclick="toggleModal('termsModal')"></i>
-            <h2 class="section-title" style="margin-bottom: 15px;">Termos & Garantia</h2>
-            <div class="modal-text-content">
-                <h4>1. Prazos e Entrega</h4>
-                <p>Assim que o pagamento for aprovado e você nos enviar o ID do pedido pelo WhatsApp, nossa equipe começa a trabalhar nas configurações. O tempo de entrega depende do tamanho do plano escolhido.</p>
-                
-                <h4>2. Suporte Pós-Compra</h4>
-                <p>Todos os nossos servidores sob medida incluem suporte inicial para que você tire dúvidas e solicite ajustes em salas, cargos e permissões primárias sem custo adicional.</p>
-                
-                <h4>3. Impulsos (Boosts)</h4>
-                <p>Os impulsos de servidor são ativados seguindo rigorosamente as diretrizes do Discord. Certifique-se de manter os links de convites ativos conforme as instruções fornecidas no suporte.</p>
-                
-                <h4>4. Reembolsos</h4>
-                <p>Por se tratar de produtos e serviços estritamente digitais e personalizados, reembolsos só poderão ser efetuados caso nossa equipe técnica ainda não tenha iniciado o procedimento de entrega.</p>
-            </div>
-            <button class="btn-buy" style="margin-top: 15px;" onclick="toggleModal('termsModal')">Entendi e Aceito</button>
-        </div>
-    </div>
-
-    <footer>
-        <p>&copy; 2026 RX7 Store. Todos os direitos reservados. Infraestrutura e Design Premium.</p>
-        <p style="margin-top: 5px;">Ao usar o site, você concorda com nossos <button onclick="toggleModal('termsModal')">Termos de Serviço & Garantia</button></p>
-    </footer>
-
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyB7cxrpXsf_abhtCeEsh9yURrt9GNcn1eM",
@@ -815,6 +786,12 @@
         let cart = [];
         let isAdminLoggedIn = false;
 
+        // FUNÇÃO DO NOVO MENU LATERAL
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebarMenu');
+            sidebar.classList.toggle('active');
+        }
+
         function formatTextWithLinks(text) {
             if (!text) return "";
             const urlPattern = /(\b(https?):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gim;
@@ -831,11 +808,11 @@
                 products.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
             } else {
                 const initialProducts = [
-                    { name: "Servidor Comunidade Standard", price: 30.00, oldPrice: 45.00, desc: "Servidor básico e otimizado para comunidades. Configuração de cargos essenciais, bots de boas-vindas e suporte pós-compra para ajustes inclusos.", category: "Servidores", displayOrder: 1 },
-                    { name: "Servidor Gamer Premium + 14 Boosts", price: 90.00, oldPrice: 120.00, desc: "Combo completo: Servidor gamer profissional configurado de ponta a ponta + Adicional de 14 Boosts inclusos. Suporte total pós-venda para alterações de salas.", category: "Servidores", displayOrder: 2 },
+                    { name: "Servidor Comunidade Standard", price: 30.00, desc: "Servidor básico e otimizado para comunidades. Configuração de cargos essenciais, bots de boas-vindas e suporte pós-compra para ajustes inclusos.", category: "Servidores", displayOrder: 1 },
+                    { name: "Servidor Gamer Premium + 14 Boosts", price: 90.00, desc: "Combo completo: Servidor gamer profissional configurado de ponta a ponta + Adicional de 14 Boosts inclusos. Suporte total pós-venda para alterações de salas.", category: "Servidores", displayOrder: 2 },
                     { name: "Pacote de Impulsos: 14 Boosts", price: 60.00, desc: "Apenas os 14 Impulsos aplicados diretamente no seu servidor existente do Discord para atingir os níveis mais altos de vantagens.", category: "Impulsos", displayOrder: 3 }
                 ];
-                initialProducts.forEach((p) => {
+                initialProducts.forEach((p, idx) => {
                     database.ref('products').push(p);
                 });
             }
@@ -869,28 +846,15 @@
 
                 categoriesMap[categoryTitle].forEach(product => {
                     const descriptionFormatted = formatTextWithLinks(product.desc);
-                    
-                    // LÓGICA DE PROMOÇÃO DA VITRINE
-                    let promoBadgeHtml = '';
-                    let oldPriceHtml = '';
-                    if (product.oldPrice && parseFloat(product.oldPrice) > parseFloat(product.price)) {
-                        const pctDiscount = Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100);
-                        promoBadgeHtml = `<div class="promo-badge">-${pctDiscount}% OFF</div>`;
-                        oldPriceHtml = `<span class="product-old-price">R$ ${parseFloat(product.oldPrice).toFixed(2).replace('.', ',')}</span>`;
-                    }
 
                     categoryHtml += `
                         <div class="product-card">
-                            ${promoBadgeHtml}
                             <div>
                                 <h3 class="product-title">${product.name}</h3>
                                 <p class="product-desc">${descriptionFormatted}</p>
                             </div>
                             <div>
-                                <div class="price-container">
-                                    ${oldPriceHtml}
-                                    <div class="product-price">R$ ${product.price.toFixed(2).replace('.', ',')}</div>
-                                </div>
+                                <div class="product-price">R$ ${product.price.toFixed(2).replace('.', ',')}</div>
                                 <button class="btn-buy" onclick="addToCart('${product.id_fb}')">
                                     <i class="fas fa-cart-plus"></i> Adicionar
                                 </button>
@@ -915,13 +879,12 @@
 
             products.forEach(product => {
                 const cat = product.category || "Geral";
-                const promoTag = product.oldPrice ? ` [PROMO]` : '';
                 container.innerHTML += `
                     <div class="sortable-item" draggable="true" data-id="${product.id_fb}">
                         <div class="item-drag-info">
                             <i class="fas fa-bars"></i>
                             <div>
-                                <h4>${product.name}${promoTag}</h4>
+                                <h4>${product.name}</h4>
                                 <span>R$ ${product.price.toFixed(2)} <span class="badge" style="margin-left:5px; font-size:0.65rem;">${cat}</span></span>
                             </div>
                         </div>
@@ -1019,7 +982,6 @@
             document.getElementById('editProductId').value = idFb;
             document.getElementById('prodName').value = product.name;
             document.getElementById('prodPrice').value = product.price;
-            document.getElementById('prodOldPrice').value = product.oldPrice || '';
             document.getElementById('prodDesc').value = product.desc;
             
             const select = document.getElementById('prodCategorySelect');
@@ -1037,8 +999,6 @@
             const idFb = document.getElementById('editProductId').value;
             const name = document.getElementById('prodName').value;
             const price = parseFloat(document.getElementById('prodPrice').value);
-            const oldPriceVal = document.getElementById('prodOldPrice').value;
-            const oldPrice = oldPriceVal ? parseFloat(oldPriceVal) : null;
             const desc = document.getElementById('prodDesc').value;
             
             let category = document.getElementById('prodCategorySelect').value;
@@ -1048,21 +1008,14 @@
 
             if (!category) category = "Geral";
 
-            const productPayload = { name, price, desc, category };
-            if (oldPrice) {
-                productPayload.oldPrice = oldPrice;
-            } else {
-                database.ref(`products/${idFb}/oldPrice`).remove();
-            }
-
             if (idFb) {
-                database.ref(`products/${idFb}`).update(productPayload)
+                database.ref(`products/${idFb}`).update({ name, price, desc, category })
                     .then(() => resetProductForm());
             } else {
                 const nextOrder = products.length > 0 ? Math.max(...products.map(p => p.displayOrder || 0)) + 1 : 1;
-                productPayload.displayOrder = nextOrder;
+                const newProduct = { name, price, desc, category, displayOrder: nextOrder };
                 
-                database.ref('products').push(productPayload)
+                database.ref('products').push(newProduct)
                     .then(() => resetProductForm());
             }
         }
