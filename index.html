@@ -200,7 +200,6 @@
             margin: 0 auto 40px;
             padding: 0 20px;
             display: flex;
-            justify(content: center);
             justify-content: center;
             flex-wrap: wrap;
             gap: 12px;
@@ -445,7 +444,7 @@
             font-size: 1.6rem;
             font-weight: bold;
             color: var(--neon-blue);
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             text-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
         }
 
@@ -467,6 +466,24 @@
             vertical-align: middle;
             text-shadow: none;
             box-shadow: 0 0 8px var(--neon-pink);
+        }
+
+        .countdown-box {
+            background: rgba(255, 0, 85, 0.1);
+            border: 1px dashed var(--neon-pink);
+            color: #ffb3cd;
+            font-size: 0.85rem;
+            font-weight: bold;
+            text-align: center;
+            padding: 6px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            letter-spacing: 0.5px;
+        }
+
+        .countdown-box i {
+            margin-right: 5px;
+            color: var(--neon-pink);
         }
 
         .btn-buy {
@@ -949,7 +966,7 @@
                         <ul>
                             <li><i class="fas fa-angle-right"></i> <strong>Atendimento Remoto:</strong> Toda e qualquer entrega de produto ou serviço será validada e finalizada de forma direta através dos nossos canais de suporte no Discord oficial ou via WhatsApp.</li>
                             <li><i class="fas fa-angle-right"></i> <strong>Prazo Limite:</strong> O prazo estimado para início da entrega varia entre 10 minutos e 24 horas após a confirmação integral do pagamento pela nossa equipe.</li>
-                            <li><i class="fas fa-angle-right"></i> <strong>Dados de Contato:</strong> É de responsabilidade total do comprador fornecer as informações de contato corretas ao gerar o ID do pedido no site.</li>
+                            <li><i class="fas fa-angle-right"></i> <strong>Dados de Contato:</strong> É de responsabilidade total do comprador fornecer as informações de contato correas ao gerar o ID do pedido no site.</li>
                         </ul>
                     </div>
                     <div class="terms-block">
@@ -967,7 +984,7 @@
                         <ul>
                             <li><i class="fas fa-angle-right"></i> <strong>Garantia de Estrutura:</strong> Damos garantia vitalícia sobre permissões de cargos, canais e botes configurados nativamente pela nossa equipe, desde que terceiros não alterem as configurações críticas de segurança.</li>
                             <li><i class="fas fa-angle-right"></i> <strong>Mau Uso Externo:</strong> Não nos responsabilizamos por quedas em decorrência de punições aplicadas pela plataforma Discord à sua conta ou à sua comunidade, ou por botes invadidos devido a tokens vazados pelo próprio cliente.</li>
-                            <li><i class="fas fa-angle-right"></i> <strong>Suporte Técnico:</strong> Nosso suporte pós-venda covers ajustes básicos e correções de bugs operacionais dentro do escopo do pacote adquirido.</li>
+                            <li><i class="fas fa-angle-right"></i> <strong>Suporte Técnico:</strong> Nosso suporte pós-venda cobre ajustes básicos e correções de bugs operacionais dentro do escopo do pacote adquirido.</li>
                         </ul>
                     </div>
                     <div class="terms-block">
@@ -1039,6 +1056,10 @@
                             <input type="number" id="prodDiscount" class="form-control" min="0" max="100" value="0">
                         </div>
                         <div class="form-group">
+                            <label>Duração da Promoção (Opcional - Contador regressivo)</label>
+                            <input type="datetime-local" id="prodPromoEnd" class="form-control">
+                        </div>
+                        <div class="form-group">
                             <label>Fotos do Produto</label>
                             <input type="file" id="prodImagesFile" class="form-control" multiple accept="image/*" onchange="previewFilesAndConvert()">
                             <div class="image-preview-container" id="previewImagesArea"></div>
@@ -1098,6 +1119,7 @@
         let convertedImagesBase64 = [];
         let activeImageIndexes = {}; 
         let currentSelectedCategoryFilter = "all";
+        let countdownIntervalId = null;
 
         function toggleDropdown(event) {
             event.stopPropagation();
@@ -1127,11 +1149,43 @@
             renderTabsFilterMenu();
             renderStorefront();
             updateCategorySelectors();
+            startCountdownTimers();
             if (isAdminLoggedIn) {
                 renderAdminSortableList();
                 renderAdminCategoryManager();
             }
         });
+
+        function startCountdownTimers() {
+            if (countdownIntervalId) clearInterval(countdownIntervalId);
+            
+            countdownIntervalId = setInterval(() => {
+                const now = new Date().getTime();
+                products.forEach(product => {
+                    if (product.promoEnd && (parseInt(product.discount) || 0) > 0) {
+                        const endTime = new Date(product.promoEnd).getTime();
+                        const distance = endTime - now;
+                        const element = document.getElementById(`countdown-${product.id_fb}`);
+
+                        if (distance < 0) {
+                            // Fim da promoção: Atualiza Firebase removendo o desconto e a data final
+                            database.ref(`products/${product.id_fb}`).update({
+                                discount: 0,
+                                promoEnd: null
+                            });
+                        } else {
+                            if (element) {
+                                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                                element.innerHTML = `<i class="fa-solid fa-clock"></i> Termina em: ${hours}h ${minutes}m ${seconds}s`;
+                                element.style.display = "block";
+                            }
+                        }
+                    }
+                });
+            }, 1000);
+        }
 
         function renderTabsFilterMenu() {
             const tabsArea = document.getElementById('categoryTabsArea');
@@ -1249,11 +1303,6 @@
                 categoriesMap[catName].push(product);
             });
 
-            if (Object.keys(categoriesMap).length === 0) {
-                shopArea.innerHTML = '<p style="color: #a0a0ba; text-align:center; padding: 40px 0;">Nenhum produto encontrado nesta categoria.</p>';
-                return;
-            }
-
             for (let categoryTitle in categoriesMap) {
                 let categoryHtml = `
                     <div class="category-container">
@@ -1265,6 +1314,7 @@
                     const descriptionFormatted = formatTextWithLinks(product.desc);
                     const discount = parseInt(product.discount) || 0;
                     let priceHtml = "";
+                    let countdownHtml = "";
                     let finalPrice = product.price;
 
                     if (discount > 0) {
@@ -1275,6 +1325,9 @@
                                 R$ ${finalPrice.toFixed(2).replace('.', ',')}
                                 <span class="discount-badge">-${discount}%</span>
                             </div>`;
+                        if (product.promoEnd) {
+                            countdownHtml = `<div class="countdown-box" id="countdown-${product.id_fb}" style="display:none;"></div>`;
+                        }
                     } else {
                         priceHtml = `<div class="product-price">R$ ${product.price.toFixed(2).replace('.', ',')}</div>`;
                     }
@@ -1286,10 +1339,6 @@
                     if (hasImages) {
                         const images = product.imagesArray;
                         if (activeImageIndexes[product.id_fb] === undefined) {
-                            activeImageIndexes[product.id_fb] = 0;
-                        }
-                        
-                        if (activeImageIndexes[product.id_fb] >= images.length) {
                             activeImageIndexes[product.id_fb] = 0;
                         }
                         
@@ -1326,6 +1375,7 @@
                                 <h3 class="product-title">${product.name}</h3>
                                 <p class="product-desc">${descriptionFormatted}</p>
                                 <div>
+                                    ${countdownHtml}
                                     ${priceHtml}
                                     <button class="btn-buy" onclick="addToCart('${product.id_fb}')">
                                         <i class="fas fa-cart-plus"></i> Adicionar ao Carrinho
@@ -1355,7 +1405,6 @@
                 let deleteBtnHtml = "";
                 let editBtnHtml = "";
 
-                // Modificação: Apenas 'full' (gostosao) pode editar produtos existentes ou excluir
                 if (adminAccessLevel === "full") {
                     editBtnHtml = `<button type="button" class="btn-edit" onclick="loadEditProduct('${product.id_fb}')"><i class="fas fa-edit"></i></button>`;
                     deleteBtnHtml = `<button type="button" class="btn-delete" onclick="deleteProduct('${product.id_fb}')"><i class="fas fa-trash"></i></button>`;
@@ -1428,8 +1477,7 @@
                 return;
             }
 
-            if (confirm(`Tem certeza que deseja deletar a categoria "${categoryName}"?\nOs produtos dentro dela NÃO serão apagados, eles serão movidos automaticamente para a categoria "Geral".`)) {
-                
+            if (confirm(`Tem certeza que deseja deletar a categoria "${categoryName}"?\nOs produtos dentro dela serão movidos para "Geral".`)) {
                 let updates = {};
                 products.forEach(p => {
                     if (p.category === categoryName) {
@@ -1438,15 +1486,8 @@
                 });
 
                 if (Object.keys(updates).length > 0) {
-                    database.ref().update(updates)
-                        .then(() => {
-                            alert(`Categoria "${categoryName}" removida e produtos atualizados.`);
-                        })
-                        .catch(err => {
-                            alert("Erro ao atualizar produtos: " + err.message);
-                        });
+                    database.ref().update(updates).then(() => { alert(`Categoria "${categoryName}" removida.`); });
                 } else {
-                    alert(`A categoria "${categoryName}" foi limpa.`);
                     renderAdminCategoryManager();
                 }
             }
@@ -1527,6 +1568,7 @@
             document.getElementById('prodName').value = product.name;
             document.getElementById('prodPrice').value = product.price;
             document.getElementById('prodDiscount').value = product.discount || 0;
+            document.getElementById('prodPromoEnd').value = product.promoEnd || "";
             document.getElementById('prodDesc').value = product.desc;
             
             convertedImagesBase64 = product.imagesArray ? [...product.imagesArray] : [];
@@ -1541,35 +1583,29 @@
             document.getElementById('btnCancelEdit').style.display = "block";
         }
 
-        // Nova verificação de limites locais diários para o usuário "admin"
-        function checkDailyLimitExceeded() {
-            const todayStr = new Date().toDateString(); 
-            const storedDate = localStorage.getItem('rx7_admin_post_date');
-            let storedCount = parseInt(localStorage.getItem('rx7_admin_post_count')) || 0;
+        // Lógica de limite diário centralizada no Firebase contra fraudes
+        async function checkDailyLimitAndIncrement() {
+            const todayStr = new Date().toISOString().split('T')[0]; // Ex: 2026-06-27
+            const limitRef = database.ref(`admin_daily_limits/${todayStr}`);
+            
+            const snapshot = await limitRef.once('value');
+            let currentCount = snapshot.val() || 0;
 
-            if (storedDate !== todayStr) {
-                localStorage.setItem('rx7_admin_post_date', todayStr);
-                localStorage.setItem('rx7_admin_post_count', '0');
+            if (currentCount >= 2) {
                 return false; 
             }
-
-            if (storedCount >= 2) {
-                return true; 
-            }
-            return false;
+            
+            await limitRef.set(currentCount + 1);
+            return true;
         }
 
-        function incrementDailyCount() {
-            let storedCount = parseInt(localStorage.getItem('rx7_admin_post_count')) || 0;
-            localStorage.setItem('rx7_admin_post_count', (storedCount + 1).toString());
-        }
-
-        function handleProductSubmit(e) {
+        async function handleProductSubmit(e) {
             e.preventDefault();
             const idFb = document.getElementById('editProductId').value;
             const name = document.getElementById('prodName').value;
             const price = parseFloat(document.getElementById('prodPrice').value);
             const discount = parseInt(document.getElementById('prodDiscount').value) || 0;
+            const promoEnd = document.getElementById('prodPromoEnd').value;
             const desc = document.getElementById('prodDesc').value;
             let category = document.getElementById('prodCategorySelect').value;
 
@@ -1582,6 +1618,7 @@
                 name: name,
                 price: price,
                 discount: discount,
+                promoEnd: promoEnd ? promoEnd : null,
                 desc: desc,
                 category: category,
                 imagesArray: convertedImagesBase64.length > 0 ? convertedImagesBase64 : null
@@ -1598,10 +1635,11 @@
                         alert("Produto atualizado!");
                     });
             } else {
-                // Modificação: Regra do limite de 2 posts por dia para o admin básico
+                // Se for editor básico, valida o limite global no Firebase
                 if (adminAccessLevel === "edit_only") {
-                    if (checkDailyLimitExceeded()) {
-                        alert("Limite excedido: Seu usuário só pode postar no máximo 2 produtos por dia.");
+                    const canPost = await checkDailyLimitAndIncrement();
+                    if (!canPost) {
+                        alert("Limite excedido: A conta de editor já publicou o máximo de 2 produtos hoje globalmente.");
                         return;
                     }
                 }
@@ -1610,9 +1648,6 @@
                 productPayload.displayOrder = nextOrder;
                 database.ref('products').push(productPayload)
                     .then(() => {
-                        if (adminAccessLevel === "edit_only") {
-                            incrementDailyCount();
-                        }
                         resetProductForm();
                         alert("Produto adicionado!");
                     });
@@ -1785,7 +1820,7 @@
                 renderAdminSortableList();
                 renderAdminCategoryManager();
                 toggleModal('adminPanelModal');
-                alert("Logado com sucesso!");
+                alert("Logado como sucesso!");
             } else if (user === 'gostosao' && pass === '569124') {
                 isAdminLoggedIn = true;
                 adminAccessLevel = "full";
