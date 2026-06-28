@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rx7 Store - Web site</title>
     
-    <link rel="icon" type="image/jpeg" href="favicon.jpeg">
+    <link class="icon" type="image/jpeg" href="favicon.jpeg">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -195,17 +195,21 @@
             margin: 0 auto 30px;
         }
 
-        .features-container {
+        .features-container-modal {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: 1fr;
             gap: 20px;
-            max-width: 1200px;
-            margin: 0 auto 50px;
-            padding: 0 20px;
+            margin-top: 20px;
+        }
+
+        @media(min-width: 768px) {
+            .features-container-modal {
+                grid-template-columns: repeat(3, 1fr);
+            }
         }
 
         .feature-card {
-            background: var(--panel-bg);
+            background: rgba(255, 255, 255, 0.02);
             border: 1px solid rgba(255, 0, 85, 0.2);
             padding: 20px;
             border-radius: 8px;
@@ -236,6 +240,7 @@
         .feature-card p {
             font-size: 0.9rem;
             color: #a0a0ba;
+            line-height: 1.5;
         }
 
         .products-section {
@@ -766,9 +771,9 @@
         }
 
         .terms-modal-body {
-            max-height: 60vh;
+            max-height: 65vh;
             overflow-y: auto;
-            padding-right: 10px;
+            padding-right: 15px;
             margin-top: 20px;
         }
 
@@ -784,10 +789,10 @@
             margin-bottom: 12px; border-left: 3px solid var(--neon-pink); padding-left: 10px;
         }
 
-        .terms-block p { font-size: 0.9rem; color: #a0a0ba; line-height: 1.6; }
-        .terms-block ul { list-style: none; }
-        .terms-block ul li { font-size: 0.9rem; color: #a0a0ba; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
-        .terms-block ul li i { color: var(--neon-blue); font-size: 12px; }
+        .terms-block p { font-size: 0.9rem; color: #a0a0ba; line-height: 1.6; margin-bottom: 10px; }
+        .terms-block ul { list-style: none; margin-bottom: 10px; }
+        .terms-block ul li { font-size: 0.9rem; color: #a0a0ba; margin-bottom: 8px; display: flex; align-items: flex-start; gap: 8px; line-height: 1.4; }
+        .terms-block ul li i { color: var(--neon-blue); font-size: 12px; margin-top: 4px; }
     </style>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -813,6 +818,7 @@
                 <div class="dropdown-menu" id="adminDropdown">
                     <a href="#shopContentArea">Ver Produtos</a>
                     <a href="https://discord.gg/zTMCPtWG5J" target="_blank">Nosso Discord</a>
+                    <button onclick="toggleModal('infoCardsModal')">Ver Informações</button>
                     <button onclick="toggleModal('termsModal')">Termos de Uso</button>
                     <button onclick="openAdminClick()">Painel Admin</button>
                 </div>
@@ -824,24 +830,6 @@
         <h1>Arraste para baixo</h1>
         <p>Eleve sua comunidade para o próximo nível com servidores totalmente configurados, design futurista e infraestrutura premium.</p>
     </section>
-    
-    <div class="features-container">
-        <div class="feature-card">
-            <i class="fas fa-bolt"></i>
-            <h3>Nitros e Impulsos para seu Discord</h3>
-            <p>Nitros para obter mais vantagens em sua conta e pacotes de Impulsos para o seu servidor, com ótimos preços.</p>
-        </div>
-        <div class="feature-card">
-            <i class="fas fa-headset"></i>
-            <h3>Pós-Compra Incluído</h3>
-            <p>Suporte técnico completo! Precisa mexer, criar ou configure novos canais? Nós fazemos tudo para você.</p>
-        </div>
-        <div class="feature-card">
-            <i class="fas fa-shield-halved"></i>
-            <h3>Comunidades Elite</h3>
-            <p>Servidores configurados sob medida a partir de <strong>R$ 15,00</strong>.</p>
-        </div>
-    </div>
 
     <section class="products-section" id="shopContentArea">
     </section>
@@ -859,19 +847,70 @@
         <i class="fab fa-whatsapp"></i>
     </a>
 
+    <div id="infoCardsModal" class="modal">
+        <div class="modal-content modal-content-large" style="max-width: 900px;">
+            <i class="fas fa-times close-modal" onclick="toggleModal('infoCardsModal')"></i>
+            <h2 class="section-title" style="margin-bottom: 10px;">Informações da Loja</h2>
+            <div class="features-container-modal">
+                <div class="feature-card">
+                    <i class="fas fa-bolt"></i>
+                    <h3>Nitros e Impulsos para seu Discord</h3>
+                    <p>Nitros para obter mais vantagens em sua conta e pacotes de Impulsos para o seu servidor, com ótimos preços.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-headset"></i>
+                    <h3>Pós-Compra Incluído</h3>
+                    <p>Suporte técnico completo! Precisa mexer, criar ou configure novos canais? Nós fazemos tudo para você.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-shield-halved"></i>
+                    <h3>Comunidades Elite</h3>
+                    <p>Servidores configurados sob medida a partir de <strong>R$ 15,00</strong>.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="termsModal" class="modal">
-        <div class="modal-content modal-content-large" style="max-width: 800px;">
+        <div class="modal-content modal-content-large" style="max-width: 850px;">
             <i class="fas fa-times close-modal" onclick="toggleModal('termsModal')"></i>
-            <h2 class="section-title" style="margin-bottom: 10px;">Termos de Uso & Diretrizes</h2>
+            <h2 class="section-title" style="margin-bottom: 10px;">Termos de Uso & Diretrizes Gerais</h2>
             <div class="terms-modal-body">
                 <div class="terms-grid">
                     <div class="terms-block">
-                        <h3>Termos de Serviço</h3>
-                        <p>Ao realizar um pedido em nossa plataforma, você concorda com a entrega direta via Discord ou WhatsApp.</p>
+                        <h3>1. Processo de Entrega e Prazos</h3>
+                        <p>Ao realizar qualquer pedido em nossa plataforma, o cliente declara estar ciente do fluxo operacional padrão:</p>
+                        <ul>
+                            <li><i class="fas fa-angle-right"></i> <strong>Atendimento Remoto:</strong> Toda e qualquer entrega de produto ou serviço será validada e finalizada de forma direta através dos nossos canais de suporte no Discord oficial ou via WhatsApp.</li>
+                            <li><i class="fas fa-angle-right"></i> <strong>Prazo Limite:</strong> O prazo estimado para início da entrega varia entre 10 minutos e 24 horas após a confirmação integral do pagamento pela nossa equipe.</li>
+                            <li><i class="fas fa-angle-right"></i> <strong>Dados de Contato:</strong> É de responsabilidade total do comprador fornecer as informações de contato corretas ao gerar o ID do pedido no site.</li>
+                        </ul>
                     </div>
                     <div class="terms-block">
-                        <h3>Garantia e Suporte</h3>
-                        <p>Oferecemos garantia de estabilidade estrutural em todos os servidores entregues de forma personalizada.</p>
+                        <h3>2. Política de Reembolso e Devolução</h3>
+                        <p>Trabalhamos estritamente com produtos e serviços digitais intangíveis. Devido à natureza do produto, aplicamos as seguintes regras:</p>
+                        <ul>
+                            <li><i class="fas fa-angle-right"></i> <strong>Serviços Customizados:</strong> Servidores criados ou configurados sob medida não possuem reembolso após o trabalho ter sido iniciado ou entregue no Discord do comprador.</li>
+                            <li><i class="fas fa-angle-right"></i> <strong>Nitros e Impulsos:</strong> Uma vez ativados na conta do usuário ou aplicados no servidor de destino, o processo torna-se irreversível e inviabiliza estornos.</li>
+                            <li><i class="fas fa-angle-right"></i> <strong>Arrependimento:</strong> O reembolso por arrependimento só será elegível se a entrega ainda NÃO tiver sido efetuada pela gerência da loja.</li>
+                        </ul>
+                    </div>
+                    <div class="terms-block">
+                        <h3>3. Garantia de Estabilidade e Pós-Compra</h3>
+                        <p>Buscamos manter o mais alto padrão de segurança e estabilidade em nossos pacotes estruturais:</p>
+                        <ul>
+                            <li><i class="fas fa-angle-right"></i> <strong>Garantia de Estrutura:</strong> Damos garantia vitalícia sobre permissões de cargos, canais e botes configurados nativamente pela nossa equipe, desde que terceiros não alterem as configurações críticas de segurança.</li>
+                            <li><i class="fas fa-angle-right"></i> <strong>Mau Uso Externo:</strong> Não nos responsabilizamos por quedas em decorrência de punições aplicadas pela plataforma Discord à sua conta ou à sua comunidade, ou por botes invadidos devido a tokens vazados pelo próprio cliente.</li>
+                            <li><i class="fas fa-angle-right"></i> <strong>Suporte Técnico:</strong> Nosso suporte pós-venda cobre ajustes básicos e correções de bugs operacionais dentro do escopo do pacote adquirido.</li>
+                        </ul>
+                    </div>
+                    <div class="terms-block">
+                        <h3>4. Medidas Anti-Fraude e Conduta</h3>
+                        <p>Mantemos um ecossistema limpo, justo e seguro para todos os clientes e colaboradores da RX7 Store:</p>
+                        <ul>
+                            <li><i class="fas fa-angle-right"></i> <strong>Estornos Ilegítimos:</strong> Tentativas de chargeback (contestação maliciosa de pagamento junto ao banco/cartão) após a entrega realizada resultarão em banimento permanente de todos os nossos servidores, suspensão de licenças e inclusão em nossa lista de bloqueio.</li>
+                            <li><i class="fas fa-angle-right"></i> <strong>Comportamento no Suporte:</strong> Ofensas, ameaças ou desrespeito direcionados aos atendentes e moderadores da nossa comunidade causarão o encerramento imediato do atendimento sem direito à assistência.</li>
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -986,7 +1025,7 @@
         let products = [];
         let cart = [];
         let isAdminLoggedIn = false;
-        let adminAccessLevel = "none"; // Níveis: "none", "edit_only", "full"
+        let adminAccessLevel = "none"; 
         let convertedImagesBase64 = [];
         let activeImageIndexes = {}; 
 
@@ -1198,7 +1237,6 @@
                 const cat = product.category || "Geral";
                 const disc = product.discount > 0 ? ` (-${product.discount}%)` : '';
                 
-                // Só renderiza o botão de excluir se for nível de acesso total ("full")
                 let deleteBtnHtml = "";
                 if (adminAccessLevel === "full") {
                     deleteBtnHtml = `<button type="button" class="btn-delete" onclick="deleteProduct('${product.id_fb}')"><i class="fas fa-trash"></i></button>`;
@@ -1335,7 +1373,7 @@
                 database.ref(`products/${idFb}`).update(productPayload)
                     .then(() => {
                         resetProductForm();
-                        alert("Produto atualizado!");
+                        alert("Produto updated!");
                     });
             } else {
                 const nextOrder = products.length > 0 ? Math.max(...products.map(p => p.displayOrder || 0)) + 1 : 1;
@@ -1349,7 +1387,6 @@
         }
 
         function deleteProduct(idFb) {
-            // Trava de segurança extra caso tentem chamar via console
             if (adminAccessLevel !== "full") {
                 alert("Erro: Seu nível de acesso não permite excluir registros.");
                 return;
