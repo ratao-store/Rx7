@@ -1092,7 +1092,6 @@
                     <div class="category-management-box" id="adminCategoryManagementArea"></div>
                 </div>
                 
-                <!-- NOVA SEÇÃO: GERENCIAR EQUIPE (SÓ APARECE PRO DONO) -->
                 <div id="teamManagementSection" style="display: none;">
                     <h3 style="color:#fff; margin-bottom: 15px;">Gerenciar Equipe (Editores)</h3>
                     <form id="teamForm" onsubmit="handleTeamSubmit(event)" style="margin-bottom: 20px; background: rgba(255,255,255,0.02); padding: 15px; border-radius: 8px; border: 1px solid rgba(0,243,255,0.1);">
@@ -1138,6 +1137,7 @@
         let teamMembers = {};
         let isAdminLoggedIn = false;
         let adminAccessLevel = "none"; 
+        let loggedAdminUsername = ""; // Nova variável para guardar quem logou por último
         let convertedImagesBase64 = [];
         let activeImageIndexes = {}; 
         let currentSelectedCategoryFilter = "all";
@@ -1178,7 +1178,6 @@
             }
         });
 
-        // Sincroniza a lista de equipe em tempo real
         database.ref('team_members').on('value', (snapshot) => {
             teamMembers = snapshot.val() || {};
             if (isAdminLoggedIn && adminAccessLevel === "full") {
@@ -1508,7 +1507,6 @@
             container.innerHTML = html;
         }
 
-        // Nova Função: Renderiza os membros da equipe no painel do dono
         function renderTeamList() {
             const container = document.getElementById('teamListContainer');
             if (!container) return;
@@ -1536,7 +1534,6 @@
             });
         }
 
-        // Nova Função: Adiciona um membro da equipe no Firebase
         function handleTeamSubmit(e) {
             e.preventDefault();
             if (adminAccessLevel !== "full") return;
@@ -1551,7 +1548,6 @@
                 return;
             }
 
-            // Verifica se o usuário já existe
             const exists = Object.values(teamMembers).some(member => member.user === username);
             if (exists) {
                 alert("Esse usuário já foi criado. Escolha outro nome.");
@@ -1568,7 +1564,6 @@
             });
         }
 
-        // Nova Função: Exclui um membro da equipe do Firebase
         function deleteTeamMember(key) {
             if (adminAccessLevel !== "full") return;
             if (confirm("Deseja realmente excluir esta conta de editor? Ele perderá o acesso imediatamente.")) {
@@ -1690,9 +1685,10 @@
             document.getElementById('btnCancelEdit').style.display = "block";
         }
 
-        async function checkDailyLimitAndIncrement() {
+        // CORREÇÃO AQUI: Agora a verificação de limite usa a data e o nome de usuário específico!
+        async function checkDailyLimitAndIncrement(username) {
             const todayStr = new Date().toISOString().split('T')[0]; 
-            const limitRef = database.ref(`admin_daily_limits/${todayStr}`);
+            const limitRef = database.ref(`admin_daily_limits/${todayStr}/${username}`);
             
             const snapshot = await limitRef.once('value');
             let currentCount = snapshot.val() || 0;
@@ -1738,13 +1734,14 @@
                 database.ref(`products/${idFb}`).update(productPayload)
                     .then(() => {
                         resetProductForm();
-                        alert("Produto updated!");
+                        alert("Produto atualizado!");
                     });
             } else {
+                // Se for um funcionário/editor restrito, valida o limite individual dele
                 if (adminAccessLevel === "edit_only") {
-                    const canPost = await checkDailyLimitAndIncrement();
+                    const canPost = await checkDailyLimitAndIncrement(loggedAdminUsername);
                     if (!canPost) {
-                        alert("Limite excedido: Sua conta de editor atingiu o máximo de 2 novos produtos hoje.");
+                        alert(`Limite excedido: A conta "${loggedAdminUsername}" atingiu o máximo de 2 novos produtos hoje.`);
                         return;
                     }
                 }
@@ -1754,7 +1751,7 @@
                 database.ref('products').push(productPayload)
                     .then(() => {
                         resetProductForm();
-                        alert("Produto adicionado!");
+                        alert("Produto adicionado com sucesso!");
                     });
             }
         }
@@ -1920,14 +1917,13 @@
             const user = document.getElementById('adminUser').value.trim().toLowerCase();
             const pass = document.getElementById('adminPass').value.trim();
             
-            // 1. Verificação das credenciais Master do Dono (Acesso Geral)
             if (user === 'gostosao' && pass === '569124') {
                 isAdminLoggedIn = true;
                 adminAccessLevel = "full";
+                loggedAdminUsername = user;
                 document.getElementById('loginForm').reset();
                 toggleModal('loginModal');
                 
-                // Exibe a aba secreta de equipe para o dono
                 document.getElementById('teamManagementSection').style.display = "block";
                 
                 renderAdminSortableList();
@@ -1938,24 +1934,22 @@
                 return;
             }
             
-            // 2. Verificação do login padrão "admin"
             if (user === 'admin' && pass === '245677') {
                 isAdminLoggedIn = true;
                 adminAccessLevel = "edit_only";
+                loggedAdminUsername = user;
                 document.getElementById('loginForm').reset();
                 toggleModal('loginModal');
                 
-                // Oculta a aba de equipe para o editor padrão
                 document.getElementById('teamManagementSection').style.display = "none";
                 
                 renderAdminSortableList();
                 renderAdminCategoryManager();
                 toggleModal('adminPanelModal');
-                alert("Logado com sucesso como Editor!");
+                alert("Logado com sucesso como Editor Padrão!");
                 return;
             }
 
-            // 3. Verificação Dinâmica das contas de Equipe salvas no Firebase
             let teamMatchKey = null;
             for (let key in teamMembers) {
                 if (teamMembers[key].user === user && teamMembers[key].pass === pass) {
@@ -1966,11 +1960,11 @@
 
             if (teamMatchKey) {
                 isAdminLoggedIn = true;
-                adminAccessLevel = "edit_only"; // Define o mesmo bloqueio restrito do admin
+                adminAccessLevel = "edit_only"; 
+                loggedAdminUsername = user; // Define o nome do usuário da equipe logado
                 document.getElementById('loginForm').reset();
                 toggleModal('loginModal');
                 
-                // Oculta a aba de equipe para funcionários
                 document.getElementById('teamManagementSection').style.display = "none";
                 
                 renderAdminSortableList();
