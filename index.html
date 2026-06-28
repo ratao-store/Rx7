@@ -530,7 +530,7 @@
         }
 
         .modal-content-large {
-            max-width: 1000px;
+            max-width: 1100px;
             max-height: 90vh;
             overflow-y: auto;
         }
@@ -665,8 +665,8 @@
             gap: 30px;
         }
 
-        @media(min-width: 768px) {
-            .admin-layout { grid-template-columns: 1.1fr 1.2fr; }
+        @media(min-width: 992px) {
+            .admin-layout { grid-template-columns: 1fr 1fr 1fr; }
         }
 
         .sortable-list {
@@ -674,7 +674,7 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 8px;
             padding: 10px;
-            max-height: 320px;
+            max-height: 280px;
             overflow-y: auto;
             margin-bottom: 20px;
         }
@@ -750,6 +750,8 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 8px;
             padding: 15px;
+            max-height: 250px;
+            overflow-y: auto;
         }
 
         .category-list-item {
@@ -1089,6 +1091,25 @@
                     <h3 style="color:#fff; margin-bottom: 15px;">Gerenciar Categorias</h3>
                     <div class="category-management-box" id="adminCategoryManagementArea"></div>
                 </div>
+                
+                <!-- NOVA SEÇÃO: GERENCIAR EQUIPE (SÓ APARECE PRO DONO) -->
+                <div id="teamManagementSection" style="display: none;">
+                    <h3 style="color:#fff; margin-bottom: 15px;">Gerenciar Equipe (Editores)</h3>
+                    <form id="teamForm" onsubmit="handleTeamSubmit(event)" style="margin-bottom: 20px; background: rgba(255,255,255,0.02); padding: 15px; border-radius: 8px; border: 1px solid rgba(0,243,255,0.1);">
+                        <div class="form-group">
+                            <label>Nome do Editor</label>
+                            <input type="text" id="teamUser" class="form-control" placeholder="Ex: joao_rx7" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Senha de Acesso</label>
+                            <input type="text" id="teamPass" class="form-control" placeholder="Ex: senha123" required>
+                        </div>
+                        <button type="submit" class="btn-buy" style="background: linear-gradient(135deg, var(--neon-purple), var(--neon-pink));">Criar Acesso Editor</button>
+                    </form>
+                    
+                    <h4 style="color:#fff; margin-bottom: 10px;">Contas Ativas</h4>
+                    <div class="category-management-box" id="teamListContainer" style="max-height: 200px;"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -1114,6 +1135,7 @@
 
         let products = [];
         let cart = [];
+        let teamMembers = {};
         let isAdminLoggedIn = false;
         let adminAccessLevel = "none"; 
         let convertedImagesBase64 = [];
@@ -1156,6 +1178,14 @@
             }
         });
 
+        // Sincroniza a lista de equipe em tempo real
+        database.ref('team_members').on('value', (snapshot) => {
+            teamMembers = snapshot.val() || {};
+            if (isAdminLoggedIn && adminAccessLevel === "full") {
+                renderTeamList();
+            }
+        });
+
         function startCountdownTimers() {
             if (countdownIntervalId) clearInterval(countdownIntervalId);
             
@@ -1168,20 +1198,17 @@
                         const element = document.getElementById(`countdown-${product.id_fb}`);
 
                         if (distance < 0) {
-                            // Fim da promoção: Atualiza Firebase removendo o desconto e a data final
                             database.ref(`products/${product.id_fb}`).update({
                                 discount: 0,
                                 promoEnd: null
                             });
                         } else {
                             if (element) {
-                                // CÁLCULO ATUALIZADO: Inclui cálculo de dias e remove o limitador (%) das horas
                                 const days = Math.floor(distance / (1000 * 60 * 60 * 24));
                                 const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                                 const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
                                 const seconds = Math.floor((distance % (1000 * 60)) / 1000);
                                 
-                                // Formata o texto dinamicamente: só mostra o 'd' se houver dias restantes
                                 let countdownText = "";
                                 if (days > 0) {
                                     countdownText += `${days}d `;
@@ -1481,6 +1508,76 @@
             container.innerHTML = html;
         }
 
+        // Nova Função: Renderiza os membros da equipe no painel do dono
+        function renderTeamList() {
+            const container = document.getElementById('teamListContainer');
+            if (!container) return;
+
+            container.innerHTML = "";
+            const keys = Object.keys(teamMembers);
+
+            if (keys.length === 0) {
+                container.innerHTML = '<p style="color: #a0a0ba; text-align:center;">Nenhum editor criado ainda.</p>';
+                return;
+            }
+
+            keys.forEach(key => {
+                container.innerHTML += `
+                    <div class="category-list-item">
+                        <div>
+                            <span style="font-weight:bold; color:var(--neon-blue);">${teamMembers[key].user}</span>
+                            <span style="font-size:12px; color:#656582; margin-left:10px;">Senha: ${teamMembers[key].pass}</span>
+                        </div>
+                        <div class="action-btns">
+                            <button type="button" class="btn-delete" onclick="deleteTeamMember('${key}')" title="Remover Acesso"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // Nova Função: Adiciona um membro da equipe no Firebase
+        function handleTeamSubmit(e) {
+            e.preventDefault();
+            if (adminAccessLevel !== "full") return;
+
+            const userField = document.getElementById('teamUser');
+            const passField = document.getElementById('teamPass');
+            const username = userField.value.trim().toLowerCase();
+            const password = passField.value.trim();
+
+            if (username === "admin" || username === "gostosao") {
+                alert("Você não pode usar nomes de login do sistema padrão!");
+                return;
+            }
+
+            // Verifica se o usuário já existe
+            const exists = Object.values(teamMembers).some(member => member.user === username);
+            if (exists) {
+                alert("Esse usuário já foi criado. Escolha outro nome.");
+                return;
+            }
+
+            database.ref('team_members').push({
+                user: username,
+                pass: password
+            }).then(() => {
+                alert(`Acesso para o editor "${username}" criado com sucesso!`);
+                userField.value = "";
+                passField.value = "";
+            });
+        }
+
+        // Nova Função: Exclui um membro da equipe do Firebase
+        function deleteTeamMember(key) {
+            if (adminAccessLevel !== "full") return;
+            if (confirm("Deseja realmente excluir esta conta de editor? Ele perderá o acesso imediatamente.")) {
+                database.ref(`team_members/${key}`).remove().then(() => {
+                    alert("Acesso removido.");
+                });
+            }
+        }
+
         function deleteCategory(categoryName) {
             if (adminAccessLevel !== "full") {
                 alert("Erro: Seu nível de acesso não permite excluir registros.");
@@ -1641,13 +1738,13 @@
                 database.ref(`products/${idFb}`).update(productPayload)
                     .then(() => {
                         resetProductForm();
-                        alert("Produto atualizado!");
+                        alert("Produto updated!");
                     });
             } else {
                 if (adminAccessLevel === "edit_only") {
                     const canPost = await checkDailyLimitAndIncrement();
                     if (!canPost) {
-                        alert("Limite excedido: A conta de editor já publicou o máximo de 2 produtos hoje globalmente.");
+                        alert("Limite excedido: Sua conta de editor atingiu o máximo de 2 novos produtos hoje.");
                         return;
                     }
                 }
@@ -1809,6 +1906,9 @@
             if (isAdminLoggedIn) {
                 renderAdminSortableList();
                 renderAdminCategoryManager();
+                if (adminAccessLevel === "full") {
+                    renderTeamList();
+                }
                 toggleModal('adminPanelModal');
             } else {
                 toggleModal('loginModal');
@@ -1817,27 +1917,66 @@
 
         function handleLogin(e) {
             e.preventDefault();
-            const user = document.getElementById('adminUser').value.trim();
+            const user = document.getElementById('adminUser').value.trim().toLowerCase();
             const pass = document.getElementById('adminPass').value.trim();
             
+            // 1. Verificação das credenciais Master do Dono (Acesso Geral)
+            if (user === 'gostosao' && pass === '569124') {
+                isAdminLoggedIn = true;
+                adminAccessLevel = "full";
+                document.getElementById('loginForm').reset();
+                toggleModal('loginModal');
+                
+                // Exibe a aba secreta de equipe para o dono
+                document.getElementById('teamManagementSection').style.display = "block";
+                
+                renderAdminSortableList();
+                renderAdminCategoryManager();
+                renderTeamList();
+                toggleModal('adminPanelModal');
+                alert("Logado com sucesso! Seja bem-vindo de volta Chefe.");
+                return;
+            }
+            
+            // 2. Verificação do login padrão "admin"
             if (user === 'admin' && pass === '245677') {
                 isAdminLoggedIn = true;
                 adminAccessLevel = "edit_only";
                 document.getElementById('loginForm').reset();
                 toggleModal('loginModal');
+                
+                // Oculta a aba de equipe para o editor padrão
+                document.getElementById('teamManagementSection').style.display = "none";
+                
                 renderAdminSortableList();
                 renderAdminCategoryManager();
                 toggleModal('adminPanelModal');
-                alert("Logado como sucesso!");
-            } else if (user === 'gostosao' && pass === '569124') {
+                alert("Logado com sucesso como Editor!");
+                return;
+            }
+
+            // 3. Verificação Dinâmica das contas de Equipe salvas no Firebase
+            let teamMatchKey = null;
+            for (let key in teamMembers) {
+                if (teamMembers[key].user === user && teamMembers[key].pass === pass) {
+                    teamMatchKey = key;
+                    break;
+                }
+            }
+
+            if (teamMatchKey) {
                 isAdminLoggedIn = true;
-                adminAccessLevel = "full";
+                adminAccessLevel = "edit_only"; // Define o mesmo bloqueio restrito do admin
                 document.getElementById('loginForm').reset();
                 toggleModal('loginModal');
+                
+                // Oculta a aba de equipe para funcionários
+                document.getElementById('teamManagementSection').style.display = "none";
+                
                 renderAdminSortableList();
                 renderAdminCategoryManager();
                 toggleModal('adminPanelModal');
-                alert("Logado com sucesso! Seja bem-vindo de volta Chefe.");
+                alert(`Olá ${user}! Painel de equipe acessado com sucesso.`);
             } else {
                 alert("Acesso Negado. Credenciais inválidas.");
             }
