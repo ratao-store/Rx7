@@ -986,7 +986,7 @@
                         <ul>
                             <li><i class="fas fa-angle-right"></i> <strong>Garantia de Estrutura:</strong> Damos garantia vitalícia sobre permissões de cargos, canais e botes configurados nativamente pela nossa equipe, desde que terceiros não alterem as configurações críticas de segurança.</li>
                             <li><i class="fas fa-angle-right"></i> <strong>Mau Uso Externo:</strong> Não nos responsabilizamos por quedas em decorrência de punições aplicadas pela plataforma Discord à sua conta ou à sua comunidade, ou por botes invadidos devido a tokens vazados pelo próprio cliente.</li>
-                            <li><i class="fas fa-angle-right"></i> <strong>Suporte Técnico:</strong> Nosso suporte pós-venda cobre ajustes básicos e correções de bugs operacionais dentro do escopo do pacote adquirido.</li>
+                            <li><i class="fas fa-angle-right"></i> <strong>Suporte Técnico:</strong> Nosso suporte pós-venda cobre assuntos básicos e correções de bugs operacionais dentro do escopo do pacote adquirido.</li>
                         </ul>
                     </div>
                     <div class="terms-block">
@@ -1137,7 +1137,7 @@
         let teamMembers = {};
         let isAdminLoggedIn = false;
         let adminAccessLevel = "none"; 
-        let loggedAdminUsername = ""; // Nova variável para guardar quem logou por último
+        let loggedAdminUsername = ""; 
         let convertedImagesBase64 = [];
         let activeImageIndexes = {}; 
         let currentSelectedCategoryFilter = "all";
@@ -1685,7 +1685,6 @@
             document.getElementById('btnCancelEdit').style.display = "block";
         }
 
-        // CORREÇÃO AQUI: Agora a verificação de limite usa a data e o nome de usuário específico!
         async function checkDailyLimitAndIncrement(username) {
             const todayStr = new Date().toISOString().split('T')[0]; 
             const limitRef = database.ref(`admin_daily_limits/${todayStr}/${username}`);
@@ -1737,7 +1736,6 @@
                         alert("Produto atualizado!");
                     });
             } else {
-                // Se for um funcionário/editor restrito, valida o limite individual dele
                 if (adminAccessLevel === "edit_only") {
                     const canPost = await checkDailyLimitAndIncrement(loggedAdminUsername);
                     if (!canPost) {
@@ -1933,22 +1931,6 @@
                 alert("Logado com sucesso! Seja bem-vindo de volta Chefe.");
                 return;
             }
-            
-            if (user === 'admin' && pass === '245677') {
-                isAdminLoggedIn = true;
-                adminAccessLevel = "edit_only";
-                loggedAdminUsername = user;
-                document.getElementById('loginForm').reset();
-                toggleModal('loginModal');
-                
-                document.getElementById('teamManagementSection').style.display = "none";
-                
-                renderAdminSortableList();
-                renderAdminCategoryManager();
-                toggleModal('adminPanelModal');
-                alert("Logado com sucesso como Editor Padrão!");
-                return;
-            }
 
             let teamMatchKey = null;
             for (let key in teamMembers) {
@@ -1961,7 +1943,7 @@
             if (teamMatchKey) {
                 isAdminLoggedIn = true;
                 adminAccessLevel = "edit_only"; 
-                loggedAdminUsername = user; // Define o nome do usuário da equipe logado
+                loggedAdminUsername = user; 
                 document.getElementById('loginForm').reset();
                 toggleModal('loginModal');
                 
