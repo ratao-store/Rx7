@@ -264,12 +264,11 @@
             gap: 30px;
         }
 
-        /* CARD DO PRODUTO ATUALIZADO */
         .product-card {
             background: var(--panel-bg);
             border: 1px solid rgba(0, 243, 255, 0.2);
             border-radius: 12px;
-            padding: 0; /* Remove padding total para a foto sangrar perfeitamente nas bordas */
+            padding: 0;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -300,11 +299,10 @@
             flex-grow: 1;
         }
 
-        /* NOVO DESIGN DO VISUALIZADOR DE IMAGENS TOTALMENTE EM DESTAQUE */
         .product-image-viewer {
             position: relative;
             width: 100%;
-            height: 240px; /* Altura imponente para a imagem reinar no topo */
+            height: 240px;
             background: #07070d;
             border-bottom: 1px solid rgba(0, 243, 255, 0.15);
         }
@@ -316,7 +314,6 @@
             transition: opacity 0.3s ease;
         }
 
-        /* Setas de navegação do carrossel */
         .gallery-nav-btn {
             position: absolute;
             top: 50%;
@@ -343,7 +340,6 @@
         .gallery-nav-prev { left: 10px; }
         .gallery-nav-next { right: 10px; }
 
-        /* Miniaturas horizontais localizadas abaixo da imagem grande */
         .product-thumbnails {
             display: flex;
             gap: 6px;
@@ -971,7 +967,7 @@
         let cart = [];
         let isAdminLoggedIn = false;
         let convertedImagesBase64 = [];
-        let activeImageIndexes = {}; // Controla qual índice de imagem está ativo por produto
+        let activeImageIndexes = {}; 
 
         function toggleDropdown(event) {
             event.stopPropagation();
@@ -1026,7 +1022,6 @@
             }
         }
 
-        // ALTERA A FOTO EXIBIDA NO CARROSSEL
         function changeProductImage(idFb, index, totalImages) {
             if (index < 0 || index >= totalImages) return;
             activeImageIndexes[idFb] = index;
@@ -1037,7 +1032,6 @@
                 imgEl.src = imagesArray[index];
             }
 
-            // Atualiza o estado visual das miniaturas abaixo
             const thumbs = document.querySelectorAll(`.thumb-${idFb}`);
             thumbs.forEach((thumb, i) => {
                 if (i === index) thumb.classList.add('active');
@@ -1086,40 +1080,39 @@
                         priceHtml = `<div class="product-price">R$ ${product.price.toFixed(2).replace('.', ',')}</div>`;
                     }
 
-                    // Se não tiver imagens salvas, coloca um placeholder padrão
-                    const images = (product.imagesArray && product.imagesArray.length > 0) 
-                        ? product.imagesArray 
-                        : ['https://via.placeholder.com/400x250/10101c/ffffff?text=Rx7+Store'];
-
-                    if (activeImageIndexes[product.id_fb] === undefined) {
-                        activeImageIndexes[product.id_fb] = 0;
-                    }
-                    const currentIndex = activeImageIndexes[product.id_fb];
-
-                    // MONTA O VIEWER DESTACADO NO TOPO
-                    let viewerHtml = `
-                        <div class="product-image-viewer">
-                            <img src="${images[currentIndex]}" id="mainImg-${product.id_fb}" class="main-product-img" onclick="window.open(this.src, '_blank')" title="Clique para ver em tamanho cheio">
-                    `;
-                    
-                    // Coloca as setinhas de navegação caso o produto tenha mais de uma imagem
-                    if (images.length > 1) {
-                        viewerHtml += `
-                            <div class="gallery-nav-btn gallery-nav-prev" onclick="changeProductImage('${product.id_fb}', activeImageIndexes['${product.id_fb}'] - 1, ${images.length})"><i class="fas fa-chevron-left"></i></div>
-                            <div class="gallery-nav-btn gallery-nav-next" onclick="changeProductImage('${product.id_fb}', activeImageIndexes['${product.id_fb}'] + 1, ${images.length})"><i class="fas fa-chevron-right"></i></div>
-                        `;
-                    }
-                    viewerHtml += `</div>`;
-
-                    // Monta a linha de miniaturas discretas logo abaixo do blocão da foto principal
+                    // LÓGICA DE VERIFICAÇÃO DE IMAGEM ATUALIZADA
+                    const hasImages = product.imagesArray && product.imagesArray.length > 0;
+                    let viewerHtml = "";
                     let thumbsHtml = "";
-                    if (images.length > 1) {
-                        thumbsHtml = `<div class="product-thumbnails">`;
-                        images.forEach((img, idx) => {
-                            const activeClass = idx === currentIndex ? 'active' : '';
-                            thumbsHtml += `<img src="${img}" class="thumb-img thumb-${product.id_fb} ${activeClass}" onclick="changeProductImage('${product.id_fb}', ${idx}, ${images.length})">`;
-                        });
-                        thumbsHtml += `</div>`;
+
+                    if (hasImages) {
+                        const images = product.imagesArray;
+                        if (activeImageIndexes[product.id_fb] === undefined) {
+                            activeImageIndexes[product.id_fb] = 0;
+                        }
+                        const currentIndex = activeImageIndexes[product.id_fb];
+
+                        viewerHtml = `
+                            <div class="product-image-viewer">
+                                <img src="${images[currentIndex]}" id="mainImg-${product.id_fb}" class="main-product-img" onclick="window.open(this.src, '_blank')" title="Clique para ver em tamanho cheio">
+                        `;
+                        
+                        if (images.length > 1) {
+                            viewerHtml += `
+                                <div class="gallery-nav-btn gallery-nav-prev" onclick="changeProductImage('${product.id_fb}', activeImageIndexes['${product.id_fb}'] - 1, ${images.length})"><i class="fas fa-chevron-left"></i></div>
+                                <div class="gallery-nav-btn gallery-nav-next" onclick="changeProductImage('${product.id_fb}', activeImageIndexes['${product.id_fb}'] + 1, ${images.length})"><i class="fas fa-chevron-right"></i></div>
+                            `;
+                        }
+                        viewerHtml += `</div>`;
+
+                        if (images.length > 1) {
+                            thumbsHtml = `<div class="product-thumbnails">`;
+                            images.forEach((img, idx) => {
+                                const activeClass = idx === currentIndex ? 'active' : '';
+                                thumbsHtml += `<img src="${img}" class="thumb-img thumb-${product.id_fb} ${activeClass}" onclick="changeProductImage('${product.id_fb}', ${idx}, ${images.length})">`;
+                            });
+                            thumbsHtml += `</div>`;
+                        }
                     }
 
                     categoryHtml += `
