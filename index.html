@@ -540,7 +540,6 @@
             border: 1px solid var(--neon-blue);
         }
         
-        /* Botão X para apagar imagem individual na miniatura admin */
         .btn-remove-thumb-pic {
             position: absolute;
             top: -5px;
@@ -987,6 +986,7 @@
         let products = [];
         let cart = [];
         let isAdminLoggedIn = false;
+        let adminAccessLevel = "none"; // Níveis: "none", "edit_only", "full"
         let convertedImagesBase64 = [];
         let activeImageIndexes = {}; 
 
@@ -1035,7 +1035,7 @@
                         
                         if (loadedCount === totalFiles) {
                             renderAdminImagesPreview();
-                            fileInput.value = ""; // Limpa a seleção do input de arquivo para permitir reenvio futuro
+                            fileInput.value = ""; 
                         }
                     };
                     reader.readAsDataURL(file);
@@ -1043,7 +1043,6 @@
             }
         }
 
-        // Renderiza as fotos atualmente salvas/carregadas no formulário admin com a opção individual de apagar (X)
         function renderAdminImagesPreview() {
             const previewArea = document.getElementById('previewImagesArea');
             previewArea.innerHTML = '';
@@ -1058,13 +1057,11 @@
             });
         }
 
-        // Função para tirar uma única imagem da lista
         function removeSingleImageFromForm(index) {
             convertedImagesBase64.splice(index, 1);
             renderAdminImagesPreview();
         }
 
-        // Função para limpar todas as fotos adicionadas de uma vez
         function removeAllUploadedImages() {
             convertedImagesBase64 = [];
             renderAdminImagesPreview();
@@ -1138,7 +1135,6 @@
                             activeImageIndexes[product.id_fb] = 0;
                         }
                         
-                        // Garante que o índice atual é válido após remoções de imagens
                         if (activeImageIndexes[product.id_fb] >= images.length) {
                             activeImageIndexes[product.id_fb] = 0;
                         }
@@ -1201,6 +1197,13 @@
             products.forEach(product => {
                 const cat = product.category || "Geral";
                 const disc = product.discount > 0 ? ` (-${product.discount}%)` : '';
+                
+                // Só renderiza o botão de excluir se for nível de acesso total ("full")
+                let deleteBtnHtml = "";
+                if (adminAccessLevel === "full") {
+                    deleteBtnHtml = `<button type="button" class="btn-delete" onclick="deleteProduct('${product.id_fb}')"><i class="fas fa-trash"></i></button>`;
+                }
+
                 container.innerHTML += `
                     <div class="sortable-item" draggable="true" data-id="${product.id_fb}">
                         <div class="item-drag-info">
@@ -1212,7 +1215,7 @@
                         </div>
                         <div class="action-btns">
                             <button type="button" class="btn-edit" onclick="loadEditProduct('${product.id_fb}')"><i class="fas fa-edit"></i></button>
-                            <button type="button" class="btn-delete" onclick="deleteProduct('${product.id_fb}')"><i class="fas fa-trash"></i></button>
+                            ${deleteBtnHtml}
                         </div>
                     </div>
                 `;
@@ -1293,7 +1296,6 @@
             document.getElementById('prodDiscount').value = product.discount || 0;
             document.getElementById('prodDesc').value = product.desc;
             
-            // Clona o array original de imagens para podermos manipulá-lo livremente sem afetar a storefront antes de salvar
             convertedImagesBase64 = product.imagesArray ? [...product.imagesArray] : [];
             renderAdminImagesPreview();
             
@@ -1320,7 +1322,6 @@
             }
             if (!category) category = "Geral";
 
-            // Se o array de fotos estiver vazio, salvamos como uma propriedade em branco/removida no Firebase
             const productPayload = {
                 name: name,
                 price: price,
@@ -1348,6 +1349,11 @@
         }
 
         function deleteProduct(idFb) {
+            // Trava de segurança extra caso tentem chamar via console
+            if (adminAccessLevel !== "full") {
+                alert("Erro: Seu nível de acesso não permite excluir registros.");
+                return;
+            }
             if (confirm("Quer mesmo apagar este produto?")) {
                 database.ref(`products/${idFb}`).remove();
             }
@@ -1497,15 +1503,27 @@
 
         function handleLogin(e) {
             e.preventDefault();
-            const user = document.getElementById('adminUser').value;
-            const pass = document.getElementById('adminPass').value;
-            if (user === 'gostosao' && pass === '245677') {
+            const user = document.getElementById('adminUser').value.trim();
+            const pass = document.getElementById('adminPass').value.trim();
+            
+            if (user === 'admin' && pass === '245677') {
                 isAdminLoggedIn = true;
+                adminAccessLevel = "edit_only";
+                document.getElementById('loginForm').reset();
                 toggleModal('loginModal');
                 renderAdminSortableList();
                 toggleModal('adminPanelModal');
+                alert("Logado com sucesso! Nível: Apenas Edição.");
+            } else if (user === 'gostosao' && pass === '569124') {
+                isAdminLoggedIn = true;
+                adminAccessLevel = "full";
+                document.getElementById('loginForm').reset();
+                toggleModal('loginModal');
+                renderAdminSortableList();
+                toggleModal('adminPanelModal');
+                alert("Logado com sucesso! Nível: Acesso Total.");
             } else {
-                alert("Acesso Negado.");
+                alert("Acesso Negado. Credenciais inválidas.");
             }
         }
 
