@@ -195,12 +195,12 @@
             margin: 0 auto 30px;
         }
 
-        /* Estilos das Novas Abas de Filtro */
         .category-tabs-wrapper {
             max-width: 1200px;
             margin: 0 auto 40px;
             padding: 0 20px;
             display: flex;
+            justify(content: center);
             justify-content: center;
             flex-wrap: wrap;
             gap: 12px;
@@ -896,11 +896,9 @@
         <p>Eleve sua comunidade para o próximo nível com servidores totalmente configurados, design futurista e infraestrutura premium.</p>
     </section>
 
-    <div class="category-tabs-wrapper" id="categoryTabsArea">
-        </div>
+    <div class="category-tabs-wrapper" id="categoryTabsArea"></div>
 
-    <section class="products-section" id="shopContentArea">
-    </section>
+    <section class="products-section" id="shopContentArea"></section>
 
     <footer>
         <div class="footer-bottom">
@@ -1099,7 +1097,7 @@
         let adminAccessLevel = "none"; 
         let convertedImagesBase64 = [];
         let activeImageIndexes = {}; 
-        let currentSelectedCategoryFilter = "all"; // Guarda a categoria ativa
+        let currentSelectedCategoryFilter = "all";
 
         function toggleDropdown(event) {
             event.stopPropagation();
@@ -1126,7 +1124,7 @@
                 }
                 products.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
             }
-            renderTabsFilterMenu(); // Renderiza os botões de abas
+            renderTabsFilterMenu();
             renderStorefront();
             updateCategorySelectors();
             if (isAdminLoggedIn) {
@@ -1135,7 +1133,6 @@
             }
         });
 
-        // NOVA FUNÇÃO: Renderiza os botões de abas de forma dinâmica
         function renderTabsFilterMenu() {
             const tabsArea = document.getElementById('categoryTabsArea');
             if (!tabsArea) return;
@@ -1148,7 +1145,6 @@
                 }
             });
 
-            // Se a categoria selecionada anteriormente sumiu do banco, reseta para "all"
             if (currentSelectedCategoryFilter !== "all" && !distinctCategories.includes(currentSelectedCategoryFilter)) {
                 currentSelectedCategoryFilter = "all";
             }
@@ -1162,7 +1158,6 @@
             tabsArea.innerHTML = tabsHtml;
         }
 
-        // NOVA FUNÇÃO: Ativa o filtro ao clicar em uma aba
         function filterStorefrontByCategory(category) {
             currentSelectedCategoryFilter = category;
             renderTabsFilterMenu();
@@ -1246,7 +1241,6 @@
             products.forEach(product => {
                 const catName = product.category || "Geral";
                 
-                // FILTRO APLICADO AQUI: ignora se não corresponder à aba selecionada
                 if (currentSelectedCategoryFilter !== "all" && catName !== currentSelectedCategoryFilter) {
                     return;
                 }
@@ -1255,7 +1249,6 @@
                 categoriesMap[catName].push(product);
             });
 
-            // Se o mapa de categorias estiver completamente vazio após o filtro
             if (Object.keys(categoriesMap).length === 0) {
                 shopArea.innerHTML = '<p style="color: #a0a0ba; text-align:center; padding: 40px 0;">Nenhum produto encontrado nesta categoria.</p>';
                 return;
@@ -1360,12 +1353,18 @@
                 const disc = product.discount > 0 ? ` (-${product.discount}%)` : '';
                 
                 let deleteBtnHtml = "";
+                let editBtnHtml = "";
+
+                // Modificação: Apenas 'full' (gostosao) pode editar produtos existentes ou excluir
                 if (adminAccessLevel === "full") {
+                    editBtnHtml = `<button type="button" class="btn-edit" onclick="loadEditProduct('${product.id_fb}')"><i class="fas fa-edit"></i></button>`;
                     deleteBtnHtml = `<button type="button" class="btn-delete" onclick="deleteProduct('${product.id_fb}')"><i class="fas fa-trash"></i></button>`;
+                } else {
+                    editBtnHtml = `<span style="font-size:11px; color:#555570; margin-right:5px;">Apenas Visualização</span>`;
                 }
 
                 container.innerHTML += `
-                    <div class="sortable-item" draggable="true" data-id="${product.id_fb}">
+                    <div class="sortable-item" draggable="${adminAccessLevel === 'full' ? 'true' : 'false'}" data-id="${product.id_fb}">
                         <div class="item-drag-info">
                             <i class="fas fa-bars"></i>
                             <div>
@@ -1374,13 +1373,15 @@
                             </div>
                         </div>
                         <div class="action-btns">
-                            <button type="button" class="btn-edit" onclick="loadEditProduct('${product.id_fb}')"><i class="fas fa-edit"></i></button>
+                            ${editBtnHtml}
                             ${deleteBtnHtml}
                         </div>
                     </div>
                 `;
             });
-            initDragAndDrop();
+            if (adminAccessLevel === "full") {
+                initDragAndDrop();
+            }
         }
 
         function renderAdminCategoryManager() {
@@ -1515,6 +1516,10 @@
         }
 
         function loadEditProduct(idFb) {
+            if (adminAccessLevel !== "full") {
+                alert("Seu nível de acesso não permite editar produtos existentes.");
+                return;
+            }
             const product = products.find(p => p.id_fb === idFb);
             if (!product) return;
 
@@ -1534,6 +1539,29 @@
             document.getElementById('formAdminTitle').innerText = "Editar Produto Selecionado";
             document.getElementById('btnSaveProduct').innerText = "Atualizar no Banco";
             document.getElementById('btnCancelEdit').style.display = "block";
+        }
+
+        // Nova verificação de limites locais diários para o usuário "admin"
+        function checkDailyLimitExceeded() {
+            const todayStr = new Date().toDateString(); 
+            const storedDate = localStorage.getItem('rx7_admin_post_date');
+            let storedCount = parseInt(localStorage.getItem('rx7_admin_post_count')) || 0;
+
+            if (storedDate !== todayStr) {
+                localStorage.setItem('rx7_admin_post_date', todayStr);
+                localStorage.setItem('rx7_admin_post_count', '0');
+                return false; 
+            }
+
+            if (storedCount >= 2) {
+                return true; 
+            }
+            return false;
+        }
+
+        function incrementDailyCount() {
+            let storedCount = parseInt(localStorage.getItem('rx7_admin_post_count')) || 0;
+            localStorage.setItem('rx7_admin_post_count', (storedCount + 1).toString());
         }
 
         function handleProductSubmit(e) {
@@ -1560,16 +1588,31 @@
             };
 
             if (idFb && idFb.trim() !== "") {
+                if (adminAccessLevel !== "full") {
+                    alert("Ação negada: Seu usuário não tem permissão para editar produtos publicados.");
+                    return;
+                }
                 database.ref(`products/${idFb}`).update(productPayload)
                     .then(() => {
                         resetProductForm();
-                        alert("Produto updated!");
+                        alert("Produto atualizado!");
                     });
             } else {
+                // Modificação: Regra do limite de 2 posts por dia para o admin básico
+                if (adminAccessLevel === "edit_only") {
+                    if (checkDailyLimitExceeded()) {
+                        alert("Limite excedido: Seu usuário só pode postar no máximo 2 produtos por dia.");
+                        return;
+                    }
+                }
+
                 const nextOrder = products.length > 0 ? Math.max(...products.map(p => p.displayOrder || 0)) + 1 : 1;
                 productPayload.displayOrder = nextOrder;
                 database.ref('products').push(productPayload)
                     .then(() => {
+                        if (adminAccessLevel === "edit_only") {
+                            incrementDailyCount();
+                        }
                         resetProductForm();
                         alert("Produto adicionado!");
                     });
@@ -1742,7 +1785,7 @@
                 renderAdminSortableList();
                 renderAdminCategoryManager();
                 toggleModal('adminPanelModal');
-                alert("Logado com sucesso! Apenas Edição.");
+                alert("Logado com sucesso!");
             } else if (user === 'gostosao' && pass === '569124') {
                 isAdminLoggedIn = true;
                 adminAccessLevel = "full";
@@ -1751,7 +1794,7 @@
                 renderAdminSortableList();
                 renderAdminCategoryManager();
                 toggleModal('adminPanelModal');
-                alert("Logado com sucesso! Acesso Total.");
+                alert("Logado com sucesso! Seja bem-vindo de volta Chefe.");
             } else {
                 alert("Acesso Negado. Credenciais inválidas.");
             }
