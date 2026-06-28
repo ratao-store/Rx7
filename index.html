@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rx7 Store - Web site</title>
     
-    <link rel="icon" type="image/jpeg" href="favicon.jpeg">
+    <link class="hljs-string" rel="icon" type="image/jpeg" href="favicon.jpeg">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -291,7 +291,7 @@
             background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
         }
 
-        /* ESTILO DA MINI GALERIA DE FOTOS DO PRODUTO */
+        /* MINI GALERIA DE FOTOS DO PRODUTO */
         .product-gallery {
             display: flex;
             gap: 8px;
@@ -473,6 +473,26 @@
             outline: none;
             border-color: var(--neon-blue);
             box-shadow: 0 0 10px rgba(0, 243, 255, 0.4);
+        }
+
+        /* Preview das fotos selecionadas */
+        .image-preview-container {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        .preview-img-wrapper {
+            position: relative;
+            width: 65px;
+            height: 65px;
+        }
+        .preview-img-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid var(--neon-blue);
         }
 
         .cart-item {
@@ -879,7 +899,8 @@
                 <div>
                     <h3 style="color:#fff; margin-bottom: 15px;" id="formAdminTitle">Adicionar Novo Produto</h3>
                     <form id="productForm" onsubmit="handleProductSubmit(event)">
-                        <input type="hidden" id="editProductId">
+                        <input type="text" id="editProductId" style="display:none; visibility:hidden;">
+                        
                         <div class="form-group">
                             <label>Nome do Servidor/Pacote</label>
                             <input type="text" id="prodName" class="form-control" required placeholder="Ex: Servidor de Games Elite">
@@ -895,8 +916,9 @@
                         </div>
 
                         <div class="form-group">
-                            <label>Links das Fotos (Separe por vírgula para adicionar várias)</label>
-                            <input type="text" id="prodImages" class="form-control" placeholder="Link1.jpg, Link2.png, Link3.jpg">
+                            <label>Fotos do Produto (Selecione quantas quiser dos seus arquivos)</label>
+                            <input type="file" id="prodImagesFile" class="form-control" multiple accept="image/*" onchange="previewFilesAndConvert()">
+                            <div class="image-preview-container" id="previewImagesArea"></div>
                         </div>
 
                         <div class="form-group">
@@ -950,6 +972,7 @@
         let products = [];
         let cart = [];
         let isAdminLoggedIn = false;
+        let convertedImagesBase64 = []; // Guarda temporariamente os textos das imagens adicionadas
 
         function toggleDropdown(event) {
             event.stopPropagation();
@@ -967,6 +990,7 @@
             return text.replace(urlPattern, '<a href="$1" target="_blank">$1</a>');
         }
 
+        // LÊ OS DADOS DO FIREBASE
         database.ref('products').on('value', (snapshot) => {
             const data = snapshot.val();
             products = [];
@@ -975,20 +999,37 @@
                     products.push({ id_fb: id, ...data[id] });
                 }
                 products.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
-            } else {
-                const initialProducts = [
-                    { name: "Servidor Comunidade Standard", price: 30.00, discount: 0, desc: "Servidor básico e otimizado para comunidades. Configuração de cargos essenciais, bots de boas-vindas e suporte pós-compra para ajustes inclusos.", category: "Servidores", images: "", displayOrder: 1 },
-                    { name: "Servidor Gamer Premium + 14 Boosts", price: 90.00, discount: 10, desc: "Combo completo: Servidor gamer profissional configurado de ponta a ponta + Adicional de 14 Boosts inclusos. Suporte total pós-venda para alterações de salas.", category: "Servidores", images: "", displayOrder: 2 },
-                    { name: "Pacote de Impulsos: 14 Boosts", price: 60.00, discount: 0, desc: "Apenas os 14 Impulsos aplicados diretamente no seu servidor existente do Discord para atingir os níveis mais altos de vantagens.", category: "Impulsos", images: "", displayOrder: 3 }
-                ];
-                initialProducts.forEach((p) => {
-                    database.ref('products').push(p);
-                });
             }
             renderStorefront();
             updateCategorySelectors();
             if (isAdminLoggedIn) renderAdminSortableList();
         });
+
+        // CONVERTE IMAGENS DO ARQUIVO PARA TEXTO BASE64
+        function previewFilesAndConvert() {
+            const fileInput = document.getElementById('prodImagesFile');
+            const previewArea = document.getElementById('previewImagesArea');
+            previewArea.innerHTML = '';
+            convertedImagesBase64 = [];
+
+            if (fileInput.files) {
+                Array.from(fileInput.files).forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const base64Str = e.target.result;
+                        convertedImagesBase64.push(base64Str);
+
+                        // Cria miniatura de confirmação visual no painel
+                        previewArea.innerHTML += `
+                            <div class="preview-img-wrapper">
+                                <img src="${base64Str}">
+                            </div>
+                        `;
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+        }
 
         function renderStorefront() {
             const shopArea = document.getElementById('shopContentArea');
@@ -1032,15 +1073,12 @@
                         priceHtml = `<div class="product-price">R$ ${product.price.toFixed(2).replace('.', ',')}</div>`;
                     }
 
-                    // GERAÇÃO HTML DA GALERIA DE FOTOS DO PRODUTO
+                    // MONTA VITRINE COM AS FOTOS LOCAIS DO PRODUTO
                     let galleryHtml = "";
-                    if (product.images && product.images.trim() !== "") {
+                    if (product.imagesArray && product.imagesArray.length > 0) {
                         galleryHtml = `<div class="product-gallery">`;
-                        const imgArray = product.images.split(",");
-                        imgArray.forEach(imgUrl => {
-                            if(imgUrl.trim() !== "") {
-                                galleryHtml += `<img src="${imgUrl.trim()}" class="product-img" onclick="window.open('${imgUrl.trim()}', '_blank')" alt="Foto do Produto">`;
-                            }
+                        product.imagesArray.forEach(imgBase64 => {
+                            galleryHtml += `<img src="${imgBase64}" class="product-img" onclick="window.open('${imgBase64}', '_blank')" alt="Foto do Produto">`;
                         });
                         galleryHtml += `</div>`;
                     }
@@ -1183,8 +1221,15 @@
             document.getElementById('prodName').value = product.name;
             document.getElementById('prodPrice').value = product.price;
             document.getElementById('prodDiscount').value = product.discount || 0;
-            document.getElementById('prodImages').value = product.images || "";
             document.getElementById('prodDesc').value = product.desc;
+            
+            // Mantém as imagens atuais se não carregar novas
+            convertedImagesBase64 = product.imagesArray || [];
+            const previewArea = document.getElementById('previewImagesArea');
+            previewArea.innerHTML = '';
+            convertedImagesBase64.forEach(base64 => {
+                previewArea.innerHTML += `<div class="preview-img-wrapper"><img src="${base64}"></div>`;
+            });
             
             const select = document.getElementById('prodCategorySelect');
             select.value = product.category || "Servidores";
@@ -1196,37 +1241,49 @@
             document.getElementById('btnCancelEdit').style.display = "block";
         }
 
+        // SALVAMENTO CORRIGIDO E ATUALIZADO NO BANCO DE DADOS
         function handleProductSubmit(e) {
             e.preventDefault();
+            
+            // Puxa o ID diretamente pelo método nativo para garantir que a lógica de Edição vs Criação funcione
             const idFb = document.getElementById('editProductId').value;
             const name = document.getElementById('prodName').value;
             const price = parseFloat(document.getElementById('prodPrice').value);
             const discount = parseInt(document.getElementById('prodDiscount').value) || 0;
-            const images = document.getElementById('prodImages').value;
             const desc = document.getElementById('prodDesc').value;
             
             let category = document.getElementById('prodCategorySelect').value;
             if (category === "__NEW__") {
                 category = document.getElementById('prodCategoryNew').value.trim();
             }
-
             if (!category) category = "Geral";
 
+            const productPayload = {
+                name: name,
+                price: price,
+                discount: discount,
+                desc: desc,
+                category: category,
+                imagesArray: convertedImagesBase64 // Salva a lista de fotos nativas em texto
+            };
+
             if (idFb && idFb.trim() !== "") {
-                database.ref(`products/${idFb}`).update({ name, price, discount, images, desc, category })
+                // Modo Edição: Atualiza registro existente
+                database.ref(`products/${idFb}`).update(productPayload)
                     .then(() => {
                         resetProductForm();
                         alert("Produto atualizado com sucesso!");
                     }).catch(err => alert("Erro ao atualizar: " + err));
             } else {
+                // Modo Criação: Adiciona um novo registro
                 const nextOrder = products.length > 0 ? Math.max(...products.map(p => p.displayOrder || 0)) + 1 : 1;
-                const newProduct = { name, price, discount, images, desc, category, displayOrder: nextOrder };
-                
-                database.ref('products').push(newProduct)
+                productPayload.displayOrder = nextOrder;
+
+                database.ref('products').push(productPayload)
                     .then(() => {
                         resetProductForm();
                         alert("Produto adicionado com sucesso!");
-                    }).catch(err => alert("Erro ao salvar: " + err));
+                    }).catch(err => alert("Erro ao salvar no banco: " + err));
             }
         }
 
@@ -1239,6 +1296,8 @@
         function resetProductForm() {
             document.getElementById('editProductId').value = '';
             document.getElementById('productForm').reset();
+            document.getElementById('previewImagesArea').innerHTML = '';
+            convertedImagesBase64 = [];
             document.getElementById('prodDiscount').value = 0;
             document.getElementById('prodCategoryNew').style.display = "none";
             document.getElementById('prodCategoryNew').required = false;
