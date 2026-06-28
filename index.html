@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rx7 Store - Web site</title>
     
-    <link class="hljs-string" rel="icon" type="image/jpeg" href="favicon.jpeg">
+    <link rel="icon" type="image/jpeg" href="favicon.jpeg">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -539,6 +539,26 @@
             border-radius: 4px;
             border: 1px solid var(--neon-blue);
         }
+        
+        /* Botão X para apagar imagem individual na miniatura admin */
+        .btn-remove-thumb-pic {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--neon-pink);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 10px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 0 5px rgba(255,0,85,0.8);
+            z-index: 10;
+        }
 
         .cart-item {
             display: flex;
@@ -918,6 +938,7 @@
                             <label>Fotos do Produto</label>
                             <input type="file" id="prodImagesFile" class="form-control" multiple accept="image/*" onchange="previewFilesAndConvert()">
                             <div class="image-preview-container" id="previewImagesArea"></div>
+                            <button type="button" class="btn-buy" style="margin-top: 10px; background: #555570; font-size: 12px; padding: 6px;" id="btnClearImagesBtn" onclick="removeAllUploadedImages()">Remover Todas as Fotos</button>
                         </div>
                         <div class="form-group">
                             <label>Categoria</label>
@@ -1001,25 +1022,52 @@
 
         function previewFilesAndConvert() {
             const fileInput = document.getElementById('prodImagesFile');
-            const previewArea = document.getElementById('previewImagesArea');
-            previewArea.innerHTML = '';
-            convertedImagesBase64 = [];
-
             if (fileInput.files) {
+                let loadedCount = 0;
+                const totalFiles = fileInput.files.length;
+                
                 Array.from(fileInput.files).forEach(file => {
                     const reader = new FileReader();
                     reader.onload = function(e) {
                         const base64Str = e.target.result;
                         convertedImagesBase64.push(base64Str);
-                        previewArea.innerHTML += `
-                            <div class="preview-img-wrapper">
-                                <img src="${base64Str}">
-                            </div>
-                        `;
+                        loadedCount++;
+                        
+                        if (loadedCount === totalFiles) {
+                            renderAdminImagesPreview();
+                            fileInput.value = ""; // Limpa a seleção do input de arquivo para permitir reenvio futuro
+                        }
                     };
                     reader.readAsDataURL(file);
                 });
             }
+        }
+
+        // Renderiza as fotos atualmente salvas/carregadas no formulário admin com a opção individual de apagar (X)
+        function renderAdminImagesPreview() {
+            const previewArea = document.getElementById('previewImagesArea');
+            previewArea.innerHTML = '';
+            
+            convertedImagesBase64.forEach((base64, idx) => {
+                previewArea.innerHTML += `
+                    <div class="preview-img-wrapper">
+                        <button type="button" class="btn-remove-thumb-pic" onclick="removeSingleImageFromForm(${idx})" title="Tirar essa foto">✕</button>
+                        <img src="${base64}">
+                    </div>
+                `;
+            });
+        }
+
+        // Função para tirar uma única imagem da lista
+        function removeSingleImageFromForm(index) {
+            convertedImagesBase64.splice(index, 1);
+            renderAdminImagesPreview();
+        }
+
+        // Função para limpar todas as fotos adicionadas de uma vez
+        function removeAllUploadedImages() {
+            convertedImagesBase64 = [];
+            renderAdminImagesPreview();
         }
 
         function changeProductImage(idFb, index, totalImages) {
@@ -1080,7 +1128,6 @@
                         priceHtml = `<div class="product-price">R$ ${product.price.toFixed(2).replace('.', ',')}</div>`;
                     }
 
-                    // LÓGICA DE VERIFICAÇÃO DE IMAGEM ATUALIZADA
                     const hasImages = product.imagesArray && product.imagesArray.length > 0;
                     let viewerHtml = "";
                     let thumbsHtml = "";
@@ -1090,6 +1137,12 @@
                         if (activeImageIndexes[product.id_fb] === undefined) {
                             activeImageIndexes[product.id_fb] = 0;
                         }
+                        
+                        // Garante que o índice atual é válido após remoções de imagens
+                        if (activeImageIndexes[product.id_fb] >= images.length) {
+                            activeImageIndexes[product.id_fb] = 0;
+                        }
+                        
                         const currentIndex = activeImageIndexes[product.id_fb];
 
                         viewerHtml = `
@@ -1240,12 +1293,9 @@
             document.getElementById('prodDiscount').value = product.discount || 0;
             document.getElementById('prodDesc').value = product.desc;
             
-            convertedImagesBase64 = product.imagesArray || [];
-            const previewArea = document.getElementById('previewImagesArea');
-            previewArea.innerHTML = '';
-            convertedImagesBase64.forEach(base64 => {
-                previewArea.innerHTML += `<div class="preview-img-wrapper"><img src="${base64}"></div>`;
-            });
+            // Clona o array original de imagens para podermos manipulá-lo livremente sem afetar a storefront antes de salvar
+            convertedImagesBase64 = product.imagesArray ? [...product.imagesArray] : [];
+            renderAdminImagesPreview();
             
             const select = document.getElementById('prodCategorySelect');
             select.value = product.category || "Servidores";
@@ -1270,13 +1320,14 @@
             }
             if (!category) category = "Geral";
 
+            // Se o array de fotos estiver vazio, salvamos como uma propriedade em branco/removida no Firebase
             const productPayload = {
                 name: name,
                 price: price,
                 discount: discount,
                 desc: desc,
                 category: category,
-                imagesArray: convertedImagesBase64
+                imagesArray: convertedImagesBase64.length > 0 ? convertedImagesBase64 : null
             };
 
             if (idFb && idFb.trim() !== "") {
@@ -1309,7 +1360,7 @@
             convertedImagesBase64 = [];
             document.getElementById('prodCategoryNew').style.display = "none";
             document.getElementById('formAdminTitle').innerText = "Adicionar Novo Produto";
-            document.getElementById('btnSaveProduct').innerText = "Salvar no Banco de Dados";
+            document.getElementById('btnSaveProduct').innerText = "Salvar no Banco";
             document.getElementById('btnCancelEdit').style.display = "none";
         }
 
