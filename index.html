@@ -175,7 +175,7 @@
 
         .hero {
             text-align: center;
-            padding: 60px 20px;
+            padding: 60px 20px 40px;
             position: relative;
         }
 
@@ -193,6 +193,45 @@
             font-size: 1.1rem;
             max-width: 600px;
             margin: 0 auto 30px;
+        }
+
+        /* Estilos das Novas Abas de Filtro */
+        .category-tabs-wrapper {
+            max-width: 1200px;
+            margin: 0 auto 40px;
+            padding: 0 20px;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .tab-btn {
+            background: rgba(16, 16, 28, 0.6);
+            border: 1px solid rgba(0, 243, 255, 0.2);
+            color: #a0a0ba;
+            padding: 10px 22px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-radius: 30px;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn:hover {
+            color: var(--neon-blue);
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+            color: #fff;
+            border-color: transparent;
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.4);
         }
 
         .features-container-modal {
@@ -247,10 +286,12 @@
             max-width: 1200px;
             margin: 0 auto 80px;
             padding: 0 20px;
+            min-height: 300px;
         }
 
         .category-container {
             margin-bottom: 50px;
+            animation: fadeIn 0.4s ease-in-out;
         }
 
         .section-title {
@@ -478,7 +519,7 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-2px); }
+            from { opacity: 0; transform: translateY(-5px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
@@ -831,6 +872,9 @@
         <p>Eleve sua comunidade para o próximo nível com servidores totalmente configurados, design futurista e infraestrutura premium.</p>
     </section>
 
+    <div class="category-tabs-wrapper" id="categoryTabsArea">
+        </div>
+
     <section class="products-section" id="shopContentArea">
     </section>
 
@@ -1028,6 +1072,7 @@
         let adminAccessLevel = "none"; 
         let convertedImagesBase64 = [];
         let activeImageIndexes = {}; 
+        let currentSelectedCategoryFilter = "all"; // Guarda a categoria ativa
 
         function toggleDropdown(event) {
             event.stopPropagation();
@@ -1054,10 +1099,45 @@
                 }
                 products.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
             }
+            renderTabsFilterMenu(); // Renderiza os botões de abas
             renderStorefront();
             updateCategorySelectors();
             if (isAdminLoggedIn) renderAdminSortableList();
         });
+
+        // NOVA FUNÇÃO: Renderiza os botões de abas de forma dinâmica
+        function renderTabsFilterMenu() {
+            const tabsArea = document.getElementById('categoryTabsArea');
+            if (!tabsArea) return;
+
+            const distinctCategories = [];
+            products.forEach(p => {
+                const cat = p.category || "Geral";
+                if (!distinctCategories.includes(cat)) {
+                    distinctCategories.push(cat);
+                }
+            });
+
+            // Se a categoria selecionada anteriormente sumiu do banco, reseta para "all"
+            if (currentSelectedCategoryFilter !== "all" && !distinctCategories.includes(currentSelectedCategoryFilter)) {
+                currentSelectedCategoryFilter = "all";
+            }
+
+            let tabsHtml = `<button class="tab-btn ${currentSelectedCategoryFilter === 'all' ? 'active' : ''}" onclick="filterStorefrontByCategory('all')">Todos</button>`;
+            
+            distinctCategories.forEach(cat => {
+                tabsHtml += `<button class="tab-btn ${currentSelectedCategoryFilter === cat ? 'active' : ''}" onclick="filterStorefrontByCategory('${cat}')">${cat}</button>`;
+            });
+
+            tabsArea.innerHTML = tabsHtml;
+        }
+
+        // NOVA FUNÇÃO: Ativa o filtro ao clicar em uma aba
+        function filterStorefrontByCategory(category) {
+            currentSelectedCategoryFilter = category;
+            renderTabsFilterMenu();
+            renderStorefront();
+        }
 
         function previewFilesAndConvert() {
             const fileInput = document.getElementById('prodImagesFile');
@@ -1135,9 +1215,21 @@
             const categoriesMap = {};
             products.forEach(product => {
                 const catName = product.category || "Geral";
+                
+                // FILTRO APLICADO AQUI: ignora se não corresponder à aba selecionada
+                if (currentSelectedCategoryFilter !== "all" && catName !== currentSelectedCategoryFilter) {
+                    return;
+                }
+
                 if (!categoriesMap[catName]) categoriesMap[catName] = [];
                 categoriesMap[catName].push(product);
             });
+
+            // Se o mapa de categorias estiver completamente vazio após o filtro
+            if (Object.keys(categoriesMap).length === 0) {
+                shopArea.innerHTML = '<p style="color: #a0a0ba; text-align:center; padding: 40px 0;">Nenhum produto encontrado nesta categoria.</p>';
+                return;
+            }
 
             for (let categoryTitle in categoriesMap) {
                 let categoryHtml = `
@@ -1373,7 +1465,7 @@
                 database.ref(`products/${idFb}`).update(productPayload)
                     .then(() => {
                         resetProductForm();
-                        alert("Produto updated!");
+                        alert("Produto atualizado!");
                     });
             } else {
                 const nextOrder = products.length > 0 ? Math.max(...products.map(p => p.displayOrder || 0)) + 1 : 1;
