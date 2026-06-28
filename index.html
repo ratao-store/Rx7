@@ -1129,6 +1129,8 @@
 
         const WHATSAPP_NUMBER = "5519997663848"; 
         const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1517990689185468529/NMuzMp4BR107okeYLDKSDwZ8vxF1-vYrMxyxv-zOW1CANGCu_36h5rlxPdAoBwX0NSlJ"; 
+        // 👇 INSIRA A URL DO SEU NOVO WEBHOOK PARA PRODUTOS ABAIXO DENTRO DAS ASPAS:
+        const DISCORD_WEBHOOK_PRODUTOS_URL = "SUA_URL_DO_WEBHOOK_DE_PRODUTOS_AQUI";
 
         document.getElementById('mainWhatsappBtn').href = `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=Olá! Estou no site da RX-7 Store e gostaria de tirar uma dúvida.`;
 
@@ -1733,7 +1735,7 @@
                 database.ref(`products/${idFb}`).update(productPayload)
                     .then(() => {
                         resetProductForm();
-                        alert("Produto atualizado!");
+                        alert("Produto updated!");
                     });
             } else {
                 if (adminAccessLevel === "edit_only") {
@@ -1748,6 +1750,44 @@
                 productPayload.displayOrder = nextOrder;
                 database.ref('products').push(productPayload)
                     .then(() => {
+                        // --- DISPARAR WEBHOOK DE NOVO PRODUTO PARA O DISCORD ---
+                        if (DISCORD_WEBHOOK_PRODUTOS_URL && DISCORD_WEBHOOK_PRODUTOS_URL !== "SUA_URL_DO_WEBHOOK_DE_PRODUTOS_AQUI") {
+                            const precoFormatado = price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                            const descontoTexto = discount > 0 ? `${discount}%` : "Nenhum";
+                            
+                            const embedNovoProduto = {
+                                username: "RX7 Store Bot",
+                                avatar_url: "https://rx7-store.firebaseapp.com/favicon.jpeg",
+                                embeds: [{
+                                    title: "✨ NOVO PRODUTO ADICIONADO NA LOJA! ✨",
+                                    description: `O ADMIN **${loggedAdminUsername || "Administrador"}** acabou de publicar um novo produto no site.`,
+                                    color: 16711765, // Cor Neon Pink em Decimal
+                                    fields: [
+                                        { name: "📦 Nome do Item", value: `\`\`\`${name}\`\`\``, inline: false },
+                                        { name: "🗂️ Categoria", value: category, inline: true },
+                                        { name: "💰 Preço Base", value: `**${precoFormatado}**`, inline: true },
+                                        { name: "🏷️ Desconto Aplicado", value: descontoTexto, inline: true },
+                                        { name: "📝 Descrição Completa", value: desc.length > 500 ? desc.substring(0, 500) + "..." : desc, inline: false }
+                                    ],
+                                    thumbnail: {
+                                        url: "https://rx7-store.firebaseapp.com/favicon.jpeg"
+                                    },
+                                    footer: {
+                                        text: "RX7 Store Central System • Log de Atividades",
+                                        icon_url: "https://rx7-store.firebaseapp.com/favicon.jpeg"
+                                    },
+                                    timestamp: new Date().toISOString()
+                                }]
+                            };
+
+                            fetch(DISCORD_WEBHOOK_PRODUTOS_URL, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(embedNovoProduto)
+                            }).catch(err => console.error("Erro no envio do webhook de produtos:", err));
+                        }
+                        // ------------------------------------------------------
+
                         resetProductForm();
                         alert("Produto adicionado com sucesso!");
                     });
