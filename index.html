@@ -260,15 +260,16 @@
 
         .products-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
             gap: 30px;
         }
 
+        /* CARD DO PRODUTO ATUALIZADO */
         .product-card {
             background: var(--panel-bg);
             border: 1px solid rgba(0, 243, 255, 0.2);
             border-radius: 12px;
-            padding: 25px;
+            padding: 0; /* Remove padding total para a foto sangrar perfeitamente nas bordas */
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -289,36 +290,85 @@
             position: absolute;
             top: 0; left: 0; width: 100%; height: 3px;
             background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
+            z-index: 10;
         }
 
-        /* MINI GALERIA DE FOTOS DO PRODUTO */
-        .product-gallery {
+        .product-info-wrapper {
+            padding: 20px;
             display: flex;
-            gap: 8px;
-            margin-bottom: 15px;
-            overflow-x: auto;
-            padding-bottom: 5px;
+            flex-direction: column;
+            flex-grow: 1;
         }
-        .product-gallery::-webkit-scrollbar {
-            height: 4px;
+
+        /* NOVO DESIGN DO VISUALIZADOR DE IMAGENS TOTALMENTE EM DESTAQUE */
+        .product-image-viewer {
+            position: relative;
+            width: 100%;
+            height: 240px; /* Altura imponente para a imagem reinar no topo */
+            background: #07070d;
+            border-bottom: 1px solid rgba(0, 243, 255, 0.15);
         }
-        .product-gallery::-webkit-scrollbar-thumb {
-            background: var(--neon-blue);
-            border-radius: 2px;
-        }
-        .product-img {
-            width: 80px;
-            height: 80px;
+
+        .main-product-img {
+            width: 100%;
+            height: 100%;
             object-fit: cover;
-            border-radius: 6px;
+            transition: opacity 0.3s ease;
+        }
+
+        /* Setas de navegação do carrossel */
+        .gallery-nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(16, 16, 28, 0.75);
             border: 1px solid rgba(0, 243, 255, 0.3);
-            flex-shrink: 0;
+            color: #fff;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             cursor: pointer;
             transition: 0.2s;
+            z-index: 5;
+            user-select: none;
         }
-        .product-img:hover {
+        .gallery-nav-btn:hover {
+            background: var(--neon-blue);
+            color: #000;
+            box-shadow: 0 0 10px var(--neon-blue);
+        }
+        .gallery-nav-prev { left: 10px; }
+        .gallery-nav-next { right: 10px; }
+
+        /* Miniaturas horizontais localizadas abaixo da imagem grande */
+        .product-thumbnails {
+            display: flex;
+            gap: 6px;
+            padding: 10px 20px 0 20px;
+            overflow-x: auto;
+        }
+        .product-thumbnails::-webkit-scrollbar {
+            height: 3px;
+        }
+        .product-thumbnails::-webkit-scrollbar-thumb {
+            background: var(--neon-blue);
+        }
+        .thumb-img {
+            width: 45px;
+            height: 45px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid rgba(255,255,255,0.2);
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: 0.2s;
+        }
+        .thumb-img.active, .thumb-img:hover {
             border-color: var(--neon-blue);
-            transform: scale(1.05);
+            box-shadow: 0 0 5px var(--neon-blue);
         }
 
         .product-title {
@@ -475,7 +525,6 @@
             box-shadow: 0 0 10px rgba(0, 243, 255, 0.4);
         }
 
-        /* Preview das fotos selecionadas */
         .image-preview-container {
             display: flex;
             gap: 10px;
@@ -708,57 +757,22 @@
             margin-top: 20px;
         }
 
-        .terms-modal-body::-webkit-scrollbar {
-            width: 6px;
-        }
-        .terms-modal-body::-webkit-scrollbar-thumb {
-            background: var(--neon-blue);
-            border-radius: 4px;
-        }
+        .terms-modal-body::-webkit-scrollbar { width: 6px; }
+        .terms-modal-body::-webkit-scrollbar-thumb { background: var(--neon-blue); border-radius: 4px; }
 
-        .terms-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 25px;
-        }
+        .terms-grid { display: grid; grid-template-columns: 1fr; gap: 25px; }
 
-        @media(min-width: 768px) {
-            .terms-grid { grid-template-columns: 1fr 1fr; }
-        }
+        @media(min-width: 768px) { .terms-grid { grid-template-columns: 1fr 1fr; } }
 
         .terms-block h3 {
-            color: #fff;
-            font-size: 1.1rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 12px;
-            border-left: 3px solid var(--neon-pink);
-            padding-left: 10px;
+            color: #fff; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px;
+            margin-bottom: 12px; border-left: 3px solid var(--neon-pink); padding-left: 10px;
         }
 
-        .terms-block p {
-            font-size: 0.9rem;
-            color: #a0a0ba;
-            line-height: 1.6;
-        }
-
-        .terms-block ul {
-            list-style: none;
-        }
-
-        .terms-block ul li {
-            font-size: 0.9rem;
-            color: #a0a0ba;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .terms-block ul li i {
-            color: var(--neon-blue);
-            font-size: 12px;
-        }
+        .terms-block p { font-size: 0.9rem; color: #a0a0ba; line-height: 1.6; }
+        .terms-block ul { list-style: none; }
+        .terms-block ul li { font-size: 0.9rem; color: #a0a0ba; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+        .terms-block ul li i { color: var(--neon-blue); font-size: 12px; }
     </style>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -834,24 +848,15 @@
         <div class="modal-content modal-content-large" style="max-width: 800px;">
             <i class="fas fa-times close-modal" onclick="toggleModal('termsModal')"></i>
             <h2 class="section-title" style="margin-bottom: 10px;">Termos de Uso & Diretrizes</h2>
-            
             <div class="terms-modal-body">
                 <div class="terms-grid">
                     <div class="terms-block">
                         <h3>Termos de Serviço</h3>
-                        <p>Ao realizar um pedido em nossa plataforma, você concorda com a entrega direta via Discord ou WhatsApp. O prazo padrão de início do atendimento varia conforme a fila de produção activa na central.</p>
+                        <p>Ao realizar um pedido em nossa plataforma, você concorda com a entrega direta via Discord ou WhatsApp.</p>
                     </div>
                     <div class="terms-block">
                         <h3>Garantia e Suporte</h3>
-                        <p>Oferecemos garantia de estabilidade estrutural em todos os servidores entregues de forma personalizada. Alterações básicas, ajustes e pós-venda técnico estão cobertos conforme o pacote adquirido.</p>
-                    </div>
-                    <div class="terms-block" style="grid-column: 1 / -1;">
-                        <h3>Regras de Uso</h3>
-                        <ul>
-                            <li><i class="fas fa-check"></i> Proibida a revenda sem autorização expressa.</li>
-                            <li><i class="fas fa-check"></i> Suporte oficial ativo apenas pelos nossos canais.</li>
-                            <li><i class="fas fa-check"></i> Transações seguras integradas diretamente com PIX.</li>
-                        </ul>
+                        <p>Oferecemos garantia de estabilidade estrutural em todos os servidores entregues de forma personalizada.</p>
                     </div>
                 </div>
             </div>
@@ -879,11 +884,11 @@
             <form id="loginForm" onsubmit="handleLogin(event)">
                 <div class="form-group">
                     <label>Usuário Admin</label>
-                    <input type="text" id="adminUser" class="form-control" required placeholder="Digite o usuário">
+                    <input type="text" id="adminUser" class="form-control" required>
                 </div>
                 <div class="form-group">
                     <label>Chave de Acesso</label>
-                    <input type="password" id="adminPass" class="form-control" required placeholder="••••">
+                    <input type="password" id="adminPass" class="form-control" required>
                 </div>
                 <button type="submit" class="btn-buy">Autenticar Sistema</button>
             </form>
@@ -903,47 +908,40 @@
                         
                         <div class="form-group">
                             <label>Nome do Servidor/Pacote</label>
-                            <input type="text" id="prodName" class="form-control" required placeholder="Ex: Servidor de Games Elite">
+                            <input type="text" id="prodName" class="form-control" required>
                         </div>
                         <div class="form-group">
                             <label>Preço original (R$)</label>
-                            <input type="number" id="prodPrice" class="form-control" step="0.01" required placeholder="30">
+                            <input type="number" id="prodPrice" class="form-control" step="0.01" required>
                         </div>
-
                         <div class="form-group">
                             <label>Desconto (%)</label>
-                            <input type="number" id="prodDiscount" class="form-control" min="0" max="100" value="0" placeholder="Ex: 10 para 10% de desconto">
+                            <input type="number" id="prodDiscount" class="form-control" min="0" max="100" value="0">
                         </div>
-
                         <div class="form-group">
-                            <label>Fotos do Produto (Selecione quantas quiser dos seus arquivos)</label>
+                            <label>Fotos do Produto</label>
                             <input type="file" id="prodImagesFile" class="form-control" multiple accept="image/*" onchange="previewFilesAndConvert()">
                             <div class="image-preview-container" id="previewImagesArea"></div>
                         </div>
-
                         <div class="form-group">
-                            <label>Categoria do Produto</label>
-                            <select id="prodCategorySelect" class="form-control" onchange="checkNewCategoryField()" style="margin-bottom: 10px;">
+                            <label>Categoria</label>
+                            <select id="prodCategorySelect" class="form-control" onchange="checkNewCategoryField()">
                                 <option value="Servidores">Servidores</option>
                                 <option value="Impulsos">Impulsos</option>
                                 <option value="__NEW__">+ Criar Nova Categoria...</option>
                             </select>
-                            <input type="text" id="prodCategoryNew" class="form-control" placeholder="Digite o nome da nova categoria" style="display: none;">
+                            <input type="text" id="prodCategoryNew" class="form-control" style="display: none; margin-top: 10px;">
                         </div>
-
                         <div class="form-group">
-                            <label>Descrição do Produto</label>
-                            <textarea id="prodDesc" class="form-control" rows="4" required placeholder="Ex: Inclui 14 Boosts..."></textarea>
+                            <label>Descrição</label>
+                            <textarea id="prodDesc" class="form-control" rows="4" required></textarea>
                         </div>
-                        <button type="submit" class="btn-buy" id="btnSaveProduct">Salvar no Banco de Dados</button>
-                        <button type="button" class="btn-buy" style="width:100%; margin-top:10px; background: var(--neon-pink); display:none;" id="btnCancelEdit" onclick="resetProductForm()">Cancelar Edição</button>
+                        <button type="submit" class="btn-buy" id="btnSaveProduct">Salvar no Banco</button>
+                        <button type="button" class="btn-buy" style="margin-top:10px; background: var(--neon-pink); display:none;" id="btnCancelEdit" onclick="resetProductForm()">Cancelar Edição</button>
                     </form>
                 </div>
-
                 <div>
-                    <h3 style="color:#fff; margin-bottom: 5px;">Organizar Ordem dos Produtos</h3>
-                    <p style="color: #8a8aa3; font-size: 0.85rem; margin-bottom: 15px;">Segure e arraste as caixas para cima ou para baixo para reordenar sua vitrine na mesma hora.</p>
-                    
+                    <h3 style="color:#fff; margin-bottom: 15px;">Organizar Ordem</h3>
                     <div class="sortable-list" id="sortableListContainer"></div>
                 </div>
             </div>
@@ -972,7 +970,8 @@
         let products = [];
         let cart = [];
         let isAdminLoggedIn = false;
-        let convertedImagesBase64 = []; // Guarda temporariamente os textos das imagens adicionadas
+        let convertedImagesBase64 = [];
+        let activeImageIndexes = {}; // Controla qual índice de imagem está ativo por produto
 
         function toggleDropdown(event) {
             event.stopPropagation();
@@ -990,7 +989,6 @@
             return text.replace(urlPattern, '<a href="$1" target="_blank">$1</a>');
         }
 
-        // LÊ OS DADOS DO FIREBASE
         database.ref('products').on('value', (snapshot) => {
             const data = snapshot.val();
             products = [];
@@ -1005,7 +1003,6 @@
             if (isAdminLoggedIn) renderAdminSortableList();
         });
 
-        // CONVERTE IMAGENS DO ARQUIVO PARA TEXTO BASE64
         function previewFilesAndConvert() {
             const fileInput = document.getElementById('prodImagesFile');
             const previewArea = document.getElementById('previewImagesArea');
@@ -1018,8 +1015,6 @@
                     reader.onload = function(e) {
                         const base64Str = e.target.result;
                         convertedImagesBase64.push(base64Str);
-
-                        // Cria miniatura de confirmação visual no painel
                         previewArea.innerHTML += `
                             <div class="preview-img-wrapper">
                                 <img src="${base64Str}">
@@ -1031,12 +1026,31 @@
             }
         }
 
+        // ALTERA A FOTO EXIBIDA NO CARROSSEL
+        function changeProductImage(idFb, index, totalImages) {
+            if (index < 0 || index >= totalImages) return;
+            activeImageIndexes[idFb] = index;
+            
+            const imgEl = document.getElementById(`mainImg-${idFb}`);
+            const imagesArray = products.find(p => p.id_fb === idFb).imagesArray;
+            if (imgEl && imagesArray) {
+                imgEl.src = imagesArray[index];
+            }
+
+            // Atualiza o estado visual das miniaturas abaixo
+            const thumbs = document.querySelectorAll(`.thumb-${idFb}`);
+            thumbs.forEach((thumb, i) => {
+                if (i === index) thumb.classList.add('active');
+                else thumb.classList.remove('active');
+            });
+        }
+
         function renderStorefront() {
             const shopArea = document.getElementById('shopContentArea');
             shopArea.innerHTML = '';
 
             if (products.length === 0) {
-                shopArea.innerHTML = '<p style="color: #a0a0ba; text-align:center; padding: 40px 0;">Nenhum produto cadastrado na vitrine.</p>';
+                shopArea.innerHTML = '<p style="color: #a0a0ba; text-align:center; padding: 40px 0;">Nenhum produto cadastrado.</p>';
                 return;
             }
 
@@ -1056,7 +1070,6 @@
 
                 categoriesMap[categoryTitle].forEach(product => {
                     const descriptionFormatted = formatTextWithLinks(product.desc);
-                    
                     const discount = parseInt(product.discount) || 0;
                     let priceHtml = "";
                     let finalPrice = product.price;
@@ -1073,28 +1086,55 @@
                         priceHtml = `<div class="product-price">R$ ${product.price.toFixed(2).replace('.', ',')}</div>`;
                     }
 
-                    // MONTA VITRINE COM AS FOTOS LOCAIS DO PRODUTO
-                    let galleryHtml = "";
-                    if (product.imagesArray && product.imagesArray.length > 0) {
-                        galleryHtml = `<div class="product-gallery">`;
-                        product.imagesArray.forEach(imgBase64 => {
-                            galleryHtml += `<img src="${imgBase64}" class="product-img" onclick="window.open('${imgBase64}', '_blank')" alt="Foto do Produto">`;
+                    // Se não tiver imagens salvas, coloca um placeholder padrão
+                    const images = (product.imagesArray && product.imagesArray.length > 0) 
+                        ? product.imagesArray 
+                        : ['https://via.placeholder.com/400x250/10101c/ffffff?text=Rx7+Store'];
+
+                    if (activeImageIndexes[product.id_fb] === undefined) {
+                        activeImageIndexes[product.id_fb] = 0;
+                    }
+                    const currentIndex = activeImageIndexes[product.id_fb];
+
+                    // MONTA O VIEWER DESTACADO NO TOPO
+                    let viewerHtml = `
+                        <div class="product-image-viewer">
+                            <img src="${images[currentIndex]}" id="mainImg-${product.id_fb}" class="main-product-img" onclick="window.open(this.src, '_blank')" title="Clique para ver em tamanho cheio">
+                    `;
+                    
+                    // Coloca as setinhas de navegação caso o produto tenha mais de uma imagem
+                    if (images.length > 1) {
+                        viewerHtml += `
+                            <div class="gallery-nav-btn gallery-nav-prev" onclick="changeProductImage('${product.id_fb}', activeImageIndexes['${product.id_fb}'] - 1, ${images.length})"><i class="fas fa-chevron-left"></i></div>
+                            <div class="gallery-nav-btn gallery-nav-next" onclick="changeProductImage('${product.id_fb}', activeImageIndexes['${product.id_fb}'] + 1, ${images.length})"><i class="fas fa-chevron-right"></i></div>
+                        `;
+                    }
+                    viewerHtml += `</div>`;
+
+                    // Monta a linha de miniaturas discretas logo abaixo do blocão da foto principal
+                    let thumbsHtml = "";
+                    if (images.length > 1) {
+                        thumbsHtml = `<div class="product-thumbnails">`;
+                        images.forEach((img, idx) => {
+                            const activeClass = idx === currentIndex ? 'active' : '';
+                            thumbsHtml += `<img src="${img}" class="thumb-img thumb-${product.id_fb} ${activeClass}" onclick="changeProductImage('${product.id_fb}', ${idx}, ${images.length})">`;
                         });
-                        galleryHtml += `</div>`;
+                        thumbsHtml += `</div>`;
                     }
 
                     categoryHtml += `
                         <div class="product-card">
-                            <div>
-                                ${galleryHtml}
+                            ${viewerHtml}
+                            ${thumbsHtml}
+                            <div class="product-info-wrapper">
                                 <h3 class="product-title">${product.name}</h3>
                                 <p class="product-desc">${descriptionFormatted}</p>
-                            </div>
-                            <div>
-                                ${priceHtml}
-                                <button class="btn-buy" onclick="addToCart('${product.id_fb}')">
-                                    <i class="fas fa-cart-plus"></i> Adicionar
-                                </button>
+                                <div>
+                                    ${priceHtml}
+                                    <button class="btn-buy" onclick="addToCart('${product.id_fb}')">
+                                        <i class="fas fa-cart-plus"></i> Adicionar ao Carrinho
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     `;
@@ -1108,12 +1148,10 @@
         function renderAdminSortableList() {
             const container = document.getElementById('sortableListContainer');
             container.innerHTML = '';
-
             if (products.length === 0) {
                 container.innerHTML = '<p style="color: #a0a0ba; text-align:center; padding: 20px 0;">Nenhum produto.</p>';
                 return;
             }
-
             products.forEach(product => {
                 const cat = product.category || "Geral";
                 const disc = product.discount > 0 ? ` (-${product.discount}%)` : '';
@@ -1123,7 +1161,7 @@
                             <i class="fas fa-bars"></i>
                             <div>
                                 <h4>${product.name}</h4>
-                                <span>R$ ${product.price.toFixed(2)}${disc} <span class="badge" style="margin-left:5px; font-size:0.65rem;">${cat}</span></span>
+                                <span>R$ ${product.price.toFixed(2)}${disc} <span class="badge" style="margin-left:5px;">${cat}</span></span>
                             </div>
                         </div>
                         <div class="action-btns">
@@ -1133,7 +1171,6 @@
                     </div>
                 `;
             });
-
             initDragAndDrop();
         }
 
@@ -1152,14 +1189,12 @@
         function updateCategorySelectors() {
             const select = document.getElementById('prodCategorySelect');
             const savedValue = select.value;
-            
             const distinctCategories = [];
             products.forEach(p => {
                 if (p.category && !distinctCategories.includes(p.category)) {
                     distinctCategories.push(p.category);
                 }
             });
-
             if (!distinctCategories.includes("Servidores")) distinctCategories.push("Servidores");
             if (!distinctCategories.includes("Impulsos")) distinctCategories.push("Impulsos");
 
@@ -1177,26 +1212,18 @@
         function initDragAndDrop() {
             const list = document.getElementById('sortableListContainer');
             const items = list.querySelectorAll('.sortable-item');
-
             items.forEach(item => {
-                item.addEventListener('dragstart', () => {
-                    setTimeout(() => item.classList.add('dragging'), 0);
-                });
+                item.addEventListener('dragstart', () => setTimeout(() => item.classList.add('dragging'), 0));
                 item.addEventListener('dragend', () => {
                     item.classList.remove('dragging');
                     saveNewOrderToFirebase();
                 });
             });
-
             list.addEventListener('dragover', (e) => {
                 e.preventDefault();
                 const draggingItem = list.querySelector('.dragging');
                 const siblings = [...list.querySelectorAll('.sortable-item:not(.dragging)')];
-                
-                let nextSibling = siblings.find(sibling => {
-                    return e.clientY <= sibling.getBoundingClientRect().top + sibling.getBoundingClientRect().height / 2;
-                });
-                
+                let nextSibling = siblings.find(sibling => e.clientY <= sibling.getBoundingClientRect().top + sibling.getBoundingClientRect().height / 2);
                 list.insertBefore(draggingItem, nextSibling);
             });
         }
@@ -1204,12 +1231,9 @@
         function saveNewOrderToFirebase() {
             const list = document.getElementById('sortableListContainer');
             const items = [...list.querySelectorAll('.sortable-item')];
-            
             items.forEach((item, index) => {
                 const idFb = item.getAttribute('data-id');
-                database.ref(`products/${idFb}`).update({
-                    displayOrder: index + 1
-                });
+                database.ref(`products/${idFb}`).update({ displayOrder: index + 1 });
             });
         }
 
@@ -1223,7 +1247,6 @@
             document.getElementById('prodDiscount').value = product.discount || 0;
             document.getElementById('prodDesc').value = product.desc;
             
-            // Mantém as imagens atuais se não carregar novas
             convertedImagesBase64 = product.imagesArray || [];
             const previewArea = document.getElementById('previewImagesArea');
             previewArea.innerHTML = '';
@@ -1234,25 +1257,21 @@
             const select = document.getElementById('prodCategorySelect');
             select.value = product.category || "Servidores";
             document.getElementById('prodCategoryNew').style.display = "none";
-            document.getElementById('prodCategoryNew').required = false;
 
             document.getElementById('formAdminTitle').innerText = "Editar Produto Selecionado";
             document.getElementById('btnSaveProduct').innerText = "Atualizar no Banco";
             document.getElementById('btnCancelEdit').style.display = "block";
         }
 
-        // SALVAMENTO CORRIGIDO E ATUALIZADO NO BANCO DE DADOS
         function handleProductSubmit(e) {
             e.preventDefault();
-            
-            // Puxa o ID diretamente pelo método nativo para garantir que a lógica de Edição vs Criação funcione
             const idFb = document.getElementById('editProductId').value;
             const name = document.getElementById('prodName').value;
             const price = parseFloat(document.getElementById('prodPrice').value);
             const discount = parseInt(document.getElementById('prodDiscount').value) || 0;
             const desc = document.getElementById('prodDesc').value;
-            
             let category = document.getElementById('prodCategorySelect').value;
+
             if (category === "__NEW__") {
                 category = document.getElementById('prodCategoryNew').value.trim();
             }
@@ -1264,31 +1283,28 @@
                 discount: discount,
                 desc: desc,
                 category: category,
-                imagesArray: convertedImagesBase64 // Salva a lista de fotos nativas em texto
+                imagesArray: convertedImagesBase64
             };
 
             if (idFb && idFb.trim() !== "") {
-                // Modo Edição: Atualiza registro existente
                 database.ref(`products/${idFb}`).update(productPayload)
                     .then(() => {
                         resetProductForm();
-                        alert("Produto atualizado com sucesso!");
-                    }).catch(err => alert("Erro ao atualizar: " + err));
+                        alert("Produto atualizado!");
+                    });
             } else {
-                // Modo Criação: Adiciona um novo registro
                 const nextOrder = products.length > 0 ? Math.max(...products.map(p => p.displayOrder || 0)) + 1 : 1;
                 productPayload.displayOrder = nextOrder;
-
                 database.ref('products').push(productPayload)
                     .then(() => {
                         resetProductForm();
-                        alert("Produto adicionado com sucesso!");
-                    }).catch(err => alert("Erro ao salvar no banco: " + err));
+                        alert("Produto adicionado!");
+                    });
             }
         }
 
         function deleteProduct(idFb) {
-            if (confirm("Tem certeza absoluta de que quer apagar este produto da loja?")) {
+            if (confirm("Quer mesmo apagar este produto?")) {
                 database.ref(`products/${idFb}`).remove();
             }
         }
@@ -1298,9 +1314,7 @@
             document.getElementById('productForm').reset();
             document.getElementById('previewImagesArea').innerHTML = '';
             convertedImagesBase64 = [];
-            document.getElementById('prodDiscount').value = 0;
             document.getElementById('prodCategoryNew').style.display = "none";
-            document.getElementById('prodCategoryNew').required = false;
             document.getElementById('formAdminTitle').innerText = "Adicionar Novo Produto";
             document.getElementById('btnSaveProduct').innerText = "Salvar no Banco de Dados";
             document.getElementById('btnCancelEdit').style.display = "none";
@@ -1311,8 +1325,6 @@
             if (product) {
                 cart.push(product);
                 updateCartUI();
-                document.getElementById('orderSuccessArea').innerHTML = '';
-                document.getElementById('btnCheckout').style.display = 'block';
             }
         }
 
@@ -1322,31 +1334,26 @@
         }
 
         function updateCartUI() {
-            document.getElementById('cartCount').innerText = Math.max(0, cart.length);
+            document.getElementById('cartCount').innerText = cart.length;
             const container = document.getElementById('cartItemsContainer');
             container.innerHTML = '';
-            
             if (cart.length === 0) {
                 container.innerHTML = '<p style="color: #a0a0ba; text-align:center; padding: 20px 0;">Carrinho vazio.</p>';
                 document.getElementById('cartTotalValue').innerText = 'R$ 0,00';
                 return;
             }
-
             let total = 0;
             cart.forEach((item, index) => {
                 const discount = parseInt(item.discount) || 0;
                 const finalPrice = discount > 0 ? item.price - (item.price * (discount / 100)) : item.price;
                 total += finalPrice;
-                
                 container.innerHTML += `
                     <div class="cart-item">
                         <div class="cart-item-info">
                             <h4>${item.name}</h4>
                             <p>R$ ${finalPrice.toFixed(2).replace('.', ',')}</p>
                         </div>
-                        <button class="btn-remove" onclick="removeFromCart(${index})">
-                            <i class="fas fa-trash"></i>
-                        </button>
+                        <button class="btn-remove" onclick="removeFromCart(${index})"><i class="fas fa-trash"></i></button>
                     </div>
                 `;
             });
@@ -1366,71 +1373,54 @@
 
         function sendToDiscordWebhook(orderID, itemsList, totalValue) {
             if (!DISCORD_WEBHOOK_URL) return;
-
             let descriptionText = "";
             itemsList.forEach(item => {
                 const discount = parseInt(item.discount) || 0;
                 const finalPrice = discount > 0 ? item.price - (item.price * (discount / 100)) : item.price;
                 descriptionText += `• **${item.name}** - R$ ${finalPrice.toFixed(2)}\n`;
             });
-
             const embedData = {
                 username: "RX-7 Store Bot",
-                avatar_url: "https://i.imgur.com/wSTFkRM.png",
                 embeds: [{
                     title: "📥 NOVO PEDIDO RECEBIDO",
                     color: 65535,
                     fields: [
                         { name: "🆔 ID do Pedido", value: `\`${orderID}\``, inline: false },
                         { name: "🛒 Produtos Selecionados", value: descriptionText, inline: false },
-                        { name: "💰 Valor Total", value: `**R$ ${totalValue.toFixed(2)}**`, inline: true },
-                        { name: "🛠️ Status", value: "Aguardando contato via WhatsApp", inline: true }
+                        { name: "💰 Valor Total", value: `**R$ ${totalValue.toFixed(2)}**`, inline: true }
                     ],
-                    footer: { text: "RX-7 Store | Monitoramento Automático de Vendas" },
                     timestamp: new Date()
                 }]
             };
-
             fetch(DISCORD_WEBHOOK_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(embedData)
-            }).catch(err => console.error("Erro ao enviar para o Discord:", err));
+            });
         }
 
         function checkout() {
-            if (cart.length === 0) {
-                alert("Adicione produtos antes de finalizar!");
-                return;
-            }
-            
+            if (cart.length === 0) return;
             const orderID = generateOrderID();
             let total = 0;
             cart.forEach(item => {
                 const discount = parseInt(item.discount) || 0;
-                const finalPrice = discount > 0 ? item.price - (item.price * (discount / 100)) : item.price;
-                total += finalPrice;
+                total += discount > 0 ? item.price - (item.price * (discount / 100)) : item.price;
             });
 
             sendToDiscordWebhook(orderID, cart, total);
             
-            let message = `Olá RX-7 Store! Acabei de fechar um pedido no site.\n\n`;
-            message += `🆔 *ID do Pedido:* ${orderID}\n`;
-            message += `-------------------------\n`;
+            let message = `Olá RX-7 Store! Acabei de fechar um pedido no site.\n\n🆔 *ID:* ${orderID}\n`;
             cart.forEach(item => { message += `- ${item.name}\n`; });
-            message += `-------------------------\n`;
-            message += `*Total:* R$ ${total.toFixed(2)}\n\n`;
-            message += `Estou te mandando o ID do pedido para você conferir no Discord!`;
+            message += `\n*Total:* R$ ${total.toFixed(2)}`;
             
             let whatsappUrl = `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${encodeURIComponent(message)}`;
             
             const successArea = document.getElementById('orderSuccessArea');
             successArea.innerHTML = `
                 <div class="order-success-box">
-                    <p style="color: var(--neon-blue); font-weight: bold;"><i class="fas fa-check-circle"></i> PEDIDO GERADO NO SISTEMA!</p>
-                    <p style="font-size: 0.85rem; color: #a0a0ba; margin-top:5px;">Copie ou salve o ID abaixo:</p>
+                    <p style="color: var(--neon-blue); font-weight: bold;"><i class="fas fa-check-circle"></i> PEDIDO GERADO!</p>
                     <div class="order-id-display">${orderID}</div>
-                    <p style="font-size: 0.8rem; color: #8a8aa3;">Ele já foi enviado para o nosso Discord. Clique no botão abaixo para concluir o contato no WhatsApp.</p>
                 </div>
             `;
 
@@ -1465,23 +1455,17 @@
             e.preventDefault();
             const user = document.getElementById('adminUser').value;
             const pass = document.getElementById('adminPass').value;
-
             if (user === 'gostosao' && pass === '245677') {
                 isAdminLoggedIn = true;
                 toggleModal('loginModal');
                 renderAdminSortableList();
                 toggleModal('adminPanelModal');
-                document.getElementById('adminUser').value = '';
-                document.getElementById('adminPass').value = '';
             } else {
-                alert("[ACESSO NEGADO]: Credenciais de moderação incorretas.");
+                alert("Acesso Negado.");
             }
         }
 
-        document.addEventListener('contextmenu', function(e) {
-            e.preventDefault();
-            alert("[SISTEMA DE SEGURANÇA]: Essa função foi desativada.");
-        });
+        document.addEventListener('contextmenu', e => e.preventDefault());
     </script>
 </body>
 </html>
