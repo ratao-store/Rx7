@@ -1445,7 +1445,7 @@
                     editBtnHtml = `<button type="button" class="btn-edit" onclick="loadEditProduct('${product.id_fb}')"><i class="fas fa-edit"></i></button>`;
                     deleteBtnHtml = `<button type="button" class="btn-delete" onclick="deleteProduct('${product.id_fb}')"><i class="fas fa-trash"></i></button>`;
                 } else {
-                    editBtnHtml = `<span style="font-size:11px; color:#555570; margin-right:5px;">Apenas Visualização</span>`;
+                    editBtnHtml = `<span style="font-size:11px; color:#555570; margin-right:5px;">Acesso Restrito</span>`;
                 }
 
                 container.innerHTML += `
@@ -1492,7 +1492,7 @@
                 if (adminAccessLevel === "full") {
                     deleteButton = `<button type="button" class="btn-delete" onclick="deleteCategory('${cat}')" title="Excluir Categoria"><i class="fas fa-trash"></i></button>`;
                 } else {
-                    deleteButton = `<span style="font-size:11px; color:#555570;">Requer Acesso Total</span>`;
+                    deleteButton = `<span style="font-size:11px; color:#555570;">Acesso Restrito</span>`;
                 }
 
                 html += `
