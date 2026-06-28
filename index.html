@@ -1175,10 +1175,20 @@
                             });
                         } else {
                             if (element) {
+                                // CÁLCULO ATUALIZADO: Inclui cálculo de dias e remove o limitador (%) das horas
+                                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
                                 const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                                 const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
                                 const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-                                element.innerHTML = `<i class="fa-solid fa-clock"></i> Termina em: ${hours}h ${minutes}m ${seconds}s`;
+                                
+                                // Formata o texto dinamicamente: só mostra o 'd' se houver dias restantes
+                                let countdownText = "";
+                                if (days > 0) {
+                                    countdownText += `${days}d `;
+                                }
+                                countdownText += `${hours}h ${minutes}m ${seconds}s`;
+
+                                element.innerHTML = `<i class="fa-solid fa-clock"></i> Termina em: ${countdownText}`;
                                 element.style.display = "block";
                             }
                         }
@@ -1446,7 +1456,7 @@
             });
 
             if (distinctCategories.length === 0) {
-                container.innerHTML = '<p style="color: #a0a0ba; text-align:center;">Nenhuma categoria ativa encontrada.</p>';
+                container.innerHTML = '<p style="color: #a0a0ba; text-align:center;">Nenhuma categoria activa encontrada.</p>';
                 return;
             }
 
@@ -1583,9 +1593,8 @@
             document.getElementById('btnCancelEdit').style.display = "block";
         }
 
-        // Lógica de limite diário centralizada no Firebase contra fraudes
         async function checkDailyLimitAndIncrement() {
-            const todayStr = new Date().toISOString().split('T')[0]; // Ex: 2026-06-27
+            const todayStr = new Date().toISOString().split('T')[0]; 
             const limitRef = database.ref(`admin_daily_limits/${todayStr}`);
             
             const snapshot = await limitRef.once('value');
@@ -1635,7 +1644,6 @@
                         alert("Produto atualizado!");
                     });
             } else {
-                // Se for editor básico, valida o limite global no Firebase
                 if (adminAccessLevel === "edit_only") {
                     const canPost = await checkDailyLimitAndIncrement();
                     if (!canPost) {
