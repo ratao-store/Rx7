@@ -903,8 +903,8 @@
                     <a href="#shopContentArea">Ver Produtos</a>
                     <a href="https://discord.gg/zTMCPtWG5J" target="_blank">Nosso Discord</a>
                     <button onclick="toggleModal('infoCardsModal')">Ver Informações</button>
-                    <button onclick="toggleModal('termsModal')">Termos & Diretrizes</button>
-                    <button onclick="openAdminClick()">Painel Admin</button>
+                    <button onclick="toggleModal('termsModal')">Termos</button>
+                    <button onclick="openAdminClick()">Logs</button>
                 </div>
             </div>
         </div>
@@ -1080,7 +1080,7 @@
                             <label>Descrição</label>
                             <textarea id="prodDesc" class="form-control" rows="4" required></textarea>
                         </div>
-                        <button type="submit" class="btn-buy" id="btnSaveProduct">Salvar</button>
+                        <button type="submit" class="btn-buy" id="btnSaveProduct">Adicionar Produto</button>
                         <button type="button" class="btn-buy" style="margin-top:10px; background: var(--neon-pink); display:none;" id="btnCancelEdit" onclick="resetProductForm()">Cancelar Edição</button>
                     </form>
                 </div>
@@ -1683,7 +1683,7 @@
             document.getElementById('prodCategoryNew').style.display = "none";
 
             document.getElementById('formAdminTitle').innerText = "Editar Produto Selecionado";
-            document.getElementById('btnSaveProduct').innerText = "Atualizar no Banco";
+            document.getElementById('btnSaveProduct').innerText = "Atualizar Produto";
             document.getElementById('btnCancelEdit').style.display = "block";
         }
 
@@ -1729,19 +1729,19 @@
 
             if (idFb && idFb.trim() !== "") {
                 if (adminAccessLevel !== "full") {
-                    alert("Ação negada: Seu usuário não tem permissão para editar produtos publicados.");
+                    alert("Seu usuário não tem permissão para editar produtos publicados.");
                     return;
                 }
                 database.ref(`products/${idFb}`).update(productPayload)
                     .then(() => {
                         resetProductForm();
-                        alert("Produto updated!");
+                        alert("Produto atualizado com sucesso!");
                     });
             } else {
                 if (adminAccessLevel === "edit_only") {
                     const canPost = await checkDailyLimitAndIncrement(loggedAdminUsername);
                     if (!canPost) {
-                        alert(`Limite excedido: A conta "${loggedAdminUsername}" atingiu o máximo de 2 novos produtos hoje.`);
+                        alert(`A conta Admin, "${loggedAdminUsername}" atingiu o máximo de 2 novos produtos diários.`);
                         return;
                     }
                 }
@@ -1810,8 +1810,8 @@
             document.getElementById('previewImagesArea').innerHTML = '';
             convertedImagesBase64 = [];
             document.getElementById('prodCategoryNew').style.display = "none";
-            document.getElementById('formAdminTitle').innerText = "Adicionar Novo Produto";
-            document.getElementById('btnSaveProduct').innerText = "Salvar no Banco";
+            document.getElementById('formAdminTitle').innerText = "Novos Produto";
+            document.getElementById('btnSaveProduct').innerText = "Adicionar Produto";
             document.getElementById('btnCancelEdit').style.display = "none";
         }
 
