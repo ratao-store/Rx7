@@ -60,10 +60,27 @@
             z-index: 100;
         }
 
-       .logo {
+.logo {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
+
+    font-size: 24px;
+    font-weight: 800;
+
+    color: #fff;
+
+    text-shadow:
+        0 0 10px var(--neon-blue),
+        0 0 20px var(--neon-blue);
+}
+
+.logo span {
+    color: var(--neon-pink);
+
+    text-shadow:
+        0 0 10px var(--neon-pink),
+        0 0 20px var(--neon-pink);
 }
 
         .logo img {
@@ -82,11 +99,6 @@
 
     border: 2px solid rgba(0,243,255,.5);
 }
-
-        .logo span {
-            color: var(--neon-pink);
-            text-shadow: 0 0 10px var(--neon-pink);
-        }
 
         .nav-buttons {
             display: flex;
