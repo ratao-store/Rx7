@@ -903,7 +903,7 @@
                     <a href="#shopContentArea">Ver Produtos</a>
                     <a href="https://discord.gg/zTMCPtWG5J" target="_blank">Nosso Discord</a>
                     <button onclick="toggleModal('infoCardsModal')">Ver Informações</button>
-                    <button onclick="toggleModal('termsModal')">Termos de Uso</button>
+                    <button onclick="toggleModal('termsModal')">Termos & Diretrizes</button>
                     <button onclick="openAdminClick()">Painel Admin</button>
                 </div>
             </div>
@@ -923,7 +923,7 @@
         <div class="footer-bottom">
             &copy; 2026 RX7 Store. Todos os direitos reservados.<br>
             <button class="terms-footer-link" onclick="toggleModal('termsModal')">
-                <i class="fa-regular fa-file-lines"></i> Termos de Uso & Garantia
+                <i class="fa-regular fa-file-lines"></i> Termos & Diretrizes
             </button>
         </div>
     </footer>
@@ -959,7 +959,7 @@
     <div id="termsModal" class="modal">
         <div class="modal-content modal-content-large" style="max-width: 850px;">
             <i class="fas fa-times close-modal" onclick="toggleModal('termsModal')"></i>
-            <h2 class="section-title" style="margin-bottom: 10px;">Termos de Uso & Diretrizes Gerais</h2>
+            <h2 class="section-title" style="margin-bottom: 10px;">Termos & Diretrizes</h2>
             <div class="terms-modal-body">
                 <div class="terms-grid">
                     <div class="terms-block">
@@ -1022,14 +1022,14 @@
             <h2 class="section-title" style="margin-bottom: 20px;">Acesso Restrito</h2>
             <form id="loginForm" onsubmit="handleLogin(event)">
                 <div class="form-group">
-                    <label>Usuário Admin</label>
+                    <label>Usuário</label>
                     <input type="text" id="adminUser" class="form-control" required>
                 </div>
                 <div class="form-group">
-                    <label>Chave de Acesso</label>
+                    <label>Senha</label>
                     <input type="password" id="adminPass" class="form-control" required>
                 </div>
-                <button type="submit" class="btn-buy">Autenticar Sistema</button>
+                <button type="submit" class="btn-buy">Logar no Sistema</button>
             </form>
         </div>
     </div>
@@ -1046,7 +1046,7 @@
                         <input type="text" id="editProductId" style="display:none; visibility:hidden;">
                         
                         <div class="form-group">
-                            <label>Nome do Servidor/Pacote</label>
+                            <label>Produto</label>
                             <input type="text" id="prodName" class="form-control" required>
                         </div>
                         <div class="form-group">
@@ -1058,7 +1058,7 @@
                             <input type="number" id="prodDiscount" class="form-control" min="0" max="100" value="0">
                         </div>
                         <div class="form-group">
-                            <label>Duração da Promoção (Opcional - Contador regressivo)</label>
+                            <label>Duração da Promoção</label>
                             <input type="datetime-local" id="prodPromoEnd" class="form-control">
                         </div>
                         <div class="form-group">
@@ -1072,7 +1072,7 @@
                             <select id="prodCategorySelect" class="form-control" onchange="checkNewCategoryField()">
                                 <option value="Servidores">Servidores</option>
                                 <option value="Impulsos">Impulsos</option>
-                                <option value="__NEW__">+ Criar Nova Categoria...</option>
+                                <option value="__NEW__">+ Nova Categoria</option>
                             </select>
                             <input type="text" id="prodCategoryNew" class="form-control" style="display: none; margin-top: 10px;">
                         </div>
@@ -1080,33 +1080,33 @@
                             <label>Descrição</label>
                             <textarea id="prodDesc" class="form-control" rows="4" required></textarea>
                         </div>
-                        <button type="submit" class="btn-buy" id="btnSaveProduct">Salvar no Banco</button>
+                        <button type="submit" class="btn-buy" id="btnSaveProduct">Salvar</button>
                         <button type="button" class="btn-buy" style="margin-top:10px; background: var(--neon-pink); display:none;" id="btnCancelEdit" onclick="resetProductForm()">Cancelar Edição</button>
                     </form>
                 </div>
                 <div>
-                    <h3 style="color:#fff; margin-bottom: 15px;">Organizar Ordem</h3>
+                    <h3 style="color:#fff; margin-bottom: 15px;">Ordens</h3>
                     <div class="sortable-list" id="sortableListContainer"></div>
 
-                    <h3 style="color:#fff; margin-bottom: 15px;">Gerenciar Categorias</h3>
+                    <h3 style="color:#fff; margin-bottom: 15px;">Categorias</h3>
                     <div class="category-management-box" id="adminCategoryManagementArea"></div>
                 </div>
                 
                 <div id="teamManagementSection" style="display: none;">
-                    <h3 style="color:#fff; margin-bottom: 15px;">Gerenciar Equipe (Editores)</h3>
+                    <h3 style="color:#fff; margin-bottom: 15px;">Criar loguin admin</h3>
                     <form id="teamForm" onsubmit="handleTeamSubmit(event)" style="margin-bottom: 20px; background: rgba(255,255,255,0.02); padding: 15px; border-radius: 8px; border: 1px solid rgba(0,243,255,0.1);">
                         <div class="form-group">
-                            <label>Nome do Editor</label>
-                            <input type="text" id="teamUser" class="form-control" placeholder="Ex: joao_rx7" required>
+                            <label>Nome</label>
+                            <input type="text" id="teamUser" class="form-control" placeholder="Digite um nome" required>
                         </div>
                         <div class="form-group">
-                            <label>Senha de Acesso</label>
-                            <input type="text" id="teamPass" class="form-control" placeholder="Ex: senha123" required>
+                            <label>Senha</label>
+                            <input type="text" id="teamPass" class="form-control" placeholder="Digite uma senha" required>
                         </div>
                         <button type="submit" class="btn-buy" style="background: linear-gradient(135deg, var(--neon-purple), var(--neon-pink));">Criar Acesso Editor</button>
                     </form>
                     
-                    <h4 style="color:#fff; margin-bottom: 10px;">Contas Ativas</h4>
+                    <h4 style="color:#fff; margin-bottom: 10px;">Contas criadas</h4>
                     <div class="category-management-box" id="teamListContainer" style="max-height: 200px;"></div>
                 </div>
             </div>
