@@ -73,12 +73,18 @@
         }
         
         .logo img {
-            width: 42px;
-            height: 42px;
-            border-radius: 8px;
-            overflow: hidden;
-            object-fit: contain;
-        }
+    width: 42px;
+    height: 42px;
+
+    border-radius: 50%;
+
+    object-fit: contain;
+
+    box-shadow:
+        0 0 8px #00f3ff,
+        0 0 18px rgba(0,243,255,.8),
+        0 0 28px rgba(0,243,255,.5);
+}
 
         .logo span {
             color: var(--neon-pink);
