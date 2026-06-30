@@ -60,25 +60,28 @@
             z-index: 100;
         }
 
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 24px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            color: #fff;
-            text-shadow: 0 0 10px var(--neon-blue), 0 0 20px var(--neon-blue);
-        }
+       .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
 
         .logo img {
-            width: 42px;
-            height: 42px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px var(--neon-blue);
-            object-fit: cover;
-        }
+    width: 42px;
+    height: 42px;
+
+    border-radius: 50%; /* deixa redondo */
+
+    object-fit: cover;
+
+    overflow: hidden;
+
+    box-shadow:
+        0 0 10px var(--neon-blue),
+        0 0 20px rgba(0,243,255,.4);
+
+    border: 2px solid rgba(0,243,255,.5);
+}
 
         .logo span {
             color: var(--neon-pink);
