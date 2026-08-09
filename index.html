@@ -893,13 +893,13 @@
             RX7 <span>Store</span>
         </div>
         <div class="nav-buttons">
-            <button class="btn-icon" onclick="toggleModal('cartModal')">
+            <button type="button" class="btn-icon" onclick="toggleModal('cartModal')">
                 <i class="fas fa-shopping-cart"></i>
                 <span class="cart-count" id="cartCount">0</span>
             </button>
             
             <div class="admin-dropdown-container">
-                <button class="btn-dots" onclick="toggleDropdown(event)">
+                <button type="button" class="btn-dots" onclick="toggleDropdown(event)">
                     <i class="fas fa-ellipsis-v"></i>
                 </button>
                 <div class="dropdown-menu" id="adminDropdown">
@@ -1065,7 +1065,7 @@
                             <input type="datetime-local" id="prodPromoEnd" class="form-control">
                         </div>
                         <div class="form-group">
-                            <label>Fotos do Produto</label>
+                            <label>Fotos do Produto (Evite imagens muito pesadas)</label>
                             <input type="file" id="prodImagesFile" class="form-control" multiple accept="image/*" onchange="previewFilesAndConvert()">
                             <div class="image-preview-container" id="previewImagesArea"></div>
                             <button type="button" class="btn-buy" style="margin-top: 10px; background: #555570; font-size: 12px; padding: 6px;" id="btnClearImagesBtn" onclick="removeAllUploadedImages()">Remover Todas as Fotos</button>
@@ -1263,6 +1263,10 @@
             const fileInput = document.getElementById('prodImagesFile');
             if (fileInput.files && fileInput.files.length > 0) {
                 Array.from(fileInput.files).forEach(file => {
+                    if (file.size > 800000) {
+                        alert(`A imagem "${file.name}" é muito grande (acima de 800KB) e pode travar o site. Escolha uma menor.`);
+                        return;
+                    }
                     const reader = new FileReader();
                     reader.onload = function(e) {
                         convertedImagesBase64.push(e.target.result);
@@ -1706,91 +1710,106 @@
 
         async function handleProductSubmit(e) {
             e.preventDefault();
-            const idFb = document.getElementById('editProductId').value;
-            const name = document.getElementById('prodName').value;
-            const price = parseFloat(document.getElementById('prodPrice').value);
-            const discount = parseInt(document.getElementById('prodDiscount').value) || 0;
-            const promoEnd = document.getElementById('prodPromoEnd').value;
-            const desc = document.getElementById('prodDesc').value;
-            let category = document.getElementById('prodCategorySelect').value;
+            
+            const submitBtn = document.getElementById('btnSaveProduct');
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Salvando...";
 
-            if (category === "__NEW__") {
-                category = document.getElementById('prodCategoryNew').value.trim();
-            }
-            if (!category) category = "Geral";
+            try {
+                const idFb = document.getElementById('editProductId').value;
+                const name = document.getElementById('prodName').value;
+                const price = parseFloat(document.getElementById('prodPrice').value);
+                const discount = parseInt(document.getElementById('prodDiscount').value) || 0;
+                const promoEnd = document.getElementById('prodPromoEnd').value;
+                const desc = document.getElementById('prodDesc').value;
+                let category = document.getElementById('prodCategorySelect').value;
 
-            const productPayload = {
-                name: name,
-                price: price,
-                discount: discount,
-                promoEnd: promoEnd ? promoEnd : null,
-                desc: desc,
-                category: category,
-                imagesArray: convertedImagesBase64.length > 0 ? convertedImagesBase64 : null
-            };
-
-            if (idFb && idFb.trim() !== "") {
-                if (adminAccessLevel !== "full") {
-                    alert("Seu usuário não tem permissão para editar produtos publicados.");
-                    return;
+                if (category === "__NEW__") {
+                    category = document.getElementById('prodCategoryNew').value.trim();
                 }
-                database.ref(`products/${idFb}`).update(productPayload)
-                    .then(() => {
-                        resetProductForm();
-                        alert("Produto atualizado com sucesso!");
-                    });
-            } else {
-                if (adminAccessLevel === "edit_only") {
-                    const canPost = await checkDailyLimitAndIncrement(loggedAdminUsername);
-                    if (!canPost) {
-                        alert(`A conta Admin, "${loggedAdminUsername}" atingiu o máximo de 2 novos produtos diários.`);
+                if (!category) category = "Geral";
+
+                const productPayload = {
+                    name: name,
+                    price: price,
+                    discount: discount,
+                    promoEnd: promoEnd ? promoEnd : null,
+                    desc: desc,
+                    category: category,
+                    imagesArray: convertedImagesBase64.length > 0 ? convertedImagesBase64 : null
+                };
+
+                if (idFb && idFb.trim() !== "") {
+                    if (adminAccessLevel !== "full") {
+                        alert("Seu usuário não tem permissão para editar produtos publicados.");
+                        submitBtn.disabled = false;
+                        submitBtn.innerText = "Atualizar Produto";
                         return;
                     }
-                }
-
-                const nextOrder = products.length > 0 ? Math.max(...products.map(p => p.displayOrder || 0)) + 1 : 1;
-                productPayload.displayOrder = nextOrder;
-                database.ref('products').push(productPayload)
-                    .then(() => {
-                        if (DISCORD_WEBHOOK_PRODUTOS_URL && DISCORD_WEBHOOK_PRODUTOS_URL !== "SUA_URL_DO_WEBHOOK_DE_PRODUTOS_AQUI") {
-                            const precoFormatado = price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-                            const descontoTexto = discount > 0 ? `${discount}%` : "Nenhum";
-                            
-                            const embedNovoProduto = {
-                                username: "RX7 Store Bot",
-                                avatar_url: "https://rx7-store.firebaseapp.com/favicon.png",
-                                embeds: [{
-                                    title: "✨ NOVO PRODUTO ADICIONADO NA LOJA! ✨",
-                                    description: `O ADMIN **${loggedAdminUsername || "Administrador"}** acabou de publicar um novo produto no site.`,
-                                    color: 16711765,
-                                    fields: [
-                                        { name: "📦 Nome do Item", value: `\`\`\`${name}\`\`\``, inline: false },
-                                        { name: "🗂️ Categoria", value: category, inline: true },
-                                        { name: "💰 Preço", value: `**${precoFormatado}**`, inline: true },
-                                        { name: "🏷️ Desconto Aplicado", value: descontoTexto, inline: true },
-                                        { name: "📝 Descrição", value: desc.length > 500 ? desc.substring(0, 500) + "..." : desc, inline: false }
-                                    ],
-                                    thumbnail: {
-                                        url: "https://rx7-store.firebaseapp.com/favicon.png"
-                                    },
-                                    footer: {
-                                        text: "RX7 Store Central System • Log de Atividades",
-                                        icon_url: "https://rx7-store.firebaseapp.com/favicon.png"
-                                    },
-                                    timestamp: new Date().toISOString()
-                                }]
-                            };
-
-                            fetch(DISCORD_WEBHOOK_PRODUTOS_URL, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify(embedNovoProduto)
-                            }).catch(err => console.error("Erro no envio do webhook de produtos:", err));
+                    await database.ref(`products/${idFb}`).update(productPayload);
+                    resetProductForm();
+                    alert("Produto atualizado com sucesso!");
+                } else {
+                    if (adminAccessLevel === "edit_only") {
+                        const canPost = await checkDailyLimitAndIncrement(loggedAdminUsername);
+                        if (!canPost) {
+                            alert(`A conta Admin, "${loggedAdminUsername}" atingiu o máximo de 2 novos produtos diários.`);
+                            submitBtn.disabled = false;
+                            submitBtn.innerText = "Adicionar Produto";
+                            return;
                         }
+                    }
 
-                        resetProductForm();
-                        alert("Produto adicionado com sucesso!");
-                    });
+                    const nextOrder = products.length > 0 ? Math.max(...products.map(p => p.displayOrder || 0)) + 1 : 1;
+                    productPayload.displayOrder = nextOrder;
+                    
+                    await database.ref('products').push(productPayload);
+
+                    if (DISCORD_WEBHOOK_PRODUTOS_URL && DISCORD_WEBHOOK_PRODUTOS_URL !== "SUA_URL_DO_WEBHOOK_DE_PRODUTOS_AQUI") {
+                        const precoFormatado = price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                        const descontoTexto = discount > 0 ? `${discount}%` : "Nenhum";
+                        
+                        const embedNovoProduto = {
+                            username: "RX7 Store Bot",
+                            avatar_url: "https://rx7-store.firebaseapp.com/favicon.png",
+                            embeds: [{
+                                title: "✨ NOVO PRODUTO ADICIONADO NA LOJA! ✨",
+                                description: `O ADMIN **${loggedAdminUsername || "Administrador"}** acabou de publicar um novo produto no site.`,
+                                color: 16711765,
+                                fields: [
+                                    { name: "📦 Nome do Item", value: `\`\`\`${name}\`\`\``, inline: false },
+                                    { name: "🗂️ Categoria", value: category, inline: true },
+                                    { name: "💰 Preço", value: `**${precoFormatado}**`, inline: true },
+                                    { name: "🏷️ Desconto Aplicado", value: descontoTexto, inline: true },
+                                    { name: "📝 Descrição", value: desc.length > 500 ? desc.substring(0, 500) + "..." : desc, inline: false }
+                                ],
+                                thumbnail: {
+                                    url: "https://rx7-store.firebaseapp.com/favicon.png"
+                                },
+                                footer: {
+                                    text: "RX7 Store Central System • Log de Atividades",
+                                    icon_url: "https://rx7-store.firebaseapp.com/favicon.png"
+                                },
+                                timestamp: new Date().toISOString()
+                            }]
+                        };
+
+                        fetch(DISCORD_WEBHOOK_PRODUTOS_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(embedNovoProduto)
+                        }).catch(err => console.error("Erro no envio do webhook de produtos:", err));
+                    }
+
+                    resetProductForm();
+                    alert("Produto adicionado com sucesso!");
+                }
+            } catch (error) {
+                console.error("Erro ao salvar produto:", error);
+                alert("Ocorreu um erro ao salvar. Verifique se as imagens são muito pesadas.");
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerText = document.getElementById('editProductId').value ? "Atualizar Produto" : "Adicionar Produto";
             }
         }
 
