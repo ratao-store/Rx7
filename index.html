@@ -905,9 +905,9 @@
                 <div class="dropdown-menu" id="adminDropdown">
                     <a href="#shopContentArea">Ver Produtos</a>
                     <a href="https://discord.gg/zTMCPtWG5J" target="_blank">Nosso Discord</a>
-                    <button onclick="toggleModal('infoCardsModal')">Informações</button>
-                    <button onclick="toggleModal('termsModal')">Termos</button>
-                    <button onclick="openAdminClick()">Restrito</button>
+                    <button type="button" onclick="toggleModal('infoCardsModal')">Informações</button>
+                    <button type="button" onclick="toggleModal('termsModal')">Termos</button>
+                    <button type="button" onclick="openAdminClick()">Restrito</button>
                 </div>
             </div>
         </div>
@@ -925,7 +925,7 @@
     <footer>
         <div class="footer-bottom">
             &copy; 2026 RX7 Store. Todos os direitos reservados.<br>
-            <button class="terms-footer-link" onclick="toggleModal('termsModal')">
+            <button type="button" class="terms-footer-link" onclick="toggleModal('termsModal')">
                 <i class="fa-regular fa-file-lines"></i> Termos & Diretrizes
             </button>
         </div>
@@ -1015,7 +1015,7 @@
                 <span id="cartTotalValue">R$ 0,00</span>
             </div>
             <div id="orderSuccessArea"></div>
-            <button class="btn-buy" style="margin-top: 20px;" id="btnCheckout" onclick="checkout()">Finalizar Pedido</button>
+            <button type="button" class="btn-buy" style="margin-top: 20px;" id="btnCheckout" onclick="checkout()">Finalizar Pedido</button>
         </div>
     </div>
 
@@ -1154,7 +1154,8 @@
         }
 
         document.addEventListener('click', function() {
-            document.getElementById('adminDropdown').style.display = 'none';
+            const dropdown = document.getElementById('adminDropdown');
+            if (dropdown) dropdown.style.display = 'none';
         });
 
         function formatTextWithLinks(text) {
@@ -1243,10 +1244,10 @@
                 currentSelectedCategoryFilter = "all";
             }
 
-            let tabsHtml = `<button class="tab-btn ${currentSelectedCategoryFilter === 'all' ? 'active' : ''}" onclick="filterStorefrontByCategory('all')">Todos</button>`;
+            let tabsHtml = `<button type="button" class="tab-btn ${currentSelectedCategoryFilter === 'all' ? 'active' : ''}" onclick="filterStorefrontByCategory('all')">Todos</button>`;
             
             distinctCategories.forEach(cat => {
-                tabsHtml += `<button class="tab-btn ${currentSelectedCategoryFilter === cat ? 'active' : ''}" onclick="filterStorefrontByCategory('${cat}')">${cat}</button>`;
+                tabsHtml += `<button type="button" class="tab-btn ${currentSelectedCategoryFilter === cat ? 'active' : ''}" onclick="filterStorefrontByCategory('${cat}')">${cat}</button>`;
             });
 
             tabsArea.innerHTML = tabsHtml;
@@ -1260,29 +1261,22 @@
 
         function previewFilesAndConvert() {
             const fileInput = document.getElementById('prodImagesFile');
-            if (fileInput.files) {
-                let loadedCount = 0;
-                const totalFiles = fileInput.files.length;
-                
+            if (fileInput.files && fileInput.files.length > 0) {
                 Array.from(fileInput.files).forEach(file => {
                     const reader = new FileReader();
                     reader.onload = function(e) {
-                        const base64Str = e.target.result;
-                        convertedImagesBase64.push(base64Str);
-                        loadedCount++;
-                        
-                        if (loadedCount === totalFiles) {
-                            renderAdminImagesPreview();
-                            fileInput.value = ""; 
-                        }
+                        convertedImagesBase64.push(e.target.result);
+                        renderAdminImagesPreview();
                     };
                     reader.readAsDataURL(file);
                 });
+                fileInput.value = ""; 
             }
         }
 
         function renderAdminImagesPreview() {
             const previewArea = document.getElementById('previewImagesArea');
+            if (!previewArea) return;
             previewArea.innerHTML = '';
             
             convertedImagesBase64.forEach((base64, idx) => {
@@ -1310,9 +1304,9 @@
             activeImageIndexes[idFb] = index;
             
             const imgEl = document.getElementById(`mainImg-${idFb}`);
-            const imagesArray = products.find(p => p.id_fb === idFb).imagesArray;
-            if (imgEl && imagesArray) {
-                imgEl.src = imagesArray[index];
+            const product = products.find(p => p.id_fb === idFb);
+            if (imgEl && product && product.imagesArray) {
+                imgEl.src = product.imagesArray[index];
             }
 
             const thumbs = document.querySelectorAll(`.thumb-${idFb}`);
@@ -1324,6 +1318,7 @@
 
         function renderStorefront() {
             const shopArea = document.getElementById('shopContentArea');
+            if (!shopArea) return;
             shopArea.innerHTML = '';
 
             if (products.length === 0) {
@@ -1417,7 +1412,7 @@
                                 <div>
                                     ${countdownHtml}
                                     ${priceHtml}
-                                    <button class="btn-buy" onclick="addToCart('${product.id_fb}')">
+                                    <button type="button" class="btn-buy" onclick="addToCart('${product.id_fb}')">
                                         <i class="fas fa-cart-plus"></i> Adicionar ao Carrinho
                                     </button>
                                 </div>
@@ -1433,6 +1428,7 @@
 
         function renderAdminSortableList() {
             const container = document.getElementById('sortableListContainer');
+            if (!container) return;
             container.innerHTML = '';
             if (products.length === 0) {
                 container.innerHTML = '<p style="color: #a0a0ba; text-align:center; padding: 20px 0;">Nenhum produto.</p>';
@@ -1486,7 +1482,7 @@
             });
 
             if (distinctCategories.length === 0) {
-                container.innerHTML = '<p style="color: #a0a0ba; text-align:center;">Nenhuma categoria activa encontrada.</p>';
+                container.innerHTML = '<p style="color: #a0a0ba; text-align:center;">Nenhuma categoria ativa encontrada.</p>';
                 return;
             }
 
@@ -1613,6 +1609,7 @@
 
         function updateCategorySelectors() {
             const select = document.getElementById('prodCategorySelect');
+            if (!select) return;
             const savedValue = select.value;
             const distinctCategories = [];
             products.forEach(p => {
@@ -1636,6 +1633,7 @@
 
         function initDragAndDrop() {
             const list = document.getElementById('sortableListContainer');
+            if (!list) return;
             const items = list.querySelectorAll('.sortable-item');
             items.forEach(item => {
                 item.addEventListener('dragstart', () => setTimeout(() => item.classList.add('dragging'), 0));
@@ -1647,6 +1645,7 @@
             list.addEventListener('dragover', (e) => {
                 e.preventDefault();
                 const draggingItem = list.querySelector('.dragging');
+                if (!draggingItem) return;
                 const siblings = [...list.querySelectorAll('.sortable-item:not(.dragging)')];
                 let nextSibling = siblings.find(sibling => e.clientY <= sibling.getBoundingClientRect().top + sibling.getBoundingClientRect().height / 2);
                 list.insertBefore(draggingItem, nextSibling);
@@ -1655,6 +1654,7 @@
 
         function saveNewOrderToFirebase() {
             const list = document.getElementById('sortableListContainer');
+            if (!list) return;
             const items = [...list.querySelectorAll('.sortable-item')];
             items.forEach((item, index) => {
                 const idFb = item.getAttribute('data-id');
@@ -1810,7 +1810,7 @@
             document.getElementById('previewImagesArea').innerHTML = '';
             convertedImagesBase64 = [];
             document.getElementById('prodCategoryNew').style.display = "none";
-            document.getElementById('formAdminTitle').innerText = "Novos Produto";
+            document.getElementById('formAdminTitle').innerText = "Adicionar Novo Produto";
             document.getElementById('btnSaveProduct').innerText = "Adicionar Produto";
             document.getElementById('btnCancelEdit').style.display = "none";
         }
@@ -1829,8 +1829,10 @@
         }
 
         function updateCartUI() {
-            document.getElementById('cartCount').innerText = cart.length;
+            const countEl = document.getElementById('cartCount');
+            if (countEl) countEl.innerText = cart.length;
             const container = document.getElementById('cartItemsContainer');
+            if (!container) return;
             container.innerHTML = '';
             if (cart.length === 0) {
                 container.innerHTML = '<p style="color: #a0a0ba; text-align:center; padding: 20px 0;">Carrinho vazio.</p>';
@@ -1848,7 +1850,7 @@
                             <h4>${item.name}</h4>
                             <p>R$ ${finalPrice.toFixed(2).replace('.', ',')}</p>
                         </div>
-                        <button class="btn-remove" onclick="removeFromCart(${index})"><i class="fas fa-trash"></i></button>
+                        <button type="button" class="btn-remove" onclick="removeFromCart(${index})"><i class="fas fa-trash"></i></button>
                     </div>
                 `;
             });
@@ -1891,7 +1893,7 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(embedData)
-            });
+            }).catch(err => console.error("Erro no webhook de pedidos:", err));
         }
 
         function checkout() {
@@ -1934,7 +1936,9 @@
 
         function toggleModal(modalId) {
             const modal = document.getElementById(modalId);
-            modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
+            if (modal) {
+                modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
+            }
         }
 
         function openAdminClick() {
@@ -1962,7 +1966,8 @@
                 document.getElementById('loginForm').reset();
                 toggleModal('loginModal');
                 
-                document.getElementById('teamManagementSection').style.display = "block";
+                const teamSec = document.getElementById('teamManagementSection');
+                if (teamSec) teamSec.style.display = "block";
                 
                 renderAdminSortableList();
                 renderAdminCategoryManager();
@@ -1987,7 +1992,8 @@
                 document.getElementById('loginForm').reset();
                 toggleModal('loginModal');
                 
-                document.getElementById('teamManagementSection').style.display = "none";
+                const teamSec = document.getElementById('teamManagementSection');
+                if (teamSec) teamSec.style.display = "none";
                 
                 renderAdminSortableList();
                 renderAdminCategoryManager();
