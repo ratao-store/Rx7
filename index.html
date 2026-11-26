@@ -1716,13 +1716,23 @@
             submitBtn.innerText = "Salvando...";
 
             try {
+                if (!isAdminLoggedIn || adminAccessLevel === "none") {
+                    alert("Faça login como administrador para salvar produtos.");
+                    return;
+                }
+
                 const idFb = document.getElementById('editProductId').value;
-                const name = document.getElementById('prodName').value;
+                const name = document.getElementById('prodName').value.trim();
                 const price = parseFloat(document.getElementById('prodPrice').value);
                 const discount = parseInt(document.getElementById('prodDiscount').value) || 0;
                 const promoEnd = document.getElementById('prodPromoEnd').value;
-                const desc = document.getElementById('prodDesc').value;
+                const desc = document.getElementById('prodDesc').value.trim();
                 let category = document.getElementById('prodCategorySelect').value;
+
+                if (!name || isNaN(price) || !desc) {
+                    alert("Preencha nome, preço e descrição corretamente.");
+                    return;
+                }
 
                 if (category === "__NEW__") {
                     category = document.getElementById('prodCategoryNew').value.trim();
@@ -1742,8 +1752,6 @@
                 if (idFb && idFb.trim() !== "") {
                     if (adminAccessLevel !== "full") {
                         alert("Seu usuário não tem permissão para editar produtos publicados.");
-                        submitBtn.disabled = false;
-                        submitBtn.innerText = "Atualizar Produto";
                         return;
                     }
                     await database.ref(`products/${idFb}`).update(productPayload);
@@ -1753,9 +1761,7 @@
                     if (adminAccessLevel === "edit_only") {
                         const canPost = await checkDailyLimitAndIncrement(loggedAdminUsername);
                         if (!canPost) {
-                            alert(`A conta Admin, "${loggedAdminUsername}" atingiu o máximo de 2 novos produtos diários.`);
-                            submitBtn.disabled = false;
-                            submitBtn.innerText = "Adicionar Produto";
+                            alert(`A conta Admin "${loggedAdminUsername}" atingiu o máximo de 2 novos produtos diários.`);
                             return;
                         }
                     }
@@ -1771,7 +1777,6 @@
                         
                         const embedNovoProduto = {
                             username: "RX7 Store Bot",
-                            avatar_url: "https://rx7-store.firebaseapp.com/favicon.png",
                             embeds: [{
                                 title: "✨ NOVO PRODUTO ADICIONADO NA LOJA! ✨",
                                 description: `O ADMIN **${loggedAdminUsername || "Administrador"}** acabou de publicar um novo produto no site.`,
@@ -1783,12 +1788,8 @@
                                     { name: "🏷️ Desconto Aplicado", value: descontoTexto, inline: true },
                                     { name: "📝 Descrição", value: desc.length > 500 ? desc.substring(0, 500) + "..." : desc, inline: false }
                                 ],
-                                thumbnail: {
-                                    url: "https://rx7-store.firebaseapp.com/favicon.png"
-                                },
                                 footer: {
-                                    text: "RX7 Store Central System • Log de Atividades",
-                                    icon_url: "https://rx7-store.firebaseapp.com/favicon.png"
+                                    text: "RX7 Store Central System • Log de Atividades"
                                 },
                                 timestamp: new Date().toISOString()
                             }]
@@ -1806,7 +1807,7 @@
                 }
             } catch (error) {
                 console.error("Erro ao salvar produto:", error);
-                alert("Ocorreu um erro ao salvar. Verifique se as imagens são muito pesadas.");
+                alert("Erro ao salvar: " + (error.message || error));
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.innerText = document.getElementById('editProductId').value ? "Atualizar Produto" : "Adicionar Produto";
