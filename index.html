@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JRS Store - Web site</title>
+    <title>RX7 Store - Web site</title>
     
     <link rel="icon" type="image/png" href="favicon.png">
 
@@ -889,8 +889,8 @@
 
     <header>
         <div class="logo">
-            <img src="favicon.png" alt="Logo JRS">
-            JRS <span>Store</span>
+            <img src="favicon.png" alt="Logo RX7">
+            RX7 <span>Store</span>
         </div>
         <div class="nav-buttons">
             <button type="button" class="btn-icon" onclick="toggleModal('cartModal')">
@@ -914,7 +914,7 @@
     </header>
 
     <section class="hero">
-        <h1>BEM-VINDO À JRS STORE</h1>
+        <h1>BEM-VINDO À RX7 STORE</h1>
         <p>Eleve sua comunidade para o próximo nível com servidores totalmente configurados, design futurista e infraestrutura premium.</p>
     </section>
 
@@ -924,7 +924,7 @@
 
     <footer>
         <div class="footer-bottom">
-            &copy; 2026 JRS Store. Todos os direitos reservados.<br>
+            &copy; 2026 RX7 Store. Todos os direitos reservados.<br>
             <button type="button" class="terms-footer-link" onclick="toggleModal('termsModal')">
                 <i class="fa-regular fa-file-lines"></i> Termos & Diretrizes
             </button>
@@ -994,7 +994,7 @@
                     </div>
                     <div class="terms-block">
                         <h3>4. Medidas Anti-Fraude e Conduta</h3>
-                        <p>Mantemos um ecossistema limpo, justo e seguro para todos os clientes e colaboradores da JRS Store:</p>
+                        <p>Mantemos um ecossistema limpo, justo e seguro para todos os clientes e colaboradores da RX7 Store:</p>
                         <ul>
                             <li><i class="fas fa-angle-right"></i> <strong>Estornos Ilegítimos:</strong> Tentativas de chargeback (contestação maliciosa de pagamento junto ao banco/cartão) após a entrega realizada resultarão em banimento permanente de todos os nossos servidores, suspensão de licenças e inclusão em nossa lista de bloqueio.</li>
                             <li><i class="fas fa-angle-right"></i> <strong>Comportamento no Suporte:</strong> Ofensas, ameaças ou desrespeito direcionados aos atendentes e moderadores da nossa comunidade causarão o encerramento imediato do atendimento sem direito à assistência.</li>
@@ -1119,10 +1119,10 @@
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyB7cxrpXsf_abhtCeEsh9yURrt9GNcn1eM",
-            authDomain: "JRS-store.firebaseapp.com",
-            databaseURL: "https://JRS-store-default-rtdb.firebaseio.com",
-            projectId: "JRS-store",
-            storageBucket: "JRS-store.firebasestorage.app",
+            authDomain: "RX7-store.firebaseapp.com",
+            databaseURL: "https://RX7-store-default-rtdb.firebaseio.com",
+            projectId: "RX7-store",
+            storageBucket: "RX7-store.firebasestorage.app",
             messagingSenderId: "782894155670",
             appId: "1:782894155670:web:0ba17769fc39a0aa333fb7"
         };
@@ -1776,7 +1776,7 @@
                         const descontoTexto = discount > 0 ? `${discount}%` : "Nenhum";
                         
                         const embedNovoProduto = {
-                            username: "JRS Store Bot",
+                            username: "RX7 Store Bot",
                             embeds: [{
                                 title: "✨ NOVO PRODUTO ADICIONADO NA LOJA! ✨",
                                 description: `O ADMIN **${loggedAdminUsername || "Administrador"}** acabou de publicar um novo produto no site.`,
@@ -1789,7 +1789,7 @@
                                     { name: "📝 Descrição", value: desc.length > 500 ? desc.substring(0, 500) + "..." : desc, inline: false }
                                 ],
                                 footer: {
-                                    text: "JRS Store Central System • Log de Atividades"
+                                    text: "RX7 Store Central System • Log de Atividades"
                                 },
                                 timestamp: new Date().toISOString()
                             }]
@@ -1885,7 +1885,7 @@
             const hour = String(date.getHours()).padStart(2, '0');
             const min = String(date.getMinutes()).padStart(2, '0');
             const randomFactor = Math.floor(1000 + Math.random() * 9000);
-            return `JRS-${day}${month}${year}-${hour}${min}-${randomFactor}`;
+            return `RX7-${day}${month}${year}-${hour}${min}-${randomFactor}`;
         }
 
         function sendToDiscordWebhook(orderID, itemsList, totalValue) {
