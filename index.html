@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JRS Store - Web site</title>
     
-    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="icon" type="image/png" href="favicon.png?v=3">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -71,16 +71,27 @@
             color: #fff;
             text-shadow: 0 0 10px var(--neon-blue), 0 0 20px var(--neon-blue);
         }
+
+        .logo-img-wrap {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
+            flex-shrink: 0;
+        }
         
-         .logo img {
-           width: 42px;
-           height: 42px;
-           border-radius: 50%;
-           object-fit: cover;
-           background: transparent;
-           border: none;
-           box-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
-         }
+        .logo-img-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scale(1.18);
+            background: transparent;
+            border: none;
+        }
 
         .logo span {
             color: var(--neon-pink);
@@ -888,7 +899,9 @@
 
     <header>
         <div class="logo">
-            <img src="favicon.png" alt="Logo JRS">
+            <div class="logo-img-wrap">
+                <img src="favicon.png?v=3" alt="Logo JRS">
+            </div>
             JRS <span>Store</span>
         </div>
         <div class="nav-buttons">
