@@ -437,10 +437,21 @@
         .product-desc {
             font-size: 0.9rem;
             color: #a0a0ba;
-            margin-bottom: 20px;
+            margin-bottom: 12px;
             line-height: 1.5;
             flex-grow: 1;
             white-space: pre-wrap;
+        }
+
+        .product-stock-label {
+            font-size: 0.85rem;
+            color: #a0a0ba;
+            margin-bottom: 10px;
+        }
+
+        .product-stock-label.out-of-stock {
+            color: var(--neon-pink);
+            font-weight: bold;
         }
 
         .product-desc a {
@@ -516,9 +527,15 @@
             width: 100%;
         }
 
-        .btn-buy:hover {
+        .btn-buy:hover:not(:disabled) {
             box-shadow: 0 0 15px var(--neon-blue);
             filter: brightness(1.2);
+        }
+
+        .btn-buy:disabled {
+            background: #2b2b3d;
+            color: #8a8aa3;
+            cursor: not-allowed;
         }
 
         .modal {
@@ -747,6 +764,23 @@
             font-weight: bold;
         }
 
+        .stock-badge {
+            background: rgba(0, 243, 255, 0.15);
+            border: 1px solid rgba(0, 243, 255, 0.4);
+            color: var(--neon-blue);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+
+        .stock-badge.zero {
+            background: rgba(255, 0, 85, 0.2);
+            border-color: var(--neon-pink);
+            color: #ff80aa;
+        }
+
         .action-btns button {
             background: none;
             border: none;
@@ -930,7 +964,7 @@
 
     <section class="hero">
         <h1>BEM-VINDO À JRS STORE</h1>
-        <p>Eleve seu nível com agente 🚀.</p>
+        <p>Eleve sua comunidade para o próximo nível com servidores totalmente configurados, design futurista e infraestrutura premium.</p>
     </section>
 
     <div class="category-tabs-wrapper" id="categoryTabsArea"></div>
@@ -1072,6 +1106,10 @@
                             <input type="number" id="prodPrice" class="form-control" step="0.01" required>
                         </div>
                         <div class="form-group">
+                            <label>Estoque (Quantidade)</label>
+                            <input type="number" id="prodStock" class="form-control" min="0" value="10" required>
+                        </div>
+                        <div class="form-group">
                             <label>Desconto (%)</label>
                             <input type="number" id="prodDiscount" class="form-control" min="0" max="100" value="0">
                         </div>
@@ -1103,7 +1141,7 @@
                     </form>
                 </div>
                 <div>
-                    <h3 style="color:#fff; margin-bottom: 15px;">Ordens</h3>
+                    <h3 style="color:#fff; margin-bottom: 15px;">Estoque e Ordens</h3>
                     <div class="sortable-list" id="sortableListContainer"></div>
 
                     <h3 style="color:#fff; margin-bottom: 15px;">Categorias</h3>
@@ -1161,6 +1199,12 @@
         let activeImageIndexes = {}; 
         let currentSelectedCategoryFilter = "all";
         let countdownIntervalId = null;
+
+        function getProductStock(product) {
+            if (!product) return 0;
+            const parsed = parseInt(product.stock);
+            return isNaN(parsed) ? 10 : Math.max(0, parsed);
+        }
 
         function toggleDropdown(event) {
             event.stopPropagation();
@@ -1367,6 +1411,8 @@
                 categoriesMap[categoryTitle].forEach(product => {
                     const descriptionFormatted = formatTextWithLinks(product.desc);
                     const discount = parseInt(product.discount) || 0;
+                    const stockCount = getProductStock(product);
+                    const isOutOfStock = stockCount <= 0;
                     let priceHtml = "";
                     let countdownHtml = "";
                     let finalPrice = product.price;
@@ -1385,6 +1431,14 @@
                     } else {
                         priceHtml = `<div class="product-price">R$ ${product.price.toFixed(2).replace('.', ',')}</div>`;
                     }
+
+                    const stockHtml = isOutOfStock
+                        ? `<div class="product-stock-label out-of-stock"><i class="fas fa-box-open"></i> Esgotado</div>`
+                        : `<div class="product-stock-label"><i class="fas fa-boxes-stacked"></i> Em estoque: <strong>${stockCount}</strong></div>`;
+
+                    const buyBtnHtml = isOutOfStock
+                        ? `<button type="button" class="btn-buy" disabled><i class="fas fa-ban"></i> Esgotado</button>`
+                        : `<button type="button" class="btn-buy" onclick="addToCart('${product.id_fb}')"><i class="fas fa-cart-plus"></i> Adicionar ao Carrinho</button>`;
 
                     const hasImages = product.imagesArray && product.imagesArray.length > 0;
                     let viewerHtml = "";
@@ -1429,11 +1483,10 @@
                                 <h3 class="product-title">${product.name}</h3>
                                 <p class="product-desc">${descriptionFormatted}</p>
                                 <div>
+                                    ${stockHtml}
                                     ${countdownHtml}
                                     ${priceHtml}
-                                    <button type="button" class="btn-buy" onclick="addToCart('${product.id_fb}')">
-                                        <i class="fas fa-cart-plus"></i> Adicionar ao Carrinho
-                                    </button>
+                                    ${buyBtnHtml}
                                 </div>
                             </div>
                         </div>
@@ -1456,6 +1509,8 @@
             products.forEach(product => {
                 const cat = product.category || "Geral";
                 const disc = product.discount > 0 ? ` (-${product.discount}%)` : '';
+                const stockCount = getProductStock(product);
+                const stockClass = stockCount <= 0 ? 'stock-badge zero' : 'stock-badge';
                 
                 let deleteBtnHtml = "";
                 let editBtnHtml = "";
@@ -1473,7 +1528,7 @@
                             <i class="fas fa-bars"></i>
                             <div>
                                 <h4>${product.name}</h4>
-                                <span>R$ ${product.price.toFixed(2)}${disc} <span class="badge" style="margin-left:5px;">${cat}</span></span>
+                                <span>R$ ${product.price.toFixed(2)}${disc} <span class="badge" style="margin-left:5px;">${cat}</span><span class="${stockClass}">Estoque: ${stockCount}</span></span>
                             </div>
                         </div>
                         <div class="action-btns">
@@ -1692,6 +1747,7 @@
             document.getElementById('editProductId').value = idFb;
             document.getElementById('prodName').value = product.name;
             document.getElementById('prodPrice').value = product.price;
+            document.getElementById('prodStock').value = getProductStock(product);
             document.getElementById('prodDiscount').value = product.discount || 0;
             document.getElementById('prodPromoEnd').value = product.promoEnd || "";
             document.getElementById('prodDesc').value = product.desc;
@@ -1739,6 +1795,8 @@
                 const idFb = document.getElementById('editProductId').value;
                 const name = document.getElementById('prodName').value.trim();
                 const price = parseFloat(document.getElementById('prodPrice').value);
+                const stockVal = parseInt(document.getElementById('prodStock').value);
+                const stock = isNaN(stockVal) ? 10 : Math.max(0, stockVal);
                 const discount = parseInt(document.getElementById('prodDiscount').value) || 0;
                 const promoEnd = document.getElementById('prodPromoEnd').value;
                 const desc = document.getElementById('prodDesc').value.trim();
@@ -1757,6 +1815,7 @@
                 const productPayload = {
                     name: name,
                     price: price,
+                    stock: stock,
                     discount: discount,
                     promoEnd: promoEnd ? promoEnd : null,
                     desc: desc,
@@ -1800,6 +1859,7 @@
                                     { name: "📦 Nome do Item", value: `\`\`\`${name}\`\`\``, inline: false },
                                     { name: "🗂️ Categoria", value: category, inline: true },
                                     { name: "💰 Preço", value: `**${precoFormatado}**`, inline: true },
+                                    { name: "📦 Estoque", value: `**${stock} un.**`, inline: true },
                                     { name: "🏷️ Desconto Aplicado", value: descontoTexto, inline: true },
                                     { name: "📝 Descrição", value: desc.length > 500 ? desc.substring(0, 500) + "..." : desc, inline: false }
                                 ],
@@ -1842,6 +1902,7 @@
         function resetProductForm() {
             document.getElementById('editProductId').value = '';
             document.getElementById('productForm').reset();
+            document.getElementById('prodStock').value = 10;
             document.getElementById('previewImagesArea').innerHTML = '';
             convertedImagesBase64 = [];
             document.getElementById('prodCategoryNew').style.display = "none";
@@ -1852,10 +1913,18 @@
 
         function addToCart(idFb) {
             const product = products.find(p => p.id_fb === idFb);
-            if (product) {
-                cart.push(product);
-                updateCartUI();
+            if (!product) return;
+
+            const stockCount = getProductStock(product);
+            const inCartCount = cart.filter(item => item.id_fb === idFb).length;
+
+            if (stockCount <= 0 || inCartCount >= stockCount) {
+                alert(`Estoque insuficiente para "${product.name}". Disponível: ${stockCount}.`);
+                return;
             }
+
+            cart.push(product);
+            updateCartUI();
         }
 
         function removeFromCart(index) {
@@ -1931,6 +2000,22 @@
             }).catch(err => console.error("Erro no webhook de pedidos:", err));
         }
 
+        function deductStockFromCart() {
+            const qtyByProduct = {};
+            cart.forEach(item => {
+                qtyByProduct[item.id_fb] = (qtyByProduct[item.id_fb] || 0) + 1;
+            });
+
+            Object.keys(qtyByProduct).forEach(idFb => {
+                const currentProd = products.find(p => p.id_fb === idFb);
+                if (currentProd) {
+                    const currentStock = getProductStock(currentProd);
+                    const nextStock = Math.max(0, currentStock - qtyByProduct[idFb]);
+                    database.ref(`products/${idFb}`).update({ stock: nextStock });
+                }
+            });
+        }
+
         function checkout() {
             if (cart.length === 0) return;
             const orderID = generateOrderID();
@@ -1940,6 +2025,7 @@
                 total += discount > 0 ? item.price - (item.price * (discount / 100)) : item.price;
             });
 
+            deductStockFromCart();
             sendToDiscordWebhook(orderID, cart, total);
             
             let message = `Olá JRS Store! Acabei de fechar um pedido no site.\n\n🆔 *ID:* ${orderID}\n`;
