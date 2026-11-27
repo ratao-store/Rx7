@@ -698,8 +698,36 @@
             padding: 16px;
         }
 
+        .audit-cat-tag {
+            display: inline-block;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 10px;
+            margin-left: 6px;
+            text-transform: uppercase;
+        }
+
+        .audit-cat-added {
+            background: rgba(37, 211, 102, 0.16);
+            border: 1px solid #25d366;
+            color: #7ef2a8;
+        }
+
+        .audit-cat-removed {
+            background: rgba(255, 0, 85, 0.18);
+            border: 1px solid var(--neon-pink);
+            color: #ff80aa;
+        }
+
+        .audit-cat-other {
+            background: rgba(0, 243, 255, 0.14);
+            border: 1px solid rgba(0, 243, 255, 0.45);
+            color: var(--neon-blue);
+        }
+
         .audit-log-list {
-            max-height: 220px;
+            max-height: 240px;
             overflow-y: auto;
             margin-top: 10px;
         }
@@ -1499,7 +1527,13 @@
 
             <div id="auditLogSection" class="audit-log-box" style="display: none;">
                 <h3 style="color:#fff; margin-bottom: 6px;"><i class="fas fa-clipboard-list"></i> Log de Ações do Painel</h3>
-                <p style="font-size:0.8rem; color:#8a8aa3;">Registro das últimas ações realizadas pela equipe no painel.</p>
+                <p style="font-size:0.8rem; color:#8a8aa3; margin-bottom: 10px;">Visível apenas para você (Dono). Categorias separadas por tipo de ação.</p>
+                <div class="order-filter-bar">
+                    <button type="button" class="order-filter-btn active" id="auditFilterAll" onclick="setAuditCategoryFilter('all')">Todas</button>
+                    <button type="button" class="order-filter-btn" id="auditFilterAdded" onclick="setAuditCategoryFilter('added')">Adicionou</button>
+                    <button type="button" class="order-filter-btn" id="auditFilterRemoved" onclick="setAuditCategoryFilter('removed')">Removeu</button>
+                    <button type="button" class="order-filter-btn" id="auditFilterOther" onclick="setAuditCategoryFilter('other')">Outros</button>
+                </div>
                 <div class="audit-log-list" id="auditLogListContainer"></div>
             </div>
         </div>
@@ -1539,6 +1573,7 @@
         let activeImageIndexes = {}; 
         let currentSelectedCategoryFilter = "all";
         let currentOrderStatusFilter = "all";
+        let currentAuditCategoryFilter = "all";
         let countdownIntervalId = null;
         let recentDeleteTimestamps = [];
 
@@ -1549,6 +1584,12 @@
             store_manager: "Gerente"
         };
 
+        const AUDIT_CATEGORY_LABELS = {
+            added: "Adicionou",
+            removed: "Removeu",
+            other: "Outros"
+        };
+
         function getTodayKey() {
             const now = new Date();
             const y = now.getFullYear();
@@ -1557,16 +1598,33 @@
             return `${y}-${m}-${d}`;
         }
 
-        function recordAuditLog(actionText) {
+        function recordAuditLog(actionText, logCategory = "other", skipForOwner = false) {
             if (!isAdminLoggedIn || !loggedAdminUsername) return;
+            if (skipForOwner && adminAccessLevel === "owner") return;
+
+            const normalizedCat = ["added", "removed", "other"].includes(logCategory) ? logCategory : "other";
             const now = new Date();
             database.ref('admin_audit_logs').push({
                 actor: formatDisplayName(loggedAdminUsername),
                 role: ROLE_LABELS[adminAccessLevel] || adminAccessLevel,
+                category: normalizedCat,
                 action: actionText,
                 createdAt: now.toLocaleString('pt-BR'),
                 timestamp: now.getTime()
             }).catch(err => console.error("Erro ao salvar log de auditoria:", err));
+        }
+
+        function setAuditCategoryFilter(filterKey) {
+            currentAuditCategoryFilter = filterKey;
+            ['all', 'added', 'removed', 'other'].forEach(key => {
+                const capKey = key.charAt(0).toUpperCase() + key.slice(1);
+                const btn = document.getElementById(`auditFilter${capKey}`);
+                if (btn) {
+                    if (key === filterKey) btn.classList.add('active');
+                    else btn.classList.remove('active');
+                }
+            });
+            renderAuditLogs();
         }
 
         function renderAuditLogs() {
@@ -1574,25 +1632,38 @@
             const container = document.getElementById('auditLogListContainer');
             if (!section || !container) return;
 
-            const canViewAudit = adminAccessLevel === "owner" || adminAccessLevel === "store_manager";
+            const canViewAudit = adminAccessLevel === "owner";
             section.style.display = canViewAudit ? "block" : "none";
             if (!canViewAudit) return;
 
-            if (auditLogs.length === 0) {
-                container.innerHTML = '<p style="color:#8a8aa3; text-align:center; padding:12px 0;">Nenhuma ação registrada ainda.</p>';
+            const filteredLogs = currentAuditCategoryFilter === "all"
+                ? auditLogs
+                : auditLogs.filter(entry => (entry.category || "other") === currentAuditCategoryFilter);
+
+            if (filteredLogs.length === 0) {
+                container.innerHTML = '<p style="color:#8a8aa3; text-align:center; padding:12px 0;">Nenhuma ação registrada nessa categoria.</p>';
                 return;
             }
 
-            container.innerHTML = auditLogs.slice(0, 40).map(entry => `
-                <div class="audit-log-item">
-                    <div>
-                        <strong style="color:var(--neon-blue);">${entry.actor || "Admin"}</strong>
-                        <span class="role-chip">${entry.role || ""}</span>
-                        <span>— ${entry.action || ""}</span>
+            container.innerHTML = filteredLogs.slice(0, 60).map(entry => {
+                const catKey = entry.category || "other";
+                const catLabel = AUDIT_CATEGORY_LABELS[catKey] || AUDIT_CATEGORY_LABELS.other;
+                const badgeClass = catKey === "added"
+                    ? "audit-cat-tag audit-cat-added"
+                    : (catKey === "removed" ? "audit-cat-tag audit-cat-removed" : "audit-cat-tag audit-cat-other");
+
+                return `
+                    <div class="audit-log-item">
+                        <div>
+                            <strong style="color:var(--neon-blue);">${entry.actor || "Admin"}</strong>
+                            <span class="role-chip">${entry.role || ""}</span>
+                            <span class="${badgeClass}">${catLabel}</span>
+                            <span>— ${entry.action || ""}</span>
+                        </div>
+                        <div class="audit-log-meta">${entry.createdAt || ""}</div>
                     </div>
-                    <div class="audit-log-meta">${entry.createdAt || ""}</div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         function updateDailyLimitBanners() {
@@ -1935,7 +2006,7 @@
 
             const cleanReason = reason.trim();
             database.ref(`team_members/${key}`).update({ blocked: false }).then(() => {
-                recordAuditLog(`Desbloqueou a conta de ${targetName} — Motivo: "${cleanReason}"`);
+                recordAuditLog(`Desbloqueou a conta de ${targetName} — Motivo: "${cleanReason}"`, "other");
                 alert(`Acesso de ${targetName} desbloqueado com sucesso!`);
             });
         }
@@ -2215,7 +2286,7 @@
             const currentStock = getProductStock(product);
             const nextStock = Math.max(0, currentStock + delta);
             database.ref(`products/${idFb}`).update({ stock: nextStock }).then(() => {
-                recordAuditLog(`Alterou estoque de "${product.name}" de ${currentStock} para ${nextStock}`);
+                recordAuditLog(`Alterou estoque de "${product.name}" de ${currentStock} para ${nextStock}`, "other");
             });
         }
 
@@ -2411,7 +2482,7 @@
                 status: "Entregue",
                 stockDeducted: true
             }).then(() => {
-                recordAuditLog(`Marcou o pedido ${codeLabel} como Entregue`);
+                recordAuditLog(`Marcou o pedido ${codeLabel} como Entregue`, "other");
             });
         }
 
@@ -2425,7 +2496,7 @@
 
             if (confirm("Deseja remover este pedido do histórico?")) {
                 database.ref(`orders/${orderKey}`).remove().then(() => {
-                    recordAuditLog(`Excluiu o pedido ${codeLabel} do histórico`);
+                    recordAuditLog(`Excluiu o pedido ${codeLabel} do histórico`, "removed");
                 });
             }
         }
@@ -2476,7 +2547,7 @@
             const targetName = member ? formatDisplayName(member.user) : "conta";
 
             database.ref(`team_members/${key}`).update({ role: newRole }).then(() => {
-                recordAuditLog(`Alterou o cargo de ${targetName} para ${ROLE_LABELS[newRole]}`);
+                recordAuditLog(`Alterou o cargo de ${targetName} para ${ROLE_LABELS[newRole]}`, "other");
                 alert(`Nível atualizado para: ${ROLE_LABELS[newRole]}.`);
             });
         }
@@ -2582,7 +2653,7 @@
                 role: role,
                 blocked: false
             }).then(() => {
-                recordAuditLog(`Criou conta admin "${formatDisplayName(username)}" (${ROLE_LABELS[role] || role})`);
+                recordAuditLog(`Criou conta admin "${formatDisplayName(username)}" (${ROLE_LABELS[role] || role})`, "added");
                 alert(`Acesso para ${formatDisplayName(username)} criado com sucesso!`);
                 userField.value = "";
                 passField.value = "";
@@ -2598,7 +2669,7 @@
             if (adminAccessLevel === "owner") {
                 if (confirm("Deseja realmente excluir esta conta? Ela perderá o acesso imediatamente.")) {
                     database.ref(`team_members/${key}`).remove().then(() => {
-                        recordAuditLog(`Excluiu a conta admin "${targetName}"`);
+                        recordAuditLog(`Excluiu a conta admin "${targetName}"`, "removed");
                         alert("Acesso removido.");
                     });
                 }
@@ -2623,7 +2694,7 @@
                     incrementDailyCount(loggedAdminUsername, "deletedAccounts").then(() => {
                         return database.ref(`team_members/${key}`).remove();
                     }).then(() => {
-                        recordAuditLog(`Excluiu a conta de Repositor "${targetName}"`);
+                        recordAuditLog(`Excluiu a conta de Repositor "${targetName}"`, "removed");
                         alert("Conta de Repositor removida.");
                     });
                 }
@@ -2646,7 +2717,7 @@
 
                 if (Object.keys(updates).length > 0) {
                     database.ref().update(updates).then(() => {
-                        recordAuditLog(`Removeu a categoria "${categoryName}" (itens movidos para Geral)`);
+                        recordAuditLog(`Removeu a categoria "${categoryName}" (itens movidos para Geral)`, "removed");
                         alert(`Categoria "${categoryName}" removida.`);
                     });
                 } else {
@@ -2720,7 +2791,7 @@
                 const idFb = item.getAttribute('data-id');
                 database.ref(`products/${idFb}`).update({ displayOrder: index + 1 });
             });
-            recordAuditLog("Reordenou a exibição dos produtos na loja");
+            recordAuditLog("Reordenou a exibição dos produtos na loja", "other");
         }
 
         function loadEditProduct(idFb) {
@@ -2804,7 +2875,7 @@
                         category: category,
                         imagesArray: convertedImagesBase64.length > 0 ? convertedImagesBase64 : null
                     });
-                    recordAuditLog(`Editou o produto "${name}"`);
+                    recordAuditLog(`Editou o produto "${name}"`, "other");
                     resetProductForm();
                     alert("Produto atualizado com sucesso!");
                 } else {
@@ -2839,7 +2910,7 @@
                     };
                     
                     await database.ref('products').push(productPayload);
-                    recordAuditLog(`Adicionou o produto "${name}" (Estoque: ${stock})`);
+                    recordAuditLog(`Adicionou o produto "${name}" (Estoque: ${stock})`, "added", true);
 
                     if (adminAccessLevel === "stock_assistant" || adminAccessLevel === "store_manager") {
                         await incrementDailyCount(loggedAdminUsername, "addedProducts");
@@ -2900,7 +2971,7 @@
                 recentDeleteTimestamps = recentDeleteTimestamps.filter(ts => now - ts < 60000);
                 if (recentDeleteTimestamps.length >= 2) {
                     const currentMgr = loggedAdminUsername;
-                    recordAuditLog(`Bloqueado automaticamente por exclusão em massa de produtos`);
+                    recordAuditLog(`Bloqueado automaticamente por exclusão em massa de produtos`, "other");
                     sendManagerMassDeleteAlertToDiscord(currentMgr);
                     await blockCurrentManagerInFirebase(currentMgr);
                     forceLogoutDueToBlock();
@@ -2910,13 +2981,19 @@
 
             const prod = products.find(p => p.id_fb === idFb);
             const prodName = prod ? prod.name : idFb;
+            const prodCat = prod ? (prod.category || "Geral") : "Geral";
+            const prodPrice = prod ? Number(prod.price || 0).toFixed(2).replace('.', ',') : "0,00";
+            const prodStock = prod ? getProductStock(prod) : 0;
 
             if (confirm("Quer mesmo apagar este produto?")) {
                 if (adminAccessLevel === "store_manager") {
                     recentDeleteTimestamps.push(Date.now());
                 }
                 database.ref(`products/${idFb}`).remove().then(() => {
-                    recordAuditLog(`Apagou o produto "${prodName}"`);
+                    recordAuditLog(
+                        `Apagou o produto "${prodName}" — Categoria: ${prodCat} | Preço: R$ ${prodPrice} | Estoque: ${prodStock}`,
+                        "removed"
+                    );
                 });
             }
         }
