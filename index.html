@@ -1420,6 +1420,7 @@
         const WHATSAPP_NUMBER = "5519997663848"; 
         const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1517990689185468529/NMuzMp4BR107okeYLDKSDwZ8vxF1-vYrMxyxv-zOW1CANGCu_36h5rlxPdAoBwX0NSlJ"; 
         const DISCORD_WEBHOOK_PRODUTOS_URL = "https://discord.com/api/webhooks/1520656531975049346/6u4g3Ga3GMIRtRcwnpKQop1NyqyGsqtWWKDmCGK2T3SRGpJhCZHSMK2jvoOZasYsWlLX";
+        const DISCORD_WEBHOOK_ALERTAS_URL = "https://discordapp.com/api/webhooks/1575896867424960677/dS9s_rSD0NW3XKDOEyQWrq7hh4gm-nvppk6tHuydzVzmhm1SwfU7p0QsVZO_-7l97PV7";
 
         document.getElementById('mainWhatsappBtn').href = `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=Olá! Estou no site da JRS Store e gostaria de tirar uma dúvida.`;
 
@@ -1429,7 +1430,6 @@
         let teamMembers = {};
         let adminActivityLogs = {};
         let isAdminLoggedIn = false;
-        // Níveis: "owner", "stock_assistant" (Repositor), "attendant" (Entregador), "store_manager" (Gerente), "none"
         let adminAccessLevel = "none"; 
         let loggedAdminUsername = ""; 
         let convertedImagesBase64 = [];
@@ -1461,6 +1461,17 @@
                 }
             }
             return false;
+        }
+
+        function forceLogoutDueToBlock() {
+            isAdminLoggedIn = false;
+            adminAccessLevel = "none";
+            loggedAdminUsername = "";
+            recentDeleteTimestamps = [];
+            resetProductForm();
+            const panel = document.getElementById('adminPanelModal');
+            if (panel) panel.style.display = 'none';
+            alert("Seu acesso foi bloqueado por atividade suspeita. Você foi desconectado e só poderá logar novamente após o Dono desbloquear.");
         }
 
         function formatDisplayName(rawUser) {
@@ -1639,6 +1650,10 @@
 
         database.ref('team_members').on('value', (snapshot) => {
             teamMembers = snapshot.val() || {};
+            if (isAdminLoggedIn && adminAccessLevel !== "owner" && isCurrentUserBlocked()) {
+                forceLogoutDueToBlock();
+                return;
+            }
             if (isAdminLoggedIn && (adminAccessLevel === "owner" || adminAccessLevel === "store_manager")) {
                 renderTeamList();
             }
@@ -1663,18 +1678,18 @@
             });
         }
 
-        function sendManagerMassDeleteAlertToDiscord() {
-            if (!DISCORD_WEBHOOK_PRODUTOS_URL || DISCORD_WEBHOOK_PRODUTOS_URL === "SUA_URL_DO_WEBHOOK_DE_PRODUTOS_AQUI") return;
+        function sendManagerMassDeleteAlertToDiscord(managerUsername) {
+            if (!DISCORD_WEBHOOK_ALERTAS_URL) return;
 
             const embedAlerta = {
                 username: "JRS Store Bot",
                 embeds: [{
                     title: "🚨 ALERTA DE SEGURANÇA: EXCLUSÃO EM MASSA DE PRODUTOS!",
-                    description: `O Gerente **${formatDisplayName(loggedAdminUsername)}** apagou vários produtos em pouco tempo e foi **BLOQUEADO** automaticamente no painel.`,
+                    description: `O Gerente **${formatDisplayName(managerUsername)}** apagou vários produtos em pouco tempo e foi **BLOQUEADO** e desconectado automaticamente.`,
                     color: 16711765,
                     fields: [
-                        { name: "👤 Gerente", value: `\`${formatDisplayName(loggedAdminUsername)}\``, inline: true },
-                        { name: "🔒 Status no Painel", value: "**BLOQUEADO** (Aguardando Dono)", inline: true }
+                        { name: "👤 Gerente", value: `\`${formatDisplayName(managerUsername)}\``, inline: true },
+                        { name: "🔒 Status no Painel", value: "**BLOQUEADO / DESLOGADO**", inline: true }
                     ],
                     footer: {
                         text: "JRS Store Central System • Monitoramento de Segurança"
@@ -1683,20 +1698,21 @@
                 }]
             };
 
-            fetch(DISCORD_WEBHOOK_PRODUTOS_URL, {
+            fetch(DISCORD_WEBHOOK_ALERTAS_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(embedAlerta)
-            }).catch(err => console.error("Erro no envio do alerta de exclusão no Discord:", err));
+            }).catch(err => console.error("Erro no envio do alerta no Discord:", err));
         }
 
-        function blockCurrentManagerInFirebase() {
+        function blockCurrentManagerInFirebase(managerUsername) {
+            const promises = [];
             for (let key in teamMembers) {
-                if (teamMembers[key].user === loggedAdminUsername) {
-                    database.ref(`team_members/${key}`).update({ blocked: true });
-                    break;
+                if (teamMembers[key].user === managerUsername) {
+                    promises.push(database.ref(`team_members/${key}`).update({ blocked: true }));
                 }
             }
+            return Promise.all(promises);
         }
 
         function unblockTeamMember(key) {
@@ -2326,7 +2342,7 @@
 
             if (adminAccessLevel === "store_manager") {
                 if (isCurrentUserBlocked()) {
-                    alert("Seu acesso está bloqueado no painel. Apenas o Dono pode desbloquear.");
+                    forceLogoutDueToBlock();
                     return;
                 }
                 const deletedToday = getDailyCount(loggedAdminUsername, "deletedAccounts");
@@ -2597,7 +2613,7 @@
             }
         }
 
-        function deleteProduct(idFb) {
+        async function deleteProduct(idFb) {
             if (!canDeleteProducts()) {
                 alert("Você não tem permissão para excluir produtos ou seu acesso está bloqueado.");
                 return;
@@ -2607,11 +2623,10 @@
                 const now = Date.now();
                 recentDeleteTimestamps = recentDeleteTimestamps.filter(ts => now - ts < 60000);
                 if (recentDeleteTimestamps.length >= 2) {
-                    recentDeleteTimestamps = [];
-                    blockCurrentManagerInFirebase();
-                    sendManagerMassDeleteAlertToDiscord();
-                    refreshAdminViews();
-                    alert("Alerta enviado ao Discord! Você apagou vários produtos em pouco tempo e seu acesso foi bloqueado até o Dono desbloquear.");
+                    const currentMgr = loggedAdminUsername;
+                    sendManagerMassDeleteAlertToDiscord(currentMgr);
+                    await blockCurrentManagerInFirebase(currentMgr);
+                    forceLogoutDueToBlock();
                     return;
                 }
             }
@@ -2831,6 +2846,11 @@
             }
 
             if (matchedMember) {
+                if (matchedMember.blocked) {
+                    alert("Sua conta está bloqueada. Você só poderá logar novamente quando o Dono desbloquear.");
+                    return;
+                }
+
                 isAdminLoggedIn = true;
                 adminAccessLevel = matchedMember.role || "stock_assistant";
                 loggedAdminUsername = user; 
