@@ -1525,6 +1525,13 @@
             return ["owner", "store_manager"].includes(adminAccessLevel);
         }
 
+        function canManagerDeleteMember(member) {
+            if (adminAccessLevel !== "store_manager" || isCurrentUserBlocked() || !member) return false;
+            const targetRole = member.role || "stock_assistant";
+            const targetUser = (member.user || "").toLowerCase();
+            return targetRole === "stock_assistant" && targetUser !== loggedAdminUsername;
+        }
+
         function applyAdminPermissionsToUI() {
             const prodCol = document.getElementById('productFormColumn');
             const priceGroup = document.getElementById('prodPriceGroup');
@@ -2236,7 +2243,6 @@
 
             const isOwner = adminAccessLevel === "owner";
             const isManager = adminAccessLevel === "store_manager";
-            const managerBlocked = isManager && isCurrentUserBlocked();
 
             keys.forEach(key => {
                 const member = teamMembers[key];
@@ -2266,7 +2272,8 @@
                     ? `<button type="button" class="btn-unblock-user" onclick="unblockTeamMember('${key}')"><i class="fas fa-unlock"></i> Desbloquear</button>`
                     : ``;
 
-                const deleteBtnHtml = (isOwner || (isManager && !managerBlocked))
+                const canDeleteThisMember = isOwner || (isManager && canManagerDeleteMember(member));
+                const deleteBtnHtml = canDeleteThisMember
                     ? `<button type="button" class="btn-delete" onclick="deleteTeamMember('${key}')" title="Remover Acesso"><i class="fas fa-trash"></i></button>`
                     : ``;
 
@@ -2331,6 +2338,9 @@
         }
 
         function deleteTeamMember(key) {
+            const targetMember = teamMembers[key];
+            if (!targetMember) return;
+
             if (adminAccessLevel === "owner") {
                 if (confirm("Deseja realmente excluir esta conta? Ela perderá o acesso imediatamente.")) {
                     database.ref(`team_members/${key}`).remove().then(() => {
@@ -2345,16 +2355,20 @@
                     forceLogoutDueToBlock();
                     return;
                 }
+                if (!canManagerDeleteMember(targetMember)) {
+                    alert("O Gerente só pode excluir contas de Repositor (não pode excluir outro Gerente, Entregador ou a própria conta).");
+                    return;
+                }
                 const deletedToday = getDailyCount(loggedAdminUsername, "deletedAccounts");
                 if (deletedToday >= 2) {
                     alert("Limite diário atingido: O Gerente pode apagar no máximo 2 contas admin por dia.");
                     return;
                 }
-                if (confirm("Deseja realmente excluir esta conta admin?")) {
+                if (confirm("Deseja realmente excluir esta conta de Repositor?")) {
                     incrementDailyCount(loggedAdminUsername, "deletedAccounts").then(() => {
                         return database.ref(`team_members/${key}`).remove();
                     }).then(() => {
-                        alert("Conta admin removida.");
+                        alert("Conta de Repositor removida.");
                     });
                 }
             }
