@@ -698,6 +698,38 @@
             padding: 16px;
         }
 
+        .audit-log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+        }
+
+        .audit-clear-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn-clear-logs {
+            background: rgba(255, 0, 85, 0.14);
+            border: 1px solid var(--neon-pink);
+            color: #ff80aa;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 0.76rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-clear-logs:hover {
+            background: var(--neon-pink);
+            color: #fff;
+        }
+
         .audit-cat-tag {
             display: inline-block;
             font-size: 0.7rem;
@@ -733,6 +765,10 @@
         }
 
         .audit-log-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
             background: #161626;
             border: 1px solid rgba(0, 243, 255, 0.1);
             border-radius: 6px;
@@ -1526,11 +1562,16 @@
             </div>
 
             <div id="auditLogSection" class="audit-log-box" style="display: none;">
-                <h3 style="color:#fff; margin-bottom: 6px;"><i class="fas fa-clipboard-list"></i> Log de Ações do Painel</h3>
-                <p style="font-size:0.8rem; color:#8a8aa3; margin-bottom: 10px;">Visível apenas para você (Dono). Categorias separadas por tipo de ação.</p>
+                <div class="audit-log-header">
+                    <h3 style="color:#fff; margin: 0;"><i class="fas fa-clipboard-list"></i> Log de Ações do Painel</h3>
+                    <div class="audit-clear-actions">
+                        <button type="button" class="btn-clear-logs" onclick="clearCurrentAuditCategory()"><i class="fas fa-broom"></i> Limpar Categoria</button>
+                        <button type="button" class="btn-clear-logs" onclick="clearAllAuditLogs()"><i class="fas fa-trash"></i> Apagar Tudo</button>
+                    </div>
+                </div>
+                <p style="font-size:0.8rem; color:#8a8aa3; margin-bottom: 10px;">Visível apenas para você (Dono).</p>
                 <div class="order-filter-bar">
-                    <button type="button" class="order-filter-btn active" id="auditFilterAll" onclick="setAuditCategoryFilter('all')">Todas</button>
-                    <button type="button" class="order-filter-btn" id="auditFilterAdded" onclick="setAuditCategoryFilter('added')">Adicionou</button>
+                    <button type="button" class="order-filter-btn active" id="auditFilterAdded" onclick="setAuditCategoryFilter('added')">Adicionou</button>
                     <button type="button" class="order-filter-btn" id="auditFilterRemoved" onclick="setAuditCategoryFilter('removed')">Removeu</button>
                     <button type="button" class="order-filter-btn" id="auditFilterOther" onclick="setAuditCategoryFilter('other')">Outros</button>
                 </div>
@@ -1573,7 +1614,7 @@
         let activeImageIndexes = {}; 
         let currentSelectedCategoryFilter = "all";
         let currentOrderStatusFilter = "all";
-        let currentAuditCategoryFilter = "all";
+        let currentAuditCategoryFilter = "added";
         let countdownIntervalId = null;
         let recentDeleteTimestamps = [];
 
@@ -1616,7 +1657,7 @@
 
         function setAuditCategoryFilter(filterKey) {
             currentAuditCategoryFilter = filterKey;
-            ['all', 'added', 'removed', 'other'].forEach(key => {
+            ['added', 'removed', 'other'].forEach(key => {
                 const capKey = key.charAt(0).toUpperCase() + key.slice(1);
                 const btn = document.getElementById(`auditFilter${capKey}`);
                 if (btn) {
@@ -1625,6 +1666,59 @@
                 }
             });
             renderAuditLogs();
+        }
+
+        function deleteSingleAuditLog(logIdFb) {
+            if (adminAccessLevel !== "owner" || !logIdFb) return;
+            database.ref(`admin_audit_logs/${logIdFb}`).remove().catch(err => {
+                console.error("Erro ao apagar log:", err);
+            });
+        }
+
+        function clearCurrentAuditCategory() {
+            if (adminAccessLevel !== "owner") return;
+            const catLabel = AUDIT_CATEGORY_LABELS[currentAuditCategoryFilter] || currentAuditCategoryFilter;
+            const matching = auditLogs.filter(entry => (entry.category || "other") === currentAuditCategoryFilter);
+
+            if (matching.length === 0) {
+                alert(`Não há logs na categoria "${catLabel}" para apagar.`);
+                return;
+            }
+
+            if (!confirm(`Deseja apagar todas as ${matching.length} log(s) da categoria "${catLabel}"?`)) {
+                return;
+            }
+
+            const updates = {};
+            matching.forEach(entry => {
+                if (entry.id_fb) updates[`admin_audit_logs/${entry.id_fb}`] = null;
+            });
+
+            database.ref().update(updates).then(() => {
+                alert(`Logs da categoria "${catLabel}" apagadas.`);
+            }).catch(err => {
+                console.error("Erro ao limpar categoria de logs:", err);
+                alert("Erro ao apagar logs da categoria.");
+            });
+        }
+
+        function clearAllAuditLogs() {
+            if (adminAccessLevel !== "owner") return;
+            if (auditLogs.length === 0) {
+                alert("Não há logs para apagar.");
+                return;
+            }
+
+            if (!confirm("Deseja apagar TODAS as logs do painel permanentemente?")) {
+                return;
+            }
+
+            database.ref('admin_audit_logs').remove().then(() => {
+                alert("Todas as logs foram apagadas.");
+            }).catch(err => {
+                console.error("Erro ao apagar todas as logs:", err);
+                alert("Erro ao apagar todas as logs.");
+            });
         }
 
         function renderAuditLogs() {
@@ -1636,9 +1730,7 @@
             section.style.display = canViewAudit ? "block" : "none";
             if (!canViewAudit) return;
 
-            const filteredLogs = currentAuditCategoryFilter === "all"
-                ? auditLogs
-                : auditLogs.filter(entry => (entry.category || "other") === currentAuditCategoryFilter);
+            const filteredLogs = auditLogs.filter(entry => (entry.category || "other") === currentAuditCategoryFilter);
 
             if (filteredLogs.length === 0) {
                 container.innerHTML = '<p style="color:#8a8aa3; text-align:center; padding:12px 0;">Nenhuma ação registrada nessa categoria.</p>';
@@ -1654,13 +1746,18 @@
 
                 return `
                     <div class="audit-log-item">
-                        <div>
-                            <strong style="color:var(--neon-blue);">${entry.actor || "Admin"}</strong>
-                            <span class="role-chip">${entry.role || ""}</span>
-                            <span class="${badgeClass}">${catLabel}</span>
-                            <span>— ${entry.action || ""}</span>
+                        <div style="flex-grow: 1; min-width: 0;">
+                            <div>
+                                <strong style="color:var(--neon-blue);">${entry.actor || "Admin"}</strong>
+                                <span class="role-chip">${entry.role || ""}</span>
+                                <span class="${badgeClass}">${catLabel}</span>
+                                <span>— ${entry.action || ""}</span>
+                            </div>
+                            <div class="audit-log-meta">${entry.createdAt || ""}</div>
                         </div>
-                        <div class="audit-log-meta">${entry.createdAt || ""}</div>
+                        <div class="action-btns">
+                            <button type="button" class="btn-delete" onclick="deleteSingleAuditLog('${entry.id_fb}')" title="Apagar este log"><i class="fas fa-trash"></i></button>
+                        </div>
                     </div>
                 `;
             }).join('');
