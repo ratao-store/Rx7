@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JRS Store - Web site</title>
     
-    <link rel="icon" type="image/png" href="favicon.png?v=5">
+    <link rel="icon" type="image/png" href="favicon.png?v=6">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -443,15 +443,11 @@
             white-space: pre-wrap;
         }
 
-        .product-stock-label {
+        .product-out-label {
             font-size: 0.85rem;
-            color: #a0a0ba;
-            margin-bottom: 10px;
-        }
-
-        .product-stock-label.out-of-stock {
             color: var(--neon-pink);
             font-weight: bold;
+            margin-bottom: 10px;
         }
 
         .product-desc a {
@@ -563,7 +559,7 @@
         }
 
         .modal-content-large {
-            max-width: 1100px;
+            max-width: 1220px;
             max-height: 90vh;
             overflow-y: auto;
         }
@@ -695,11 +691,11 @@
         .admin-layout {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 30px;
+            gap: 25px;
         }
 
-        @media(min-width: 992px) {
-            .admin-layout { grid-template-columns: 1fr 1fr 1fr; }
+        @media(min-width: 1100px) {
+            .admin-layout { grid-template-columns: repeat(4, 1fr); }
         }
 
         .sortable-list {
@@ -716,7 +712,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 15px;
+            gap: 8px;
+            padding: 12px;
             background: #161626;
             border: 1px solid rgba(0, 243, 255, 0.1);
             border-radius: 6px;
@@ -738,7 +735,8 @@
         .item-drag-info {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
+            min-width: 0;
         }
 
         .item-drag-info i.fa-bars {
@@ -746,20 +744,54 @@
         }
 
         .item-drag-info h4 {
-            font-size: 0.95rem;
+            font-size: 0.92rem;
             color: #fff;
+            word-break: break-word;
         }
 
         .item-drag-info span {
-            font-size: 0.8rem;
+            font-size: 0.78rem;
             color: var(--neon-blue);
+        }
+
+        .stock-step-controls {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-left: 6px;
+        }
+
+        .btn-stock-step {
+            background: rgba(0, 243, 255, 0.14);
+            border: 1px solid rgba(0, 243, 255, 0.45);
+            color: #fff;
+            width: 22px;
+            height: 22px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+
+        .btn-stock-step:hover:not(:disabled) {
+            background: var(--neon-blue);
+            color: #000;
+        }
+
+        .btn-stock-step:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
         }
 
         .badge {
             background: var(--neon-purple);
             padding: 2px 6px;
             border-radius: 4px;
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             text-transform: uppercase;
             font-weight: bold;
         }
@@ -770,9 +802,9 @@
             color: var(--neon-blue);
             padding: 2px 6px;
             border-radius: 4px;
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             font-weight: bold;
-            margin-left: 5px;
+            margin-left: 4px;
         }
 
         .stock-badge.zero {
@@ -781,12 +813,18 @@
             color: #ff80aa;
         }
 
+        .action-btns {
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
         .action-btns button {
             background: none;
             border: none;
-            font-size: 16px;
+            font-size: 15px;
             cursor: pointer;
-            margin-left: 10px;
+            margin-left: 6px;
             transition: 0.2s;
         }
 
@@ -799,7 +837,7 @@
             background: rgba(255, 255, 255, 0.02);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 8px;
-            padding: 15px;
+            padding: 12px;
             max-height: 250px;
             overflow-y: auto;
         }
@@ -809,7 +847,7 @@
             justify-content: space-between;
             align-items: center;
             background: #161626;
-            padding: 10px 15px;
+            padding: 10px 12px;
             border: 1px solid rgba(0, 243, 255, 0.1);
             border-radius: 6px;
             margin-bottom: 8px;
@@ -817,7 +855,81 @@
 
         .category-list-item span {
             color: #fff;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
+        }
+
+        .order-history-card {
+            background: #161626;
+            border: 1px solid rgba(0, 243, 255, 0.15);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+
+        .order-history-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .order-id-tag {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: var(--neon-blue);
+        }
+
+        .status-pill {
+            font-size: 0.72rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            padding: 3px 8px;
+            border-radius: 20px;
+        }
+
+        .status-pendente {
+            background: rgba(255, 170, 0, 0.18);
+            border: 1px solid #ffaa00;
+            color: #ffcc66;
+        }
+
+        .status-entregue {
+            background: rgba(37, 211, 102, 0.18);
+            border: 1px solid #25d366;
+            color: #7ef2a8;
+        }
+
+        .order-history-meta {
+            font-size: 0.8rem;
+            color: #a0a0ba;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .order-history-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-status-toggle {
+            background: rgba(0, 243, 255, 0.12);
+            border: 1px solid rgba(0, 243, 255, 0.4);
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.76rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-status-toggle:hover {
+            background: var(--neon-blue);
+            color: #000;
         }
 
         .whatsapp-float {
@@ -937,7 +1049,7 @@
     <header>
         <div class="logo">
             <div class="logo-img-wrap">
-                <img src="favicon.png?v=5" alt="Logo JRS">
+                <img src="favicon.png?v=6" alt="Logo JRS">
             </div>
             JRS <span>Store</span>
         </div>
@@ -1140,12 +1252,18 @@
                         <button type="button" class="btn-buy" style="margin-top:10px; background: var(--neon-pink); display:none;" id="btnCancelEdit" onclick="resetProductForm()">Cancelar Edição</button>
                     </form>
                 </div>
+
                 <div>
                     <h3 style="color:#fff; margin-bottom: 15px;">Estoque e Ordens</h3>
                     <div class="sortable-list" id="sortableListContainer"></div>
 
                     <h3 style="color:#fff; margin-bottom: 15px;">Categorias</h3>
                     <div class="category-management-box" id="adminCategoryManagementArea"></div>
+                </div>
+
+                <div>
+                    <h3 style="color:#fff; margin-bottom: 15px;">Histórico de Pedidos</h3>
+                    <div class="sortable-list" id="ordersHistoryContainer" style="max-height: 430px;"></div>
                 </div>
                 
                 <div id="teamManagementSection" style="display: none;">
@@ -1190,6 +1308,7 @@
         document.getElementById('mainWhatsappBtn').href = `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=Olá! Estou no site da JRS Store e gostaria de tirar uma dúvida.`;
 
         let products = [];
+        let ordersHistory = [];
         let cart = [];
         let teamMembers = {};
         let isAdminLoggedIn = false;
@@ -1239,6 +1358,20 @@
             if (isAdminLoggedIn) {
                 renderAdminSortableList();
                 renderAdminCategoryManager();
+            }
+        });
+
+        database.ref('orders').on('value', (snapshot) => {
+            const data = snapshot.val();
+            ordersHistory = [];
+            if (data) {
+                for (let id in data) {
+                    ordersHistory.push({ id_fb: id, ...data[id] });
+                }
+                ordersHistory.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+            }
+            if (isAdminLoggedIn) {
+                renderOrdersHistory();
             }
         });
 
@@ -1432,9 +1565,9 @@
                         priceHtml = `<div class="product-price">R$ ${product.price.toFixed(2).replace('.', ',')}</div>`;
                     }
 
-                    const stockHtml = isOutOfStock
-                        ? `<div class="product-stock-label out-of-stock"><i class="fas fa-box-open"></i> Esgotado</div>`
-                        : `<div class="product-stock-label"><i class="fas fa-boxes-stacked"></i> Em estoque: <strong>${stockCount}</strong></div>`;
+                    const outHtml = isOutOfStock
+                        ? `<div class="product-out-label"><i class="fas fa-box-open"></i> Esgotado</div>`
+                        : ``;
 
                     const buyBtnHtml = isOutOfStock
                         ? `<button type="button" class="btn-buy" disabled><i class="fas fa-ban"></i> Esgotado</button>`
@@ -1483,7 +1616,7 @@
                                 <h3 class="product-title">${product.name}</h3>
                                 <p class="product-desc">${descriptionFormatted}</p>
                                 <div>
-                                    ${stockHtml}
+                                    ${outHtml}
                                     ${countdownHtml}
                                     ${priceHtml}
                                     ${buyBtnHtml}
@@ -1496,6 +1629,19 @@
                 categoryHtml += `</div></div>`;
                 shopArea.innerHTML += categoryHtml;
             }
+        }
+
+        function adjustProductStock(idFb, delta) {
+            if (adminAccessLevel !== "full") {
+                alert("Apenas o acesso total pode alterar o estoque rápido.");
+                return;
+            }
+            const product = products.find(p => p.id_fb === idFb);
+            if (!product) return;
+
+            const currentStock = getProductStock(product);
+            const nextStock = Math.max(0, currentStock + delta);
+            database.ref(`products/${idFb}`).update({ stock: nextStock });
         }
 
         function renderAdminSortableList() {
@@ -1514,8 +1660,15 @@
                 
                 let deleteBtnHtml = "";
                 let editBtnHtml = "";
+                let stepBtnsHtml = "";
 
                 if (adminAccessLevel === "full") {
+                    stepBtnsHtml = `
+                        <span class="stock-step-controls">
+                            <button type="button" class="btn-stock-step" onclick="adjustProductStock('${product.id_fb}', -1)" title="Diminuir estoque" ${stockCount <= 0 ? 'disabled' : ''}>-</button>
+                            <button type="button" class="btn-stock-step" onclick="adjustProductStock('${product.id_fb}', 1)" title="Aumentar estoque">+</button>
+                        </span>
+                    `;
                     editBtnHtml = `<button type="button" class="btn-edit" onclick="loadEditProduct('${product.id_fb}')"><i class="fas fa-edit"></i></button>`;
                     deleteBtnHtml = `<button type="button" class="btn-delete" onclick="deleteProduct('${product.id_fb}')"><i class="fas fa-trash"></i></button>`;
                 } else {
@@ -1528,7 +1681,12 @@
                             <i class="fas fa-bars"></i>
                             <div>
                                 <h4>${product.name}</h4>
-                                <span>R$ ${product.price.toFixed(2)}${disc} <span class="badge" style="margin-left:5px;">${cat}</span><span class="${stockClass}">Estoque: ${stockCount}</span></span>
+                                <span>
+                                    R$ ${product.price.toFixed(2)}${disc} 
+                                    <span class="badge" style="margin-left:4px;">${cat}</span>
+                                    <span class="${stockClass}">Estoque: ${stockCount}</span>
+                                    ${stepBtnsHtml}
+                                </span>
                             </div>
                         </div>
                         <div class="action-btns">
@@ -1540,6 +1698,69 @@
             });
             if (adminAccessLevel === "full") {
                 initDragAndDrop();
+            }
+        }
+
+        function renderOrdersHistory() {
+            const container = document.getElementById('ordersHistoryContainer');
+            if (!container) return;
+
+            if (ordersHistory.length === 0) {
+                container.innerHTML = '<p style="color: #a0a0ba; text-align:center; padding: 20px 0;">Nenhum pedido registrado ainda.</p>';
+                return;
+            }
+
+            let html = "";
+            ordersHistory.forEach(order => {
+                const isDelivered = order.status === "Entregue";
+                const statusClass = isDelivered ? "status-pill status-entregue" : "status-pill status-pendente";
+                const nextStatus = isDelivered ? "Pendente" : "Entregue";
+                const itemsText = Array.isArray(order.items) && order.items.length > 0
+                    ? order.items.map(i => `${i.name} (R$ ${Number(i.price || 0).toFixed(2)})`).join(", ")
+                    : "Itens não listados";
+                const totalNum = Number(order.total || 0);
+                const dateLabel = order.createdAt || "";
+
+                const deleteOrderBtn = adminAccessLevel === "full"
+                    ? `<button type="button" class="btn-delete" onclick="deleteOrderRecord('${order.id_fb}')" title="Excluir Pedido"><i class="fas fa-trash"></i></button>`
+                    : ``;
+
+                html += `
+                    <div class="order-history-card">
+                        <div class="order-history-top">
+                            <span class="order-id-tag">${order.orderId || order.id_fb}</span>
+                            <span class="${statusClass}">${isDelivered ? "Entregue" : "Pendente"}</span>
+                        </div>
+                        <div class="order-history-meta">
+                            <div><strong>Total:</strong> R$ ${totalNum.toFixed(2).replace('.', ',')}</div>
+                            <div><strong>Itens:</strong> ${itemsText}</div>
+                            ${dateLabel ? `<div style="font-size:0.74rem; color:#656582;">${dateLabel}</div>` : ""}
+                        </div>
+                        <div class="order-history-actions">
+                            <button type="button" class="btn-status-toggle" onclick="toggleOrderStatus('${order.id_fb}', '${nextStatus}')">
+                                Marcar como ${nextStatus}
+                            </button>
+                            <div class="action-btns">${deleteOrderBtn}</div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function toggleOrderStatus(orderKey, nextStatus) {
+            if (!isAdminLoggedIn || adminAccessLevel === "none") return;
+            database.ref(`orders/${orderKey}`).update({ status: nextStatus });
+        }
+
+        function deleteOrderRecord(orderKey) {
+            if (adminAccessLevel !== "full") {
+                alert("Erro: Seu nível de acesso não permite excluir registros.");
+                return;
+            }
+            if (confirm("Deseja remover este pedido do histórico?")) {
+                database.ref(`orders/${orderKey}`).remove();
             }
         }
 
@@ -1972,6 +2193,27 @@
             return `JRS-${day}${month}${year}-${hour}${min}-${randomFactor}`;
         }
 
+        function saveOrderToFirebase(orderID, itemsList, totalValue) {
+            const now = new Date();
+            const simplifiedItems = itemsList.map(item => {
+                const discount = parseInt(item.discount) || 0;
+                const finalPrice = discount > 0 ? item.price - (item.price * (discount / 100)) : item.price;
+                return {
+                    name: item.name,
+                    price: Number(finalPrice.toFixed(2))
+                };
+            });
+
+            database.ref('orders').push({
+                orderId: orderID,
+                items: simplifiedItems,
+                total: Number(totalValue.toFixed(2)),
+                status: "Pendente",
+                createdAt: now.toLocaleString('pt-BR'),
+                timestamp: now.getTime()
+            }).catch(err => console.error("Erro ao salvar pedido no Firebase:", err));
+        }
+
         function sendToDiscordWebhook(orderID, itemsList, totalValue) {
             if (!DISCORD_WEBHOOK_URL) return;
             let descriptionText = "";
@@ -2026,6 +2268,7 @@
             });
 
             deductStockFromCart();
+            saveOrderToFirebase(orderID, cart, total);
             sendToDiscordWebhook(orderID, cart, total);
             
             let message = `Olá JRS Store! Acabei de fechar um pedido no site.\n\n🆔 *ID:* ${orderID}\n`;
@@ -2066,6 +2309,7 @@
             if (isAdminLoggedIn) {
                 renderAdminSortableList();
                 renderAdminCategoryManager();
+                renderOrdersHistory();
                 if (adminAccessLevel === "full") {
                     renderTeamList();
                 }
@@ -2092,6 +2336,7 @@
                 
                 renderAdminSortableList();
                 renderAdminCategoryManager();
+                renderOrdersHistory();
                 renderTeamList();
                 toggleModal('adminPanelModal');
                 alert("Logado com sucesso! Seja bem-vindo de volta Chefe.");
@@ -2118,6 +2363,7 @@
                 
                 renderAdminSortableList();
                 renderAdminCategoryManager();
+                renderOrdersHistory();
                 toggleModal('adminPanelModal');
                 alert(`Olá ${user}! Painel de equipe acessado com sucesso.`);
             } else {
