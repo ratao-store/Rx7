@@ -857,7 +857,7 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 8px;
             padding: 12px;
-            max-height: 250px;
+            max-height: 260px;
             overflow-y: auto;
         }
 
@@ -880,13 +880,45 @@
 
         .role-chip {
             display: inline-block;
-            margin-top: 3px;
+            margin-left: 6px;
             font-size: 0.72rem;
             color: #ffcc66;
             background: rgba(255, 170, 0, 0.12);
             border: 1px solid rgba(255, 170, 0, 0.35);
             padding: 2px 7px;
             border-radius: 12px;
+            vertical-align: middle;
+        }
+
+        .secret-pass-blur {
+            display: inline-block;
+            color: #cbd5e1;
+            filter: blur(4px);
+            cursor: pointer;
+            transition: filter 0.2s ease, color 0.2s ease;
+            user-select: none;
+        }
+
+        .secret-pass-blur.revealed {
+            filter: none;
+            color: var(--neon-blue);
+        }
+
+        .role-edit-select {
+            margin-top: 6px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            color: #fff;
+            padding: 5px 8px;
+            border-radius: 5px;
+            font-size: 0.78rem;
+            cursor: pointer;
+        }
+
+        .role-edit-select option {
+            background: #10101c;
+            color: #fff;
         }
 
         .order-history-card {
@@ -1313,7 +1345,7 @@
                             <input type="text" id="teamPass" class="form-control" placeholder="Digite uma senha" required>
                         </div>
                         <div class="form-group">
-                            <label>Cargo / Nível</label>
+                            <label>Nível</label>
                             <select id="teamRole" class="form-control" required>
                                 <option value="stock_assistant">Ajudante de Estoque / Vitrine</option>
                                 <option value="attendant">Atendente / Entregador</option>
@@ -1324,7 +1356,7 @@
                     </form>
                     
                     <h4 style="color:#fff; margin-bottom: 10px;">Contas criadas</h4>
-                    <div class="category-management-box" id="teamListContainer" style="max-height: 200px;"></div>
+                    <div class="category-management-box" id="teamListContainer" style="max-height: 240px;"></div>
                 </div>
             </div>
         </div>
@@ -1355,7 +1387,6 @@
         let cart = [];
         let teamMembers = {};
         let isAdminLoggedIn = false;
-        // Cargos: "owner", "stock_assistant", "attendant", "store_manager", "none"
         let adminAccessLevel = "none"; 
         let loggedAdminUsername = ""; 
         let convertedImagesBase64 = [];
@@ -1370,6 +1401,16 @@
             attendant: "Atendente / Entregador",
             store_manager: "Gerente de Loja"
         };
+
+        function formatDisplayName(rawUser) {
+            if (!rawUser) return "Admin";
+            return rawUser.charAt(0).toUpperCase() + rawUser.slice(1);
+        }
+
+        function toggleSecretPass(el) {
+            if (!el) return;
+            el.classList.toggle('revealed');
+        }
 
         function getProductStock(product) {
             if (!product) return 0;
@@ -2018,6 +2059,15 @@
             container.innerHTML = html;
         }
 
+        function updateTeamMemberRole(key, newRole) {
+            if (adminAccessLevel !== "owner") return;
+            if (!["stock_assistant", "attendant", "store_manager"].includes(newRole)) return;
+
+            database.ref(`team_members/${key}`).update({ role: newRole }).then(() => {
+                alert(`Nível atualizado para: ${ROLE_LABELS[newRole]}.`);
+            });
+        }
+
         function renderTeamList() {
             const container = document.getElementById('teamListContainer');
             if (!container) return;
@@ -2034,11 +2084,20 @@
                 const roleKey = teamMembers[key].role || "stock_assistant";
                 const roleName = ROLE_LABELS[roleKey] || ROLE_LABELS.stock_assistant;
                 container.innerHTML += `
-                    <div class="category-list-item">
-                        <div>
-                            <span style="font-weight:bold; color:var(--neon-blue);">${teamMembers[key].user}</span>
-                            <span style="font-size:12px; color:#656582; margin-left:8px;">Senha: ${teamMembers[key].pass}</span>
-                            <div><span class="role-chip">${roleName}</span></div>
+                    <div class="category-list-item" style="align-items: flex-start;">
+                        <div style="flex-grow: 1; min-width: 0;">
+                            <div>
+                                <span style="font-weight:bold; color:var(--neon-blue);">${formatDisplayName(teamMembers[key].user)}</span>
+                                <span class="role-chip">${roleName}</span>
+                            </div>
+                            <div style="font-size:12px; color:#a0a0ba; margin-top:4px;">
+                                Senha: <span class="secret-pass-blur" onclick="toggleSecretPass(this)" title="Clique para mostrar/esconder a senha">${teamMembers[key].pass}</span>
+                            </div>
+                            <select class="role-edit-select" onchange="updateTeamMemberRole('${key}', this.value)" title="Editar nível da conta">
+                                <option value="stock_assistant" ${roleKey === "stock_assistant" ? "selected" : ""}>Ajudante de Estoque / Vitrine</option>
+                                <option value="attendant" ${roleKey === "attendant" ? "selected" : ""}>Atendente / Entregador</option>
+                                <option value="store_manager" ${roleKey === "store_manager" ? "selected" : ""}>Gerente de Loja</option>
+                            </select>
                         </div>
                         <div class="action-btns">
                             <button type="button" class="btn-delete" onclick="deleteTeamMember('${key}')" title="Remover Acesso"><i class="fas fa-trash"></i></button>
@@ -2075,7 +2134,7 @@
                 pass: password,
                 role: role
             }).then(() => {
-                alert(`Acesso para "${username}" (${ROLE_LABELS[role] || role}) criado com sucesso!`);
+                alert(`Acesso para ${formatDisplayName(username)} criado com sucesso!`);
                 userField.value = "";
                 passField.value = "";
                 if (roleField) roleField.value = "stock_assistant";
@@ -2291,7 +2350,7 @@
                             username: "JRS Store Bot",
                             embeds: [{
                                 title: "✨ NOVO PRODUTO ADICIONADO NA LOJA! ✨",
-                                description: `O ADMIN **${loggedAdminUsername || "Administrador"}** acabou de publicar um novo produto no site.`,
+                                description: `O ADMIN **${formatDisplayName(loggedAdminUsername)}** acabou de publicar um novo produto no site.`,
                                 color: 16711765,
                                 fields: [
                                     { name: "📦 Nome do Item", value: `\`\`\`${name}\`\`\``, inline: false },
@@ -2544,7 +2603,7 @@
                 
                 refreshAdminViews();
                 toggleModal('adminPanelModal');
-                alert("Logado com sucesso! Seja bem-vindo de volta Chefe.");
+                alert("Olá! Seja bem-vindo ao painel de admin.");
                 return;
             }
 
@@ -2565,7 +2624,7 @@
                 
                 refreshAdminViews();
                 toggleModal('adminPanelModal');
-                alert(`Olá ${user}! Cargo: ${ROLE_LABELS[adminAccessLevel] || adminAccessLevel}.`);
+                alert(`Olá, ${formatDisplayName(user)}! Seja bem-vindo ao painel de admin.`);
             } else {
                 alert("Acesso Negado. Credenciais inválidas.");
             }
