@@ -730,6 +730,24 @@
             color: #fff;
         }
 
+        .btn-restore-log {
+            background: rgba(0, 243, 255, 0.14);
+            border: 1px solid var(--neon-blue);
+            color: var(--neon-blue);
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-restore-log:hover {
+            background: var(--neon-blue);
+            color: #000;
+        }
+
         .audit-cat-tag {
             display: inline-block;
             font-size: 0.7rem;
@@ -1070,6 +1088,45 @@
 
         .btn-unblock-user:hover {
             background: #25d366;
+            color: #000;
+        }
+
+        .account-lock-panel {
+            margin-top: 8px;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(0, 243, 255, 0.14);
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .account-lock-check {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            color: #cbd5e1;
+            cursor: pointer;
+        }
+
+        .btn-save-locks {
+            margin-top: 4px;
+            background: rgba(0, 243, 255, 0.15);
+            border: 1px solid var(--neon-blue);
+            color: var(--neon-blue);
+            padding: 4px 8px;
+            border-radius: 5px;
+            font-size: 0.73rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+            width: fit-content;
+        }
+
+        .btn-save-locks:hover {
+            background: var(--neon-blue);
             color: #000;
         }
 
@@ -1557,7 +1614,7 @@
                     
                     <h4 style="color:#fff; margin-bottom: 10px;">Contas criadas</h4>
                     <div id="managerDeleteLimitBanner" class="daily-limit-banner" style="display: none;"></div>
-                    <div class="category-management-box" id="teamListContainer" style="max-height: 320px;"></div>
+                    <div class="category-management-box" id="teamListContainer" style="max-height: 360px;"></div>
                 </div>
             </div>
 
@@ -1639,20 +1696,46 @@
             return `${y}-${m}-${d}`;
         }
 
-        function recordAuditLog(actionText, logCategory = "other", skipForOwner = false) {
+        function getCurrentMemberRecord() {
+            if (adminAccessLevel === "owner" || !loggedAdminUsername) return null;
+            for (let key in teamMembers) {
+                if ((teamMembers[key].user || "").toLowerCase() === loggedAdminUsername) {
+                    return { key, ...teamMembers[key] };
+                }
+            }
+            return null;
+        }
+
+        function isAccountBlockedByAction(actionType) {
+            if (adminAccessLevel === "owner") return false;
+            const member = getCurrentMemberRecord();
+            if (!member) return false;
+            if (actionType === "general") return Boolean(member.blocked);
+            if (actionType === "add_product") return Boolean(member.blockAddProduct);
+            if (actionType === "edit_remove") return Boolean(member.blockEditRemove);
+            if (actionType === "deliver_order") return Boolean(member.blockDeliverOrder);
+            return false;
+        }
+
+        function recordAuditLog(actionText, logCategory = "other", skipForOwner = false, extraData = {}) {
             if (!isAdminLoggedIn || !loggedAdminUsername) return;
             if (skipForOwner && adminAccessLevel === "owner") return;
 
             const normalizedCat = ["added", "removed", "other"].includes(logCategory) ? logCategory : "other";
             const now = new Date();
-            database.ref('admin_audit_logs').push({
+            const payload = {
                 actor: formatDisplayName(loggedAdminUsername),
                 role: ROLE_LABELS[adminAccessLevel] || adminAccessLevel,
+                roleKey: adminAccessLevel,
                 category: normalizedCat,
                 action: actionText,
                 createdAt: now.toLocaleString('pt-BR'),
-                timestamp: now.getTime()
-            }).catch(err => console.error("Erro ao salvar log de auditoria:", err));
+                timestamp: now.getTime(),
+                ...extraData
+            };
+
+            database.ref('admin_audit_logs').push(payload)
+                .catch(err => console.error("Erro ao salvar log de auditoria:", err));
         }
 
         function setAuditCategoryFilter(filterKey) {
@@ -1673,6 +1756,39 @@
             database.ref(`admin_audit_logs/${logIdFb}`).remove().catch(err => {
                 console.error("Erro ao apagar log:", err);
             });
+        }
+
+        async function restoreProductFromLog(logIdFb) {
+            if (adminAccessLevel !== "owner") return;
+            const entry = auditLogs.find(item => item.id_fb === logIdFb);
+            if (!entry || !entry.restorableProduct) {
+                alert("Dados do produto não disponíveis para reposição.");
+                return;
+            }
+
+            const snap = entry.restorableProduct;
+            const nextOrder = products.length > 0 ? Math.max(...products.map(p => p.displayOrder || 0)) + 1 : 1;
+
+            const restoredPayload = {
+                name: snap.name || "Produto Sem Nome",
+                price: Number(snap.price) || 0,
+                stock: Math.max(0, parseInt(snap.stock) || 0),
+                discount: parseInt(snap.discount) || 0,
+                promoEnd: snap.promoEnd || null,
+                desc: snap.desc || "",
+                category: snap.category || "Geral",
+                imagesArray: Array.isArray(snap.imagesArray) && snap.imagesArray.length > 0 ? snap.imagesArray : null,
+                displayOrder: nextOrder
+            };
+
+            try {
+                await database.ref('products').push(restoredPayload);
+                await database.ref(`admin_audit_logs/${logIdFb}`).update({ restored: true });
+                alert(`Produto "${restoredPayload.name}" reposto na loja com sucesso!`);
+            } catch (err) {
+                console.error("Erro ao repor produto pela log:", err);
+                alert("Erro ao repor produto.");
+            }
         }
 
         function clearCurrentAuditCategory() {
@@ -1744,6 +1860,11 @@
                     ? "audit-cat-tag audit-cat-added"
                     : (catKey === "removed" ? "audit-cat-tag audit-cat-removed" : "audit-cat-tag audit-cat-other");
 
+                const canRestore = entry.roleKey === "store_manager" && entry.restorableProduct && !entry.restored;
+                const restoreBtnHtml = canRestore
+                    ? `<button type="button" class="btn-restore-log" onclick="restoreProductFromLog('${entry.id_fb}')"><i class="fas fa-rotate-left"></i> Repor Produto</button>`
+                    : (entry.restored ? `<span style="font-size:0.72rem; color:#7ef2a8; white-space:nowrap;">Reposto</span>` : ``);
+
                 return `
                     <div class="audit-log-item">
                         <div style="flex-grow: 1; min-width: 0;">
@@ -1755,7 +1876,8 @@
                             </div>
                             <div class="audit-log-meta">${entry.createdAt || ""}</div>
                         </div>
-                        <div class="action-btns">
+                        <div class="action-btns" style="gap:6px;">
+                            ${restoreBtnHtml}
                             <button type="button" class="btn-delete" onclick="deleteSingleAuditLog('${entry.id_fb}')" title="Apagar este log"><i class="fas fa-trash"></i></button>
                         </div>
                     </div>
@@ -1791,6 +1913,7 @@
                     const leftAcc = Math.max(0, 2 - usedAcc);
                     mgrBanner.style.display = "block";
                     mgrBanner.className = leftAcc === 0 ? "daily-limit-banner warn" : "daily-limit-banner";
+                    mgrBanner.innerHTML = `<strong>Exclusão de contas de Repositor hoje:</strong> ${usedAcc}/2 usadas (${leftAcc} restante${leftAcc === 1 ? "" : "s"}).`;
                 } else {
                     mgrBanner.style.display = "none";
                 }
@@ -1798,16 +1921,10 @@
         }
 
         function isCurrentUserBlocked() {
-            if (adminAccessLevel === "owner" || !loggedAdminUsername) return false;
-            for (let key in teamMembers) {
-                if (teamMembers[key].user === loggedAdminUsername) {
-                    return Boolean(teamMembers[key].blocked);
-                }
-            }
-            return false;
+            return isAccountBlockedByAction("general");
         }
 
-        function forceLogoutDueToBlock() {
+        function forceLogoutDueToBlock(customMessage) {
             isAdminLoggedIn = false;
             adminAccessLevel = "none";
             loggedAdminUsername = "";
@@ -1815,7 +1932,7 @@
             resetProductForm();
             const panel = document.getElementById('adminPanelModal');
             if (panel) panel.style.display = 'none';
-            alert("Seu acesso foi bloqueado por atividade suspeita. Você foi desconectado e só poderá logar novamente após o Dono desbloquear.");
+            alert(customMessage || "Seu acesso foi bloqueado. Você foi desconectado e só poderá logar novamente após o Dono desbloquear.");
         }
 
         function formatDisplayName(rawUser) {
@@ -1835,37 +1952,37 @@
         }
 
         function canAddProducts() {
-            if (isCurrentUserBlocked()) return false;
+            if (isCurrentUserBlocked() || isAccountBlockedByAction("add_product")) return false;
             return ["owner", "stock_assistant", "store_manager"].includes(adminAccessLevel);
         }
 
         function canEditProducts() {
-            if (isCurrentUserBlocked()) return false;
+            if (isCurrentUserBlocked() || isAccountBlockedByAction("edit_remove")) return false;
             return ["owner", "store_manager"].includes(adminAccessLevel);
         }
 
         function canDeleteProducts() {
-            if (isCurrentUserBlocked()) return false;
+            if (isCurrentUserBlocked() || isAccountBlockedByAction("edit_remove")) return false;
             return ["owner", "store_manager"].includes(adminAccessLevel);
         }
 
         function canManageStock() {
-            if (isCurrentUserBlocked()) return false;
+            if (isCurrentUserBlocked() || isAccountBlockedByAction("edit_remove")) return false;
             return ["owner", "store_manager"].includes(adminAccessLevel);
         }
 
         function canDeliverOrders() {
-            if (isCurrentUserBlocked()) return false;
+            if (isCurrentUserBlocked() || isAccountBlockedByAction("deliver_order")) return false;
             return ["owner", "attendant", "store_manager"].includes(adminAccessLevel);
         }
 
         function canDeleteOrders() {
-            if (isCurrentUserBlocked()) return false;
+            if (isCurrentUserBlocked() || isAccountBlockedByAction("edit_remove")) return false;
             return ["owner", "store_manager"].includes(adminAccessLevel);
         }
 
         function canEditPricesAndPromos() {
-            if (isCurrentUserBlocked()) return false;
+            if (isCurrentUserBlocked() || isAccountBlockedByAction("edit_remove")) return false;
             return ["owner", "store_manager"].includes(adminAccessLevel);
         }
 
@@ -2085,6 +2202,36 @@
             return Promise.all(promises);
         }
 
+        function saveMemberLocks(key) {
+            if (adminAccessLevel !== "owner") return;
+            const member = teamMembers[key];
+            if (!member) return;
+
+            const blockAddProduct = Boolean(document.getElementById(`lockAdd-${key}`)?.checked);
+            const blockEditRemove = Boolean(document.getElementById(`lockEditRemove-${key}`)?.checked);
+            const blockDeliverOrder = Boolean(document.getElementById(`lockDeliver-${key}`)?.checked);
+            const blocked = Boolean(document.getElementById(`lockGeneral-${key}`)?.checked);
+
+            database.ref(`team_members/${key}`).update({
+                blockAddProduct,
+                blockEditRemove,
+                blockDeliverOrder,
+                blocked
+            }).then(() => {
+                const activeLocks = [];
+                if (blockAddProduct) activeLocks.push("postar produto");
+                if (blockEditRemove) activeLocks.push("editar/remover");
+                if (blockDeliverOrder) activeLocks.push("registrar entregue");
+                if (blocked) activeLocks.push("bloqueio geral");
+
+                const summary = activeLocks.length > 0
+                    ? `Atualizou bloqueios de ${formatDisplayName(member.user)}: ${activeLocks.join(", ")}`
+                    : `Removeu todos os bloqueios de ${formatDisplayName(member.user)}`;
+                recordAuditLog(summary, "other");
+                alert(`Bloqueios de ${formatDisplayName(member.user)} salvos!`);
+            });
+        }
+
         function unblockTeamMember(key) {
             if (adminAccessLevel !== "owner") return;
             const member = teamMembers[key];
@@ -2101,7 +2248,12 @@
             }
 
             const cleanReason = reason.trim();
-            database.ref(`team_members/${key}`).update({ blocked: false }).then(() => {
+            database.ref(`team_members/${key}`).update({
+                blocked: false,
+                blockAddProduct: false,
+                blockEditRemove: false,
+                blockDeliverOrder: false
+            }).then(() => {
                 recordAuditLog(`Desbloqueou a conta de ${targetName} — Motivo: "${cleanReason}"`, "other");
                 alert(`Acesso de ${targetName} desbloqueado com sucesso!`);
             });
@@ -2306,7 +2458,7 @@
                     const stockAlertHtml = isOutOfStock
                         ? `<div class="product-out-label"><i class="fas fa-box-open"></i> Esgotado</div>`
                         : (isLowStock
-                            ? `<div class="product-low-stock-label"><i class="fas fa-fire"></i> Últimas unidades! Aproveite</div>`
+                            ? `<div class="product-low-stock-label"><i class="fas fa-fire"></i> Últimas unidades! Está acabando</div>`
                             : ``);
 
                     const buyBtnHtml = isOutOfStock
@@ -2373,7 +2525,7 @@
 
         function adjustProductStock(idFb, delta) {
             if (!canManageStock()) {
-                alert("Você não tem permissão ou seu acesso está bloqueado.");
+                alert("Você não tem permissão ou essa ação está bloqueada na sua conta.");
                 return;
             }
             const product = products.find(p => p.id_fb === idFb);
@@ -2558,7 +2710,7 @@
 
         function markOrderAsDelivered(orderKey) {
             if (!canDeliverOrders()) {
-                alert("Você não tem permissão ou seu acesso está bloqueado.");
+                alert("Você não tem permissão ou registrar entrega está bloqueado na sua conta.");
                 return;
             }
             const order = ordersHistory.find(o => o.id_fb === orderKey);
@@ -2584,7 +2736,7 @@
 
         function deleteOrderRecord(orderKey) {
             if (!canDeleteOrders()) {
-                alert("Apenas o Dono e o Gerente podem excluir pedidos.");
+                alert("Você não tem permissão ou excluir está bloqueado na sua conta.");
                 return;
             }
             const order = ordersHistory.find(o => o.id_fb === orderKey);
@@ -2668,6 +2820,9 @@
                 const roleKey = member.role || "stock_assistant";
                 const roleName = ROLE_LABELS[roleKey] || ROLE_LABELS.stock_assistant;
                 const isBlocked = Boolean(member.blocked);
+                const lockAdd = Boolean(member.blockAddProduct);
+                const lockEditRemove = Boolean(member.blockEditRemove);
+                const lockDeliver = Boolean(member.blockDeliverOrder);
 
                 const blockedBadgeHtml = isBlocked
                     ? `<span class="blocked-chip">Bloqueado</span>`
@@ -2684,6 +2839,30 @@
                             <option value="attendant" ${roleKey === "attendant" ? "selected" : ""}>Entregador</option>
                             <option value="store_manager" ${roleKey === "store_manager" ? "selected" : ""}>Gerente</option>
                         </select>
+                    `
+                    : ``;
+
+                const lockControlsHtml = isOwner
+                    ? `
+                        <div class="account-lock-panel">
+                            <label class="account-lock-check">
+                                <input type="checkbox" id="lockAdd-${key}" ${lockAdd ? "checked" : ""}>
+                                Bloquear postar produto
+                            </label>
+                            <label class="account-lock-check">
+                                <input type="checkbox" id="lockEditRemove-${key}" ${lockEditRemove ? "checked" : ""}>
+                                Bloquear editar / remover
+                            </label>
+                            <label class="account-lock-check">
+                                <input type="checkbox" id="lockDeliver-${key}" ${lockDeliver ? "checked" : ""}>
+                                Bloquear registrar entregue
+                            </label>
+                            <label class="account-lock-check">
+                                <input type="checkbox" id="lockGeneral-${key}" ${isBlocked ? "checked" : ""}>
+                                Bloquear geral (impede login)
+                            </label>
+                            <button type="button" class="btn-save-locks" onclick="saveMemberLocks('${key}')">Salvar Bloqueios</button>
+                        </div>
                     `
                     : ``;
 
@@ -2708,6 +2887,7 @@
                                 ${passwordHtml}
                             </div>
                             ${roleControlHtml}
+                            ${lockControlsHtml}
                             ${unblockBtnHtml}
                         </div>
                         <div class="action-btns">
@@ -2747,7 +2927,10 @@
                 user: username,
                 pass: password,
                 role: role,
-                blocked: false
+                blocked: false,
+                blockAddProduct: false,
+                blockEditRemove: false,
+                blockDeliverOrder: false
             }).then(() => {
                 recordAuditLog(`Criou conta admin "${formatDisplayName(username)}" (${ROLE_LABELS[role] || role})`, "added");
                 alert(`Acesso para ${formatDisplayName(username)} criado com sucesso!`);
@@ -2775,6 +2958,10 @@
             if (adminAccessLevel === "store_manager") {
                 if (isCurrentUserBlocked()) {
                     forceLogoutDueToBlock();
+                    return;
+                }
+                if (isAccountBlockedByAction("edit_remove")) {
+                    alert("Sua conta está bloqueada para remover itens/contas.");
                     return;
                 }
                 if (!canManagerDeleteMember(targetMember)) {
@@ -2892,7 +3079,7 @@
 
         function loadEditProduct(idFb) {
             if (!canEditProducts()) {
-                alert("Você não tem permissão para editar produtos ou seu acesso está bloqueado.");
+                alert("Você não tem permissão ou editar produtos está bloqueado na sua conta.");
                 return;
             }
             const product = products.find(p => p.id_fb === idFb);
@@ -2926,12 +3113,24 @@
             submitBtn.innerText = "Salvando...";
 
             try {
-                if (!isAdminLoggedIn || adminAccessLevel === "none" || !canAddProducts()) {
-                    alert("Você não tem permissão para adicionar produtos ou seu acesso está bloqueado.");
+                if (!isAdminLoggedIn || adminAccessLevel === "none") {
+                    alert("Você não está logado no painel.");
                     return;
                 }
 
                 const idFb = document.getElementById('editProductId').value;
+                const isEditing = Boolean(idFb && idFb.trim() !== "");
+
+                if (isEditing && !canEditProducts()) {
+                    alert("Você não tem permissão ou editar produtos está bloqueado na sua conta.");
+                    return;
+                }
+
+                if (!isEditing && !canAddProducts()) {
+                    alert("Você não tem permissão ou postar produtos está bloqueado na sua conta.");
+                    return;
+                }
+
                 const name = document.getElementById('prodName').value.trim();
                 const price = parseFloat(document.getElementById('prodPrice').value);
                 const stockVal = parseInt(document.getElementById('prodStock').value);
@@ -2951,11 +3150,7 @@
                 }
                 if (!category) category = "Geral";
 
-                if (idFb && idFb.trim() !== "") {
-                    if (!canEditProducts()) {
-                        alert("Seu nível não tem permissão para editar produtos.");
-                        return;
-                    }
+                if (isEditing) {
                     const existingProd = products.find(p => p.id_fb === idFb);
                     const finalStock = canManageStock() ? stock : getProductStock(existingProd);
                     const finalDiscount = canEditPricesAndPromos() ? discount : (existingProd ? (parseInt(existingProd.discount) || 0) : 0);
@@ -3058,7 +3253,7 @@
 
         async function deleteProduct(idFb) {
             if (!canDeleteProducts()) {
-                alert("Você não tem permissão para excluir produtos ou seu acesso está bloqueado.");
+                alert("Você não tem permissão ou remover produtos está bloqueado na sua conta.");
                 return;
             }
 
@@ -3085,10 +3280,24 @@
                 if (adminAccessLevel === "store_manager") {
                     recentDeleteTimestamps.push(Date.now());
                 }
+
+                const restorableSnapshot = (adminAccessLevel === "store_manager" && prod) ? {
+                    name: prod.name,
+                    price: Number(prod.price) || 0,
+                    stock: prodStock,
+                    discount: parseInt(prod.discount) || 0,
+                    promoEnd: prod.promoEnd || null,
+                    desc: prod.desc || "",
+                    category: prodCat,
+                    imagesArray: Array.isArray(prod.imagesArray) ? prod.imagesArray : null
+                } : null;
+
                 database.ref(`products/${idFb}`).remove().then(() => {
                     recordAuditLog(
                         `Apagou o produto "${prodName}" — Categoria: ${prodCat} | Preço: R$ ${prodPrice} | Estoque: ${prodStock}`,
-                        "removed"
+                        "removed",
+                        false,
+                        restorableSnapshot ? { restorableProduct: restorableSnapshot, restored: false } : {}
                     );
                 });
             }
