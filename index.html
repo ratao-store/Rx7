@@ -1791,7 +1791,6 @@
                     const leftAcc = Math.max(0, 2 - usedAcc);
                     mgrBanner.style.display = "block";
                     mgrBanner.className = leftAcc === 0 ? "daily-limit-banner warn" : "daily-limit-banner";
-                    mgrBanner.innerHTML = `<strong>Exclusão de contas de Repositor hoje:</strong> ${usedAcc}/2 usadas (${leftAcc} restante${leftAcc === 1 ? "" : "s"}).`;
                 } else {
                     mgrBanner.style.display = "none";
                 }
