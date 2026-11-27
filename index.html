@@ -443,6 +443,20 @@
             white-space: pre-wrap;
         }
 
+        .product-low-stock-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 170, 0, 0.14);
+            border: 1px solid #ffaa00;
+            color: #ffd166;
+            font-size: 0.78rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+            margin-bottom: 10px;
+        }
+
         .product-out-label {
             font-size: 0.85rem;
             color: var(--neon-pink);
@@ -1546,6 +1560,7 @@
                     const discount = parseInt(product.discount) || 0;
                     const stockCount = getProductStock(product);
                     const isOutOfStock = stockCount <= 0;
+                    const isLowStock = stockCount > 0 && stockCount <= 3;
                     let priceHtml = "";
                     let countdownHtml = "";
                     let finalPrice = product.price;
@@ -1565,9 +1580,11 @@
                         priceHtml = `<div class="product-price">R$ ${product.price.toFixed(2).replace('.', ',')}</div>`;
                     }
 
-                    const outHtml = isOutOfStock
+                    const stockAlertHtml = isOutOfStock
                         ? `<div class="product-out-label"><i class="fas fa-box-open"></i> Esgotado</div>`
-                        : ``;
+                        : (isLowStock
+                            ? `<div class="product-low-stock-label"><i class="fas fa-fire"></i> Últimas unidades! Está acabando</div>`
+                            : ``);
 
                     const buyBtnHtml = isOutOfStock
                         ? `<button type="button" class="btn-buy" disabled><i class="fas fa-ban"></i> Esgotado</button>`
@@ -1616,7 +1633,7 @@
                                 <h3 class="product-title">${product.name}</h3>
                                 <p class="product-desc">${descriptionFormatted}</p>
                                 <div>
-                                    ${outHtml}
+                                    ${stockAlertHtml}
                                     ${countdownHtml}
                                     ${priceHtml}
                                     ${buyBtnHtml}
@@ -1749,9 +1766,47 @@
             container.innerHTML = html;
         }
 
+        function deductOrderItemsFromStock(order) {
+            if (!order || !Array.isArray(order.items)) return;
+
+            const qtyById = {};
+            const qtyByName = {};
+
+            order.items.forEach(item => {
+                if (item.id_fb) {
+                    qtyById[item.id_fb] = (qtyById[item.id_fb] || 0) + 1;
+                } else if (item.name) {
+                    qtyByName[item.name] = (qtyByName[item.name] || 0) + 1;
+                }
+            });
+
+            products.forEach(prod => {
+                const countById = qtyById[prod.id_fb] || 0;
+                const countByName = qtyByName[prod.name] || 0;
+                const totalToDeduct = countById + countByName;
+
+                if (totalToDeduct > 0) {
+                    const currentStock = getProductStock(prod);
+                    const nextStock = Math.max(0, currentStock - totalToDeduct);
+                    database.ref(`products/${prod.id_fb}`).update({ stock: nextStock });
+                }
+            });
+        }
+
         function toggleOrderStatus(orderKey, nextStatus) {
             if (!isAdminLoggedIn || adminAccessLevel === "none") return;
-            database.ref(`orders/${orderKey}`).update({ status: nextStatus });
+            const order = ordersHistory.find(o => o.id_fb === orderKey);
+            if (!order) return;
+
+            if (nextStatus === "Entregue" && !order.stockDeducted) {
+                deductOrderItemsFromStock(order);
+                database.ref(`orders/${orderKey}`).update({
+                    status: "Entregue",
+                    stockDeducted: true
+                });
+            } else {
+                database.ref(`orders/${orderKey}`).update({ status: nextStatus });
+            }
         }
 
         function deleteOrderRecord(orderKey) {
@@ -2199,6 +2254,7 @@
                 const discount = parseInt(item.discount) || 0;
                 const finalPrice = discount > 0 ? item.price - (item.price * (discount / 100)) : item.price;
                 return {
+                    id_fb: item.id_fb || "",
                     name: item.name,
                     price: Number(finalPrice.toFixed(2))
                 };
@@ -2209,6 +2265,7 @@
                 items: simplifiedItems,
                 total: Number(totalValue.toFixed(2)),
                 status: "Pendente",
+                stockDeducted: false,
                 createdAt: now.toLocaleString('pt-BR'),
                 timestamp: now.getTime()
             }).catch(err => console.error("Erro ao salvar pedido no Firebase:", err));
@@ -2242,22 +2299,6 @@
             }).catch(err => console.error("Erro no webhook de pedidos:", err));
         }
 
-        function deductStockFromCart() {
-            const qtyByProduct = {};
-            cart.forEach(item => {
-                qtyByProduct[item.id_fb] = (qtyByProduct[item.id_fb] || 0) + 1;
-            });
-
-            Object.keys(qtyByProduct).forEach(idFb => {
-                const currentProd = products.find(p => p.id_fb === idFb);
-                if (currentProd) {
-                    const currentStock = getProductStock(currentProd);
-                    const nextStock = Math.max(0, currentStock - qtyByProduct[idFb]);
-                    database.ref(`products/${idFb}`).update({ stock: nextStock });
-                }
-            });
-        }
-
         function checkout() {
             if (cart.length === 0) return;
             const orderID = generateOrderID();
@@ -2267,7 +2308,6 @@
                 total += discount > 0 ? item.price - (item.price * (discount / 100)) : item.price;
             });
 
-            deductStockFromCart();
             saveOrderToFirebase(orderID, cart, total);
             sendToDiscordWebhook(orderID, cart, total);
             
