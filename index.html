@@ -573,7 +573,7 @@
         }
 
         .modal-content-large {
-            max-width: 1260px;
+            max-width: 1320px;
             max-height: 90vh;
             overflow-y: auto;
         }
@@ -630,6 +630,94 @@
             outline: none;
             border-color: var(--neon-blue);
             box-shadow: 0 0 10px rgba(0, 243, 255, 0.4);
+        }
+
+        .daily-limit-banner {
+            background: rgba(0, 243, 255, 0.08);
+            border: 1px solid rgba(0, 243, 255, 0.35);
+            color: #bfefff;
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            margin-bottom: 14px;
+            line-height: 1.45;
+        }
+
+        .daily-limit-banner.warn {
+            background: rgba(255, 170, 0, 0.12);
+            border-color: #ffaa00;
+            color: #ffd88a;
+        }
+
+        .admin-search-input {
+            width: 100%;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            padding: 9px 12px;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+        }
+
+        .admin-search-input:focus {
+            outline: none;
+            border-color: var(--neon-blue);
+        }
+
+        .order-filter-bar {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .order-filter-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(0, 243, 255, 0.25);
+            color: #a0a0ba;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 0.76rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .order-filter-btn.active {
+            background: var(--neon-blue);
+            color: #000;
+            border-color: var(--neon-blue);
+        }
+
+        .audit-log-box {
+            margin-top: 22px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(0, 243, 255, 0.16);
+            border-radius: 10px;
+            padding: 16px;
+        }
+
+        .audit-log-list {
+            max-height: 220px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+
+        .audit-log-item {
+            background: #161626;
+            border: 1px solid rgba(0, 243, 255, 0.1);
+            border-radius: 6px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            font-size: 0.82rem;
+            line-height: 1.45;
+        }
+
+        .audit-log-meta {
+            font-size: 0.74rem;
+            color: #8a8aa3;
+            margin-top: 3px;
         }
 
         .image-preview-container {
@@ -1307,7 +1395,8 @@
              
             <div class="admin-layout">
                 <div id="productFormColumn">
-                    <h3 style="color:#fff; margin-bottom: 15px;" id="formAdminTitle">Adicionar Novo Produto</h3>
+                    <h3 style="color:#fff; margin-bottom: 12px;" id="formAdminTitle">Adicionar Novo Produto</h3>
+                    <div id="dailyLimitBanner" class="daily-limit-banner" style="display: none;"></div>
                     <form id="productForm" onsubmit="handleProductSubmit(event)">
                         <input type="text" id="editProductId" style="display:none; visibility:hidden;">
                         
@@ -1357,7 +1446,8 @@
 
                 <div id="stockAndCategoriesColumn">
                     <div id="sortableSection">
-                        <h3 style="color:#fff; margin-bottom: 15px;">Estoque e Ordens</h3>
+                        <h3 style="color:#fff; margin-bottom: 12px;">Estoque e Ordens</h3>
+                        <input type="text" id="adminProductSearch" class="admin-search-input" placeholder="Buscar produto por nome..." oninput="renderAdminSortableList()">
                         <div class="sortable-list" id="sortableListContainer"></div>
                     </div>
 
@@ -1368,7 +1458,12 @@
                 </div>
 
                 <div id="ordersColumn">
-                    <h3 style="color:#fff; margin-bottom: 15px;">Histórico de Pedidos</h3>
+                    <h3 style="color:#fff; margin-bottom: 12px;">Histórico de Pedidos</h3>
+                    <div class="order-filter-bar">
+                        <button type="button" class="order-filter-btn active" id="filterOrdersAll" onclick="setOrderStatusFilter('all')">Todos</button>
+                        <button type="button" class="order-filter-btn" id="filterOrdersPendente" onclick="setOrderStatusFilter('Pendente')">Pendentes</button>
+                        <button type="button" class="order-filter-btn" id="filterOrdersEntregue" onclick="setOrderStatusFilter('Entregue')">Entregues</button>
+                    </div>
                     <div class="sortable-list" id="ordersHistoryContainer" style="max-height: 430px;"></div>
                 </div>
                 
@@ -1397,8 +1492,15 @@
                     </div>
                     
                     <h4 style="color:#fff; margin-bottom: 10px;">Contas criadas</h4>
+                    <div id="managerDeleteLimitBanner" class="daily-limit-banner" style="display: none;"></div>
                     <div class="category-management-box" id="teamListContainer" style="max-height: 320px;"></div>
                 </div>
+            </div>
+
+            <div id="auditLogSection" class="audit-log-box" style="display: none;">
+                <h3 style="color:#fff; margin-bottom: 6px;"><i class="fas fa-clipboard-list"></i> Log de Ações do Painel</h3>
+                <p style="font-size:0.8rem; color:#8a8aa3;">Registro das últimas ações realizadas pela equipe no painel.</p>
+                <div class="audit-log-list" id="auditLogListContainer"></div>
             </div>
         </div>
     </div>
@@ -1426,6 +1528,7 @@
 
         let products = [];
         let ordersHistory = [];
+        let auditLogs = [];
         let cart = [];
         let teamMembers = {};
         let adminActivityLogs = {};
@@ -1435,6 +1538,7 @@
         let convertedImagesBase64 = [];
         let activeImageIndexes = {}; 
         let currentSelectedCategoryFilter = "all";
+        let currentOrderStatusFilter = "all";
         let countdownIntervalId = null;
         let recentDeleteTimestamps = [];
 
@@ -1451,6 +1555,79 @@
             const m = String(now.getMonth() + 1).padStart(2, '0');
             const d = String(now.getDate()).padStart(2, '0');
             return `${y}-${m}-${d}`;
+        }
+
+        function recordAuditLog(actionText) {
+            if (!isAdminLoggedIn || !loggedAdminUsername) return;
+            const now = new Date();
+            database.ref('admin_audit_logs').push({
+                actor: formatDisplayName(loggedAdminUsername),
+                role: ROLE_LABELS[adminAccessLevel] || adminAccessLevel,
+                action: actionText,
+                createdAt: now.toLocaleString('pt-BR'),
+                timestamp: now.getTime()
+            }).catch(err => console.error("Erro ao salvar log de auditoria:", err));
+        }
+
+        function renderAuditLogs() {
+            const section = document.getElementById('auditLogSection');
+            const container = document.getElementById('auditLogListContainer');
+            if (!section || !container) return;
+
+            const canViewAudit = adminAccessLevel === "owner" || adminAccessLevel === "store_manager";
+            section.style.display = canViewAudit ? "block" : "none";
+            if (!canViewAudit) return;
+
+            if (auditLogs.length === 0) {
+                container.innerHTML = '<p style="color:#8a8aa3; text-align:center; padding:12px 0;">Nenhuma ação registrada ainda.</p>';
+                return;
+            }
+
+            container.innerHTML = auditLogs.slice(0, 40).map(entry => `
+                <div class="audit-log-item">
+                    <div>
+                        <strong style="color:var(--neon-blue);">${entry.actor || "Admin"}</strong>
+                        <span class="role-chip">${entry.role || ""}</span>
+                        <span>— ${entry.action || ""}</span>
+                    </div>
+                    <div class="audit-log-meta">${entry.createdAt || ""}</div>
+                </div>
+            `).join('');
+        }
+
+        function updateDailyLimitBanners() {
+            const banner = document.getElementById('dailyLimitBanner');
+            const mgrBanner = document.getElementById('managerDeleteLimitBanner');
+
+            if (banner) {
+                if (adminAccessLevel === "stock_assistant") {
+                    const used = getDailyCount(loggedAdminUsername, "addedProducts");
+                    const left = Math.max(0, 2 - used);
+                    banner.style.display = "block";
+                    banner.className = left === 0 ? "daily-limit-banner warn" : "daily-limit-banner";
+                    banner.innerHTML = `<strong>Limite diário (Repositor):</strong> ${used}/2 produtos adicionados hoje (${left} restante${left === 1 ? "" : "s"}).`;
+                } else if (adminAccessLevel === "store_manager") {
+                    const used = getDailyCount(loggedAdminUsername, "addedProducts");
+                    const left = Math.max(0, 5 - used);
+                    banner.style.display = "block";
+                    banner.className = left === 0 ? "daily-limit-banner warn" : "daily-limit-banner";
+                    banner.innerHTML = `<strong>Limite diário (Gerente):</strong> ${used}/5 produtos adicionados hoje (${left} restante${left === 1 ? "" : "s"}).`;
+                } else {
+                    banner.style.display = "none";
+                }
+            }
+
+            if (mgrBanner) {
+                if (adminAccessLevel === "store_manager") {
+                    const usedAcc = getDailyCount(loggedAdminUsername, "deletedAccounts");
+                    const leftAcc = Math.max(0, 2 - usedAcc);
+                    mgrBanner.style.display = "block";
+                    mgrBanner.className = leftAcc === 0 ? "daily-limit-banner warn" : "daily-limit-banner";
+                    mgrBanner.innerHTML = `<strong>Exclusão de contas de Repositor hoje:</strong> ${usedAcc}/2 usadas (${leftAcc} restante${leftAcc === 1 ? "" : "s"}).`;
+                } else {
+                    mgrBanner.style.display = "none";
+                }
+            }
         }
 
         function isCurrentUserBlocked() {
@@ -1597,9 +1774,11 @@
         function refreshAdminViews() {
             if (!isAdminLoggedIn) return;
             applyAdminPermissionsToUI();
+            updateDailyLimitBanners();
             renderAdminSortableList();
             renderAdminCategoryManager();
             renderOrdersHistory();
+            renderAuditLogs();
             if (adminAccessLevel === "owner" || adminAccessLevel === "store_manager") {
                 renderTeamList();
             }
@@ -1668,6 +1847,23 @@
 
         database.ref('admin_activity_logs').on('value', (snapshot) => {
             adminActivityLogs = snapshot.val() || {};
+            if (isAdminLoggedIn) {
+                updateDailyLimitBanners();
+            }
+        });
+
+        database.ref('admin_audit_logs').on('value', (snapshot) => {
+            const data = snapshot.val();
+            auditLogs = [];
+            if (data) {
+                for (let id in data) {
+                    auditLogs.push({ id_fb: id, ...data[id] });
+                }
+                auditLogs.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+            }
+            if (isAdminLoggedIn) {
+                renderAuditLogs();
+            }
         });
 
         function getDailyCount(username, metricKey) {
@@ -1724,9 +1920,36 @@
 
         function unblockTeamMember(key) {
             if (adminAccessLevel !== "owner") return;
+            const member = teamMembers[key];
+            const targetName = member ? formatDisplayName(member.user) : "este gerente";
+
+            if (!confirm(`Tem certeza que deseja desbloquear a conta de ${targetName}?`)) {
+                return;
+            }
+
+            const reason = prompt(`Informe o motivo para desbloquear ${targetName}:`);
+            if (reason === null || reason.trim() === "") {
+                alert("Desbloqueio cancelado: informe um motivo.");
+                return;
+            }
+
+            const cleanReason = reason.trim();
             database.ref(`team_members/${key}`).update({ blocked: false }).then(() => {
-                alert("Acesso do gerente desbloqueado com sucesso!");
+                recordAuditLog(`Desbloqueou a conta de ${targetName} — Motivo: "${cleanReason}"`);
+                alert(`Acesso de ${targetName} desbloqueado com sucesso!`);
             });
+        }
+
+        function setOrderStatusFilter(filterType) {
+            currentOrderStatusFilter = filterType;
+            ['all', 'Pendente', 'Entregue'].forEach(type => {
+                const btn = document.getElementById(`filterOrders${type}`);
+                if (btn) {
+                    if (type === filterType) btn.classList.add('active');
+                    else btn.classList.remove('active');
+                }
+            });
+            renderOrdersHistory();
         }
 
         function startCountdownTimers() {
@@ -1991,24 +2214,34 @@
 
             const currentStock = getProductStock(product);
             const nextStock = Math.max(0, currentStock + delta);
-            database.ref(`products/${idFb}`).update({ stock: nextStock });
+            database.ref(`products/${idFb}`).update({ stock: nextStock }).then(() => {
+                recordAuditLog(`Alterou estoque de "${product.name}" de ${currentStock} para ${nextStock}`);
+            });
         }
 
         function renderAdminSortableList() {
             const container = document.getElementById('sortableListContainer');
             if (!container) return;
             container.innerHTML = '';
-            if (products.length === 0) {
-                container.innerHTML = '<p style="color: #a0a0ba; text-align:center; padding: 20px 0;">Nenhum produto.</p>';
+
+            const searchInput = document.getElementById('adminProductSearch');
+            const query = searchInput ? searchInput.value.trim().toLowerCase() : "";
+
+            const filteredProducts = query
+                ? products.filter(p => (p.name || "").toLowerCase().includes(query))
+                : products;
+
+            if (filteredProducts.length === 0) {
+                container.innerHTML = `<p style="color: #a0a0ba; text-align:center; padding: 20px 0;">${query ? "Nenhum produto encontrado na busca." : "Nenhum produto."}</p>`;
                 return;
             }
 
             const allowStock = canManageStock();
             const allowEdit = canEditProducts();
             const allowDelete = canDeleteProducts();
-            const allowDrag = adminAccessLevel === "owner";
+            const allowDrag = adminAccessLevel === "owner" && !query;
 
-            products.forEach(product => {
+            filteredProducts.forEach(product => {
                 const cat = product.category || "Geral";
                 const disc = product.discount > 0 ? ` (-${product.discount}%)` : '';
                 const stockCount = getProductStock(product);
@@ -2065,8 +2298,15 @@
             const container = document.getElementById('ordersHistoryContainer');
             if (!container) return;
 
-            if (ordersHistory.length === 0) {
-                container.innerHTML = '<p style="color: #a0a0ba; text-align:center; padding: 20px 0;">Nenhum pedido registrado ainda.</p>';
+            const filteredOrders = currentOrderStatusFilter === "all"
+                ? ordersHistory
+                : ordersHistory.filter(o => (o.status || "Pendente") === currentOrderStatusFilter);
+
+            if (filteredOrders.length === 0) {
+                const emptyLabel = currentOrderStatusFilter === "all"
+                    ? "Nenhum pedido registrado ainda."
+                    : `Nenhum pedido ${currentOrderStatusFilter.toLowerCase()} no momento.`;
+                container.innerHTML = `<p style="color: #a0a0ba; text-align:center; padding: 20px 0;">${emptyLabel}</p>`;
                 return;
             }
 
@@ -2074,7 +2314,7 @@
             const allowDeleteOrder = canDeleteOrders();
 
             let html = "";
-            ordersHistory.forEach(order => {
+            filteredOrders.forEach(order => {
                 const isDelivered = order.status === "Entregue";
                 const statusClass = isDelivered ? "status-pill status-entregue" : "status-pill status-pendente";
                 const itemsText = Array.isArray(order.items) && order.items.length > 0
@@ -2166,9 +2406,12 @@
                 deductOrderItemsFromStock(order);
             }
 
+            const codeLabel = order.orderId || orderKey;
             database.ref(`orders/${orderKey}`).update({
                 status: "Entregue",
                 stockDeducted: true
+            }).then(() => {
+                recordAuditLog(`Marcou o pedido ${codeLabel} como Entregue`);
             });
         }
 
@@ -2177,8 +2420,13 @@
                 alert("Apenas o Dono e o Gerente podem excluir pedidos.");
                 return;
             }
+            const order = ordersHistory.find(o => o.id_fb === orderKey);
+            const codeLabel = order ? (order.orderId || orderKey) : orderKey;
+
             if (confirm("Deseja remover este pedido do histórico?")) {
-                database.ref(`orders/${orderKey}`).remove();
+                database.ref(`orders/${orderKey}`).remove().then(() => {
+                    recordAuditLog(`Excluiu o pedido ${codeLabel} do histórico`);
+                });
             }
         }
 
@@ -2224,7 +2472,11 @@
             if (adminAccessLevel !== "owner") return;
             if (!["stock_assistant", "attendant", "store_manager"].includes(newRole)) return;
 
+            const member = teamMembers[key];
+            const targetName = member ? formatDisplayName(member.user) : "conta";
+
             database.ref(`team_members/${key}`).update({ role: newRole }).then(() => {
+                recordAuditLog(`Alterou o cargo de ${targetName} para ${ROLE_LABELS[newRole]}`);
                 alert(`Nível atualizado para: ${ROLE_LABELS[newRole]}.`);
             });
         }
@@ -2330,6 +2582,7 @@
                 role: role,
                 blocked: false
             }).then(() => {
+                recordAuditLog(`Criou conta admin "${formatDisplayName(username)}" (${ROLE_LABELS[role] || role})`);
                 alert(`Acesso para ${formatDisplayName(username)} criado com sucesso!`);
                 userField.value = "";
                 passField.value = "";
@@ -2340,10 +2593,12 @@
         function deleteTeamMember(key) {
             const targetMember = teamMembers[key];
             if (!targetMember) return;
+            const targetName = formatDisplayName(targetMember.user);
 
             if (adminAccessLevel === "owner") {
                 if (confirm("Deseja realmente excluir esta conta? Ela perderá o acesso imediatamente.")) {
                     database.ref(`team_members/${key}`).remove().then(() => {
+                        recordAuditLog(`Excluiu a conta admin "${targetName}"`);
                         alert("Acesso removido.");
                     });
                 }
@@ -2368,6 +2623,7 @@
                     incrementDailyCount(loggedAdminUsername, "deletedAccounts").then(() => {
                         return database.ref(`team_members/${key}`).remove();
                     }).then(() => {
+                        recordAuditLog(`Excluiu a conta de Repositor "${targetName}"`);
                         alert("Conta de Repositor removida.");
                     });
                 }
@@ -2389,7 +2645,10 @@
                 });
 
                 if (Object.keys(updates).length > 0) {
-                    database.ref().update(updates).then(() => { alert(`Categoria "${categoryName}" removida.`); });
+                    database.ref().update(updates).then(() => {
+                        recordAuditLog(`Removeu a categoria "${categoryName}" (itens movidos para Geral)`);
+                        alert(`Categoria "${categoryName}" removida.`);
+                    });
                 } else {
                     renderAdminCategoryManager();
                 }
@@ -2461,6 +2720,7 @@
                 const idFb = item.getAttribute('data-id');
                 database.ref(`products/${idFb}`).update({ displayOrder: index + 1 });
             });
+            recordAuditLog("Reordenou a exibição dos produtos na loja");
         }
 
         function loadEditProduct(idFb) {
@@ -2544,6 +2804,7 @@
                         category: category,
                         imagesArray: convertedImagesBase64.length > 0 ? convertedImagesBase64 : null
                     });
+                    recordAuditLog(`Editou o produto "${name}"`);
                     resetProductForm();
                     alert("Produto atualizado com sucesso!");
                 } else {
@@ -2578,6 +2839,7 @@
                     };
                     
                     await database.ref('products').push(productPayload);
+                    recordAuditLog(`Adicionou o produto "${name}" (Estoque: ${stock})`);
 
                     if (adminAccessLevel === "stock_assistant" || adminAccessLevel === "store_manager") {
                         await incrementDailyCount(loggedAdminUsername, "addedProducts");
@@ -2638,6 +2900,7 @@
                 recentDeleteTimestamps = recentDeleteTimestamps.filter(ts => now - ts < 60000);
                 if (recentDeleteTimestamps.length >= 2) {
                     const currentMgr = loggedAdminUsername;
+                    recordAuditLog(`Bloqueado automaticamente por exclusão em massa de produtos`);
                     sendManagerMassDeleteAlertToDiscord(currentMgr);
                     await blockCurrentManagerInFirebase(currentMgr);
                     forceLogoutDueToBlock();
@@ -2645,11 +2908,16 @@
                 }
             }
 
+            const prod = products.find(p => p.id_fb === idFb);
+            const prodName = prod ? prod.name : idFb;
+
             if (confirm("Quer mesmo apagar este produto?")) {
                 if (adminAccessLevel === "store_manager") {
                     recentDeleteTimestamps.push(Date.now());
                 }
-                database.ref(`products/${idFb}`).remove();
+                database.ref(`products/${idFb}`).remove().then(() => {
+                    recordAuditLog(`Apagou o produto "${prodName}"`);
+                });
             }
         }
 
