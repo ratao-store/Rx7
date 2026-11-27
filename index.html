@@ -890,6 +890,37 @@
             vertical-align: middle;
         }
 
+        .blocked-chip {
+            display: inline-block;
+            margin-left: 6px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: #ff80aa;
+            background: rgba(255, 0, 85, 0.2);
+            border: 1px solid var(--neon-pink);
+            padding: 2px 7px;
+            border-radius: 12px;
+            vertical-align: middle;
+        }
+
+        .btn-unblock-user {
+            margin-top: 6px;
+            background: rgba(37, 211, 102, 0.16);
+            border: 1px solid #25d366;
+            color: #7ef2a8;
+            padding: 4px 9px;
+            border-radius: 5px;
+            font-size: 0.74rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-unblock-user:hover {
+            background: #25d366;
+            color: #000;
+        }
+
         .secret-pass-blur {
             display: inline-block;
             color: #cbd5e1;
@@ -902,6 +933,14 @@
         .secret-pass-blur.revealed {
             filter: none;
             color: var(--neon-blue);
+        }
+
+        .secret-pass-locked {
+            display: inline-block;
+            color: #656582;
+            filter: blur(4px);
+            cursor: not-allowed;
+            user-select: none;
         }
 
         .role-edit-select {
@@ -1334,29 +1373,31 @@
                 </div>
                 
                 <div id="teamManagementSection" style="display: none;">
-                    <h3 style="color:#fff; margin-bottom: 15px;">Criar loguin admin</h3>
-                    <form id="teamForm" onsubmit="handleTeamSubmit(event)" style="margin-bottom: 20px; background: rgba(255,255,255,0.02); padding: 15px; border-radius: 8px; border: 1px solid rgba(0,243,255,0.1);">
-                        <div class="form-group">
-                            <label>Nome</label>
-                            <input type="text" id="teamUser" class="form-control" placeholder="Digite um nome" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Senha</label>
-                            <input type="text" id="teamPass" class="form-control" placeholder="Digite uma senha" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Nível</label>
-                            <select id="teamRole" class="form-control" required>
-                                <option value="stock_assistant">Ajudante de Estoque / Vitrine</option>
-                                <option value="attendant">Atendente / Entregador</option>
-                                <option value="store_manager">Gerente de Loja</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="btn-buy" style="background: linear-gradient(135deg, var(--neon-purple), var(--neon-pink));">Criar Acesso Editor</button>
-                    </form>
+                    <div id="createAccountBlock">
+                        <h3 style="color:#fff; margin-bottom: 15px;">Criar loguin admin</h3>
+                        <form id="teamForm" onsubmit="handleTeamSubmit(event)" style="margin-bottom: 20px; background: rgba(255,255,255,0.02); padding: 15px; border-radius: 8px; border: 1px solid rgba(0,243,255,0.1);">
+                            <div class="form-group">
+                                <label>Nome</label>
+                                <input type="text" id="teamUser" class="form-control" placeholder="Digite um nome" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Senha</label>
+                                <input type="text" id="teamPass" class="form-control" placeholder="Digite uma senha" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Nível</label>
+                                <select id="teamRole" class="form-control" required>
+                                    <option value="stock_assistant">Repositor</option>
+                                    <option value="attendant">Entregador</option>
+                                    <option value="store_manager">Gerente</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn-buy" style="background: linear-gradient(135deg, var(--neon-purple), var(--neon-pink));">Criar Acesso Editor</button>
+                        </form>
+                    </div>
                     
                     <h4 style="color:#fff; margin-bottom: 10px;">Contas criadas</h4>
-                    <div class="category-management-box" id="teamListContainer" style="max-height: 240px;"></div>
+                    <div class="category-management-box" id="teamListContainer" style="max-height: 320px;"></div>
                 </div>
             </div>
         </div>
@@ -1386,7 +1427,9 @@
         let ordersHistory = [];
         let cart = [];
         let teamMembers = {};
+        let adminActivityLogs = {};
         let isAdminLoggedIn = false;
+        // Níveis: "owner", "stock_assistant" (Repositor), "attendant" (Entregador), "store_manager" (Gerente), "none"
         let adminAccessLevel = "none"; 
         let loggedAdminUsername = ""; 
         let convertedImagesBase64 = [];
@@ -1397,10 +1440,28 @@
 
         const ROLE_LABELS = {
             owner: "Dono",
-            stock_assistant: "Ajudante de Estoque / Vitrine",
-            attendant: "Atendente / Entregador",
-            store_manager: "Gerente de Loja"
+            stock_assistant: "Repositor",
+            attendant: "Entregador",
+            store_manager: "Gerente"
         };
+
+        function getTodayKey() {
+            const now = new Date();
+            const y = now.getFullYear();
+            const m = String(now.getMonth() + 1).padStart(2, '0');
+            const d = String(now.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+
+        function isCurrentUserBlocked() {
+            if (adminAccessLevel === "owner" || !loggedAdminUsername) return false;
+            for (let key in teamMembers) {
+                if (teamMembers[key].user === loggedAdminUsername) {
+                    return Boolean(teamMembers[key].blocked);
+                }
+            }
+            return false;
+        }
 
         function formatDisplayName(rawUser) {
             if (!rawUser) return "Admin";
@@ -1408,7 +1469,7 @@
         }
 
         function toggleSecretPass(el) {
-            if (!el) return;
+            if (!el || adminAccessLevel !== "owner") return;
             el.classList.toggle('revealed');
         }
 
@@ -1419,26 +1480,37 @@
         }
 
         function canAddProducts() {
+            if (isCurrentUserBlocked()) return false;
             return ["owner", "stock_assistant", "store_manager"].includes(adminAccessLevel);
         }
 
         function canEditProducts() {
+            if (isCurrentUserBlocked()) return false;
             return ["owner", "store_manager"].includes(adminAccessLevel);
         }
 
         function canDeleteProducts() {
+            if (isCurrentUserBlocked()) return false;
             return ["owner", "store_manager"].includes(adminAccessLevel);
         }
 
         function canManageStock() {
-            return ["owner", "stock_assistant", "store_manager"].includes(adminAccessLevel);
+            if (isCurrentUserBlocked()) return false;
+            return ["owner", "store_manager"].includes(adminAccessLevel);
         }
 
         function canDeliverOrders() {
+            if (isCurrentUserBlocked()) return false;
             return ["owner", "attendant", "store_manager"].includes(adminAccessLevel);
         }
 
+        function canDeleteOrders() {
+            if (isCurrentUserBlocked()) return false;
+            return ["owner", "store_manager"].includes(adminAccessLevel);
+        }
+
         function canEditPricesAndPromos() {
+            if (isCurrentUserBlocked()) return false;
             return ["owner", "store_manager"].includes(adminAccessLevel);
         }
 
@@ -1452,6 +1524,7 @@
             const categoriesSec = document.getElementById('categoriesSection');
             const ordersCol = document.getElementById('ordersColumn');
             const teamSec = document.getElementById('teamManagementSection');
+            const createAccountBlock = document.getElementById('createAccountBlock');
 
             if (adminAccessLevel === "owner") {
                 if (prodCol) prodCol.style.display = "block";
@@ -1463,16 +1536,7 @@
                 if (categoriesSec) categoriesSec.style.display = "block";
                 if (ordersCol) ordersCol.style.display = "block";
                 if (teamSec) teamSec.style.display = "block";
-                return;
-            }
-
-            if (teamSec) teamSec.style.display = "none";
-
-            if (adminAccessLevel === "attendant") {
-                if (prodCol) prodCol.style.display = "none";
-                if (sortableSec) sortableSec.style.display = "none";
-                if (categoriesSec) categoriesSec.style.display = "none";
-                if (ordersCol) ordersCol.style.display = "block";
+                if (createAccountBlock) createAccountBlock.style.display = "block";
                 return;
             }
 
@@ -1482,9 +1546,19 @@
                 if (stockGroup) stockGroup.style.display = "block";
                 if (discountGroup) discountGroup.style.display = "none";
                 if (promoGroup) promoGroup.style.display = "none";
-                if (sortableSec) sortableSec.style.display = "block";
+                if (sortableSec) sortableSec.style.display = "none";
                 if (categoriesSec) categoriesSec.style.display = "none";
                 if (ordersCol) ordersCol.style.display = "none";
+                if (teamSec) teamSec.style.display = "none";
+                return;
+            }
+
+            if (adminAccessLevel === "attendant") {
+                if (prodCol) prodCol.style.display = "none";
+                if (sortableSec) sortableSec.style.display = "none";
+                if (categoriesSec) categoriesSec.style.display = "none";
+                if (ordersCol) ordersCol.style.display = "block";
+                if (teamSec) teamSec.style.display = "none";
                 return;
             }
 
@@ -1497,6 +1571,8 @@
                 if (sortableSec) sortableSec.style.display = "block";
                 if (categoriesSec) categoriesSec.style.display = "none";
                 if (ordersCol) ordersCol.style.display = "block";
+                if (teamSec) teamSec.style.display = "block";
+                if (createAccountBlock) createAccountBlock.style.display = "none";
             }
         }
 
@@ -1506,7 +1582,7 @@
             renderAdminSortableList();
             renderAdminCategoryManager();
             renderOrdersHistory();
-            if (adminAccessLevel === "owner") {
+            if (adminAccessLevel === "owner" || adminAccessLevel === "store_manager") {
                 renderTeamList();
             }
         }
@@ -1563,10 +1639,72 @@
 
         database.ref('team_members').on('value', (snapshot) => {
             teamMembers = snapshot.val() || {};
-            if (isAdminLoggedIn && adminAccessLevel === "owner") {
+            if (isAdminLoggedIn && (adminAccessLevel === "owner" || adminAccessLevel === "store_manager")) {
                 renderTeamList();
             }
         });
+
+        database.ref('admin_activity_logs').on('value', (snapshot) => {
+            adminActivityLogs = snapshot.val() || {};
+        });
+
+        function getDailyCount(username, metricKey) {
+            const dayKey = getTodayKey();
+            const userLogs = adminActivityLogs[username];
+            if (!userLogs || !userLogs[dayKey]) return 0;
+            return parseInt(userLogs[dayKey][metricKey]) || 0;
+        }
+
+        function incrementDailyCount(username, metricKey) {
+            const dayKey = getTodayKey();
+            const current = getDailyCount(username, metricKey);
+            return database.ref(`admin_activity_logs/${username}/${dayKey}`).update({
+                [metricKey]: current + 1
+            });
+        }
+
+        function sendManagerMassDeleteAlertToDiscord() {
+            if (!DISCORD_WEBHOOK_PRODUTOS_URL || DISCORD_WEBHOOK_PRODUTOS_URL === "SUA_URL_DO_WEBHOOK_DE_PRODUTOS_AQUI") return;
+
+            const embedAlerta = {
+                username: "JRS Store Bot",
+                embeds: [{
+                    title: "🚨 ALERTA DE SEGURANÇA: EXCLUSÃO EM MASSA DE PRODUTOS!",
+                    description: `O Gerente **${formatDisplayName(loggedAdminUsername)}** apagou vários produtos em pouco tempo e foi **BLOQUEADO** automaticamente no painel.`,
+                    color: 16711765,
+                    fields: [
+                        { name: "👤 Gerente", value: `\`${formatDisplayName(loggedAdminUsername)}\``, inline: true },
+                        { name: "🔒 Status no Painel", value: "**BLOQUEADO** (Aguardando Dono)", inline: true }
+                    ],
+                    footer: {
+                        text: "JRS Store Central System • Monitoramento de Segurança"
+                    },
+                    timestamp: new Date().toISOString()
+                }]
+            };
+
+            fetch(DISCORD_WEBHOOK_PRODUTOS_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(embedAlerta)
+            }).catch(err => console.error("Erro no envio do alerta de exclusão no Discord:", err));
+        }
+
+        function blockCurrentManagerInFirebase() {
+            for (let key in teamMembers) {
+                if (teamMembers[key].user === loggedAdminUsername) {
+                    database.ref(`team_members/${key}`).update({ blocked: true });
+                    break;
+                }
+            }
+        }
+
+        function unblockTeamMember(key) {
+            if (adminAccessLevel !== "owner") return;
+            database.ref(`team_members/${key}`).update({ blocked: false }).then(() => {
+                alert("Acesso do gerente desbloqueado com sucesso!");
+            });
+        }
 
         function startCountdownTimers() {
             if (countdownIntervalId) clearInterval(countdownIntervalId);
@@ -1822,7 +1960,7 @@
 
         function adjustProductStock(idFb, delta) {
             if (!canManageStock()) {
-                alert("Seu cargo não permite alterar o estoque.");
+                alert("Você não tem permissão ou seu acesso está bloqueado.");
                 return;
             }
             const product = products.find(p => p.id_fb === idFb);
@@ -1910,7 +2048,7 @@
             }
 
             const allowDeliver = canDeliverOrders();
-            const allowDeleteOrder = adminAccessLevel === "owner";
+            const allowDeleteOrder = canDeleteOrders();
 
             let html = "";
             ordersHistory.forEach(order => {
@@ -1990,7 +2128,7 @@
 
         function markOrderAsDelivered(orderKey) {
             if (!canDeliverOrders()) {
-                alert("Seu cargo não permite marcar pedidos como entregues.");
+                alert("Você não tem permissão ou seu acesso está bloqueado.");
                 return;
             }
             const order = ordersHistory.find(o => o.id_fb === orderKey);
@@ -2012,8 +2150,8 @@
         }
 
         function deleteOrderRecord(orderKey) {
-            if (adminAccessLevel !== "owner") {
-                alert("Erro: Apenas o Dono pode excluir registros de pedidos.");
+            if (!canDeleteOrders()) {
+                alert("Apenas o Dono e o Gerente podem excluir pedidos.");
                 return;
             }
             if (confirm("Deseja remover este pedido do histórico?")) {
@@ -2080,27 +2218,58 @@
                 return;
             }
 
+            const isOwner = adminAccessLevel === "owner";
+            const isManager = adminAccessLevel === "store_manager";
+            const managerBlocked = isManager && isCurrentUserBlocked();
+
             keys.forEach(key => {
-                const roleKey = teamMembers[key].role || "stock_assistant";
+                const member = teamMembers[key];
+                const roleKey = member.role || "stock_assistant";
                 const roleName = ROLE_LABELS[roleKey] || ROLE_LABELS.stock_assistant;
+                const isBlocked = Boolean(member.blocked);
+
+                const blockedBadgeHtml = isBlocked
+                    ? `<span class="blocked-chip">Bloqueado</span>`
+                    : ``;
+
+                const passwordHtml = isOwner
+                    ? `Senha: <span class="secret-pass-blur" onclick="toggleSecretPass(this)" title="Clique para mostrar/esconder a senha">${member.pass}</span>`
+                    : `Senha: <span class="secret-pass-locked" title="Sem permissão para ver senha">••••••••</span>`;
+
+                const roleControlHtml = isOwner
+                    ? `
+                        <select class="role-edit-select" onchange="updateTeamMemberRole('${key}', this.value)" title="Editar nível da conta">
+                            <option value="stock_assistant" ${roleKey === "stock_assistant" ? "selected" : ""}>Repositor</option>
+                            <option value="attendant" ${roleKey === "attendant" ? "selected" : ""}>Entregador</option>
+                            <option value="store_manager" ${roleKey === "store_manager" ? "selected" : ""}>Gerente</option>
+                        </select>
+                    `
+                    : ``;
+
+                const unblockBtnHtml = (isOwner && isBlocked)
+                    ? `<button type="button" class="btn-unblock-user" onclick="unblockTeamMember('${key}')"><i class="fas fa-unlock"></i> Desbloquear</button>`
+                    : ``;
+
+                const deleteBtnHtml = (isOwner || (isManager && !managerBlocked))
+                    ? `<button type="button" class="btn-delete" onclick="deleteTeamMember('${key}')" title="Remover Acesso"><i class="fas fa-trash"></i></button>`
+                    : ``;
+
                 container.innerHTML += `
                     <div class="category-list-item" style="align-items: flex-start;">
                         <div style="flex-grow: 1; min-width: 0;">
                             <div>
-                                <span style="font-weight:bold; color:var(--neon-blue);">${formatDisplayName(teamMembers[key].user)}</span>
+                                <span style="font-weight:bold; color:var(--neon-blue);">${formatDisplayName(member.user)}</span>
                                 <span class="role-chip">${roleName}</span>
+                                ${blockedBadgeHtml}
                             </div>
                             <div style="font-size:12px; color:#a0a0ba; margin-top:4px;">
-                                Senha: <span class="secret-pass-blur" onclick="toggleSecretPass(this)" title="Clique para mostrar/esconder a senha">${teamMembers[key].pass}</span>
+                                ${passwordHtml}
                             </div>
-                            <select class="role-edit-select" onchange="updateTeamMemberRole('${key}', this.value)" title="Editar nível da conta">
-                                <option value="stock_assistant" ${roleKey === "stock_assistant" ? "selected" : ""}>Ajudante de Estoque / Vitrine</option>
-                                <option value="attendant" ${roleKey === "attendant" ? "selected" : ""}>Atendente / Entregador</option>
-                                <option value="store_manager" ${roleKey === "store_manager" ? "selected" : ""}>Gerente de Loja</option>
-                            </select>
+                            ${roleControlHtml}
+                            ${unblockBtnHtml}
                         </div>
                         <div class="action-btns">
-                            <button type="button" class="btn-delete" onclick="deleteTeamMember('${key}')" title="Remover Acesso"><i class="fas fa-trash"></i></button>
+                            ${deleteBtnHtml}
                         </div>
                     </div>
                 `;
@@ -2109,7 +2278,10 @@
 
         function handleTeamSubmit(e) {
             e.preventDefault();
-            if (adminAccessLevel !== "owner") return;
+            if (adminAccessLevel !== "owner") {
+                alert("Apenas o Dono pode criar contas admin.");
+                return;
+            }
 
             const userField = document.getElementById('teamUser');
             const passField = document.getElementById('teamPass');
@@ -2132,7 +2304,8 @@
             database.ref('team_members').push({
                 user: username,
                 pass: password,
-                role: role
+                role: role,
+                blocked: false
             }).then(() => {
                 alert(`Acesso para ${formatDisplayName(username)} criado com sucesso!`);
                 userField.value = "";
@@ -2142,11 +2315,32 @@
         }
 
         function deleteTeamMember(key) {
-            if (adminAccessLevel !== "owner") return;
-            if (confirm("Deseja realmente excluir esta conta? Ela perderá o acesso imediatamente.")) {
-                database.ref(`team_members/${key}`).remove().then(() => {
-                    alert("Acesso removido.");
-                });
+            if (adminAccessLevel === "owner") {
+                if (confirm("Deseja realmente excluir esta conta? Ela perderá o acesso imediatamente.")) {
+                    database.ref(`team_members/${key}`).remove().then(() => {
+                        alert("Acesso removido.");
+                    });
+                }
+                return;
+            }
+
+            if (adminAccessLevel === "store_manager") {
+                if (isCurrentUserBlocked()) {
+                    alert("Seu acesso está bloqueado no painel. Apenas o Dono pode desbloquear.");
+                    return;
+                }
+                const deletedToday = getDailyCount(loggedAdminUsername, "deletedAccounts");
+                if (deletedToday >= 2) {
+                    alert("Limite diário atingido: O Gerente pode apagar no máximo 2 contas admin por dia.");
+                    return;
+                }
+                if (confirm("Deseja realmente excluir esta conta admin?")) {
+                    incrementDailyCount(loggedAdminUsername, "deletedAccounts").then(() => {
+                        return database.ref(`team_members/${key}`).remove();
+                    }).then(() => {
+                        alert("Conta admin removida.");
+                    });
+                }
             }
         }
 
@@ -2241,7 +2435,7 @@
 
         function loadEditProduct(idFb) {
             if (!canEditProducts()) {
-                alert("Seu cargo não permite editar produtos existentes.");
+                alert("Você não tem permissão para editar produtos ou seu acesso está bloqueado.");
                 return;
             }
             const product = products.find(p => p.id_fb === idFb);
@@ -2276,7 +2470,7 @@
 
             try {
                 if (!isAdminLoggedIn || adminAccessLevel === "none" || !canAddProducts()) {
-                    alert("Seu cargo não permite adicionar ou salvar produtos.");
+                    alert("Você não tem permissão para adicionar produtos ou seu acesso está bloqueado.");
                     return;
                 }
 
@@ -2302,7 +2496,7 @@
 
                 if (idFb && idFb.trim() !== "") {
                     if (!canEditProducts()) {
-                        alert("Seu cargo não tem permissão para editar produtos publicados.");
+                        alert("Seu nível não tem permissão para editar produtos.");
                         return;
                     }
                     const existingProd = products.find(p => p.id_fb === idFb);
@@ -2323,15 +2517,28 @@
                     resetProductForm();
                     alert("Produto atualizado com sucesso!");
                 } else {
+                    if (adminAccessLevel === "stock_assistant") {
+                        const addedToday = getDailyCount(loggedAdminUsername, "addedProducts");
+                        if (addedToday >= 2) {
+                            alert("Limite diário atingido: O Repositor pode adicionar no máximo 2 produtos por dia.");
+                            return;
+                        }
+                    } else if (adminAccessLevel === "store_manager") {
+                        const addedToday = getDailyCount(loggedAdminUsername, "addedProducts");
+                        if (addedToday >= 5) {
+                            alert("Limite diário atingido: O Gerente pode adicionar no máximo 5 produtos por dia.");
+                            return;
+                        }
+                    }
+
                     const nextOrder = products.length > 0 ? Math.max(...products.map(p => p.displayOrder || 0)) + 1 : 1;
-                    const newStock = canManageStock() ? stock : 10;
                     const newDiscount = canEditPricesAndPromos() ? discount : 0;
                     const newPromoEnd = canEditPricesAndPromos() && promoEnd ? promoEnd : null;
 
                     const productPayload = {
                         name: name,
                         price: price,
-                        stock: newStock,
+                        stock: stock,
                         discount: newDiscount,
                         promoEnd: newPromoEnd,
                         desc: desc,
@@ -2341,6 +2548,10 @@
                     };
                     
                     await database.ref('products').push(productPayload);
+
+                    if (adminAccessLevel === "stock_assistant" || adminAccessLevel === "store_manager") {
+                        await incrementDailyCount(loggedAdminUsername, "addedProducts");
+                    }
 
                     if (DISCORD_WEBHOOK_PRODUTOS_URL && DISCORD_WEBHOOK_PRODUTOS_URL !== "SUA_URL_DO_WEBHOOK_DE_PRODUTOS_AQUI") {
                         const precoFormatado = price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -2356,7 +2567,7 @@
                                     { name: "📦 Nome do Item", value: `\`\`\`${name}\`\`\``, inline: false },
                                     { name: "🗂️ Categoria", value: category, inline: true },
                                     { name: "💰 Preço", value: `**${precoFormatado}**`, inline: true },
-                                    { name: "📦 Estoque", value: `**${newStock} un.**`, inline: true },
+                                    { name: "📦 Estoque", value: `**${stock} un.**`, inline: true },
                                     { name: "🏷️ Desconto Aplicado", value: descontoTexto, inline: true },
                                     { name: "📝 Descrição", value: desc.length > 500 ? desc.substring(0, 500) + "..." : desc, inline: false }
                                 ],
@@ -2388,7 +2599,7 @@
 
         function deleteProduct(idFb) {
             if (!canDeleteProducts()) {
-                alert("Erro: Seu cargo não permite excluir produtos.");
+                alert("Você não tem permissão para excluir produtos ou seu acesso está bloqueado.");
                 return;
             }
 
@@ -2396,7 +2607,11 @@
                 const now = Date.now();
                 recentDeleteTimestamps = recentDeleteTimestamps.filter(ts => now - ts < 60000);
                 if (recentDeleteTimestamps.length >= 2) {
-                    alert("Bloqueio de segurança: Você não pode remover 3 ou mais produtos em sequência (limite de 2 remoções por minuto).");
+                    recentDeleteTimestamps = [];
+                    blockCurrentManagerInFirebase();
+                    sendManagerMassDeleteAlertToDiscord();
+                    refreshAdminViews();
+                    alert("Alerta enviado ao Discord! Você apagou vários produtos em pouco tempo e seu acesso foi bloqueado até o Dono desbloquear.");
                     return;
                 }
             }
