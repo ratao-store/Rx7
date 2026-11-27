@@ -1244,7 +1244,7 @@
                             <label>Produto</label>
                             <input type="text" id="prodName" class="form-control" required>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group" id="prodPriceGroup">
                             <label>Preço original (R$)</label>
                             <input type="number" id="prodPrice" class="form-control" step="0.01" required>
                         </div>
@@ -1313,12 +1313,11 @@
                             <input type="text" id="teamPass" class="form-control" placeholder="Digite uma senha" required>
                         </div>
                         <div class="form-group">
-                            <label>Nível de Acesso</label>
+                            <label>Cargo / Nível</label>
                             <select id="teamRole" class="form-control" required>
-                                <option value="restricted_2">Padrão Restrito (Só add 2 produtos/dia)</option>
-                                <option value="deliver_only">Nível 1 - Só entregar pedidos</option>
-                                <option value="product_manager">Nível 2 - Add, editar e remover (bloqueia 3+ remoções)</option>
-                                <option value="stock_5_daily">Nível 3 - 5 produtos/dia + adicionar estoque</option>
+                                <option value="stock_assistant">Ajudante de Estoque / Vitrine</option>
+                                <option value="attendant">Atendente / Entregador</option>
+                                <option value="store_manager">Gerente de Loja</option>
                             </select>
                         </div>
                         <button type="submit" class="btn-buy" style="background: linear-gradient(135deg, var(--neon-purple), var(--neon-pink));">Criar Acesso Editor</button>
@@ -1356,7 +1355,7 @@
         let cart = [];
         let teamMembers = {};
         let isAdminLoggedIn = false;
-        // Níveis possíveis: "full", "restricted_2", "deliver_only", "product_manager", "stock_5_daily", "none"
+        // Cargos: "owner", "stock_assistant", "attendant", "store_manager", "none"
         let adminAccessLevel = "none"; 
         let loggedAdminUsername = ""; 
         let convertedImagesBase64 = [];
@@ -1366,10 +1365,10 @@
         let recentDeleteTimestamps = [];
 
         const ROLE_LABELS = {
-            restricted_2: "Restrito (2 prod/dia)",
-            deliver_only: "Nível 1 (Só entregar)",
-            product_manager: "Nível 2 (Add/Editar/Remover)",
-            stock_5_daily: "Nível 3 (5 prod/dia + Estoque)"
+            owner: "Dono",
+            stock_assistant: "Ajudante de Estoque / Vitrine",
+            attendant: "Atendente / Entregador",
+            store_manager: "Gerente de Loja"
         };
 
         function getProductStock(product) {
@@ -1379,34 +1378,32 @@
         }
 
         function canAddProducts() {
-            return ["full", "restricted_2", "product_manager", "stock_5_daily"].includes(adminAccessLevel);
+            return ["owner", "stock_assistant", "store_manager"].includes(adminAccessLevel);
         }
 
         function canEditProducts() {
-            return ["full", "product_manager"].includes(adminAccessLevel);
+            return ["owner", "store_manager"].includes(adminAccessLevel);
         }
 
         function canDeleteProducts() {
-            return ["full", "product_manager"].includes(adminAccessLevel);
+            return ["owner", "store_manager"].includes(adminAccessLevel);
         }
 
         function canManageStock() {
-            return ["full", "stock_5_daily"].includes(adminAccessLevel);
+            return ["owner", "stock_assistant", "store_manager"].includes(adminAccessLevel);
         }
 
         function canDeliverOrders() {
-            return ["full", "deliver_only"].includes(adminAccessLevel);
+            return ["owner", "attendant", "store_manager"].includes(adminAccessLevel);
         }
 
-        function getDailyProductLimit() {
-            if (adminAccessLevel === "full") return Infinity;
-            if (adminAccessLevel === "stock_5_daily") return 5;
-            if (adminAccessLevel === "restricted_2") return 2;
-            return 0;
+        function canEditPricesAndPromos() {
+            return ["owner", "store_manager"].includes(adminAccessLevel);
         }
 
         function applyAdminPermissionsToUI() {
             const prodCol = document.getElementById('productFormColumn');
+            const priceGroup = document.getElementById('prodPriceGroup');
             const stockGroup = document.getElementById('prodStockGroup');
             const discountGroup = document.getElementById('prodDiscountGroup');
             const promoGroup = document.getElementById('prodPromoEndGroup');
@@ -1415,8 +1412,9 @@
             const ordersCol = document.getElementById('ordersColumn');
             const teamSec = document.getElementById('teamManagementSection');
 
-            if (adminAccessLevel === "full") {
+            if (adminAccessLevel === "owner") {
                 if (prodCol) prodCol.style.display = "block";
+                if (priceGroup) priceGroup.style.display = "block";
                 if (stockGroup) stockGroup.style.display = "block";
                 if (discountGroup) discountGroup.style.display = "block";
                 if (promoGroup) promoGroup.style.display = "block";
@@ -1429,7 +1427,7 @@
 
             if (teamSec) teamSec.style.display = "none";
 
-            if (adminAccessLevel === "deliver_only") {
+            if (adminAccessLevel === "attendant") {
                 if (prodCol) prodCol.style.display = "none";
                 if (sortableSec) sortableSec.style.display = "none";
                 if (categoriesSec) categoriesSec.style.display = "none";
@@ -1437,36 +1435,27 @@
                 return;
             }
 
-            if (adminAccessLevel === "restricted_2") {
+            if (adminAccessLevel === "stock_assistant") {
                 if (prodCol) prodCol.style.display = "block";
-                if (stockGroup) stockGroup.style.display = "none";
-                if (discountGroup) discountGroup.style.display = "none";
-                if (promoGroup) promoGroup.style.display = "none";
-                if (sortableSec) sortableSec.style.display = "none";
-                if (categoriesSec) categoriesSec.style.display = "none";
-                if (ordersCol) ordersCol.style.display = "none";
-                return;
-            }
-
-            if (adminAccessLevel === "product_manager") {
-                if (prodCol) prodCol.style.display = "block";
-                if (stockGroup) stockGroup.style.display = "none";
-                if (discountGroup) discountGroup.style.display = "block";
-                if (promoGroup) promoGroup.style.display = "block";
-                if (sortableSec) sortableSec.style.display = "block";
-                if (categoriesSec) categoriesSec.style.display = "none";
-                if (ordersCol) ordersCol.style.display = "none";
-                return;
-            }
-
-            if (adminAccessLevel === "stock_5_daily") {
-                if (prodCol) prodCol.style.display = "block";
+                if (priceGroup) priceGroup.style.display = "block";
                 if (stockGroup) stockGroup.style.display = "block";
                 if (discountGroup) discountGroup.style.display = "none";
                 if (promoGroup) promoGroup.style.display = "none";
                 if (sortableSec) sortableSec.style.display = "block";
                 if (categoriesSec) categoriesSec.style.display = "none";
                 if (ordersCol) ordersCol.style.display = "none";
+                return;
+            }
+
+            if (adminAccessLevel === "store_manager") {
+                if (prodCol) prodCol.style.display = "block";
+                if (priceGroup) priceGroup.style.display = "block";
+                if (stockGroup) stockGroup.style.display = "block";
+                if (discountGroup) discountGroup.style.display = "block";
+                if (promoGroup) promoGroup.style.display = "block";
+                if (sortableSec) sortableSec.style.display = "block";
+                if (categoriesSec) categoriesSec.style.display = "none";
+                if (ordersCol) ordersCol.style.display = "block";
             }
         }
 
@@ -1476,7 +1465,7 @@
             renderAdminSortableList();
             renderAdminCategoryManager();
             renderOrdersHistory();
-            if (adminAccessLevel === "full") {
+            if (adminAccessLevel === "owner") {
                 renderTeamList();
             }
         }
@@ -1533,7 +1522,7 @@
 
         database.ref('team_members').on('value', (snapshot) => {
             teamMembers = snapshot.val() || {};
-            if (isAdminLoggedIn && adminAccessLevel === "full") {
+            if (isAdminLoggedIn && adminAccessLevel === "owner") {
                 renderTeamList();
             }
         });
@@ -1792,7 +1781,7 @@
 
         function adjustProductStock(idFb, delta) {
             if (!canManageStock()) {
-                alert("Seu nível de acesso não permite alterar o estoque.");
+                alert("Seu cargo não permite alterar o estoque.");
                 return;
             }
             const product = products.find(p => p.id_fb === idFb);
@@ -1815,7 +1804,7 @@
             const allowStock = canManageStock();
             const allowEdit = canEditProducts();
             const allowDelete = canDeleteProducts();
-            const allowDrag = adminAccessLevel === "full";
+            const allowDrag = adminAccessLevel === "owner";
 
             products.forEach(product => {
                 const cat = product.category || "Geral";
@@ -1823,7 +1812,7 @@
                 const stockCount = getProductStock(product);
                 const stockClass = stockCount <= 0 ? 'stock-badge zero' : 'stock-badge';
 
-                const stockBadgeHtml = (allowStock || adminAccessLevel === "full")
+                const stockBadgeHtml = allowStock
                     ? `<span class="${stockClass}">Estoque: ${stockCount}</span>`
                     : ``;
 
@@ -1880,7 +1869,7 @@
             }
 
             const allowDeliver = canDeliverOrders();
-            const allowDeleteOrder = adminAccessLevel === "full";
+            const allowDeleteOrder = adminAccessLevel === "owner";
 
             let html = "";
             ordersHistory.forEach(order => {
@@ -1960,7 +1949,7 @@
 
         function markOrderAsDelivered(orderKey) {
             if (!canDeliverOrders()) {
-                alert("Seu nível de acesso não permite marcar pedidos como entregues.");
+                alert("Seu cargo não permite marcar pedidos como entregues.");
                 return;
             }
             const order = ordersHistory.find(o => o.id_fb === orderKey);
@@ -1982,8 +1971,8 @@
         }
 
         function deleteOrderRecord(orderKey) {
-            if (adminAccessLevel !== "full") {
-                alert("Erro: Seu nível de acesso não permite excluir registros.");
+            if (adminAccessLevel !== "owner") {
+                alert("Erro: Apenas o Dono pode excluir registros de pedidos.");
                 return;
             }
             if (confirm("Deseja remover este pedido do histórico?")) {
@@ -2011,10 +2000,10 @@
             let html = "";
             distinctCategories.forEach(cat => {
                 let deleteButton = "";
-                if (adminAccessLevel === "full") {
+                if (adminAccessLevel === "owner") {
                     deleteButton = `<button type="button" class="btn-delete" onclick="deleteCategory('${cat}')" title="Excluir Categoria"><i class="fas fa-trash"></i></button>`;
                 } else {
-                    deleteButton = `<span style="font-size:11px; color:#555570;">Acesso Restrito</span>`;
+                    deleteButton = `<span style="font-size:11px; color:#555570;">Apenas Dono</span>`;
                 }
 
                 html += `
@@ -2037,13 +2026,13 @@
             const keys = Object.keys(teamMembers);
 
             if (keys.length === 0) {
-                container.innerHTML = '<p style="color: #a0a0ba; text-align:center;">Nenhum editor criado ainda.</p>';
+                container.innerHTML = '<p style="color: #a0a0ba; text-align:center;">Nenhuma conta criada ainda.</p>';
                 return;
             }
 
             keys.forEach(key => {
-                const roleKey = teamMembers[key].role || "restricted_2";
-                const roleName = ROLE_LABELS[roleKey] || ROLE_LABELS.restricted_2;
+                const roleKey = teamMembers[key].role || "stock_assistant";
+                const roleName = ROLE_LABELS[roleKey] || ROLE_LABELS.stock_assistant;
                 container.innerHTML += `
                     <div class="category-list-item">
                         <div>
@@ -2061,14 +2050,14 @@
 
         function handleTeamSubmit(e) {
             e.preventDefault();
-            if (adminAccessLevel !== "full") return;
+            if (adminAccessLevel !== "owner") return;
 
             const userField = document.getElementById('teamUser');
             const passField = document.getElementById('teamPass');
             const roleField = document.getElementById('teamRole');
             const username = userField.value.trim().toLowerCase();
             const password = passField.value.trim();
-            const role = roleField ? roleField.value : "restricted_2";
+            const role = roleField ? roleField.value : "stock_assistant";
 
             if (username === "admin" || username === "gostosao") {
                 alert("Você não pode usar nomes de login do sistema padrão!");
@@ -2089,13 +2078,13 @@
                 alert(`Acesso para "${username}" (${ROLE_LABELS[role] || role}) criado com sucesso!`);
                 userField.value = "";
                 passField.value = "";
-                if (roleField) roleField.value = "restricted_2";
+                if (roleField) roleField.value = "stock_assistant";
             });
         }
 
         function deleteTeamMember(key) {
-            if (adminAccessLevel !== "full") return;
-            if (confirm("Deseja realmente excluir esta conta de editor? Ele perderá o acesso imediatamente.")) {
+            if (adminAccessLevel !== "owner") return;
+            if (confirm("Deseja realmente excluir esta conta? Ela perderá o acesso imediatamente.")) {
                 database.ref(`team_members/${key}`).remove().then(() => {
                     alert("Acesso removido.");
                 });
@@ -2103,8 +2092,8 @@
         }
 
         function deleteCategory(categoryName) {
-            if (adminAccessLevel !== "full") {
-                alert("Erro: Seu nível de acesso não permite excluir registros.");
+            if (adminAccessLevel !== "owner") {
+                alert("Erro: Apenas o Dono pode excluir categorias.");
                 return;
             }
 
@@ -2193,7 +2182,7 @@
 
         function loadEditProduct(idFb) {
             if (!canEditProducts()) {
-                alert("Seu nível de acesso não permite editar produtos existentes.");
+                alert("Seu cargo não permite editar produtos existentes.");
                 return;
             }
             const product = products.find(p => p.id_fb === idFb);
@@ -2219,22 +2208,6 @@
             document.getElementById('btnCancelEdit').style.display = "block";
         }
 
-        async function checkDailyLimitAndIncrement(username, dailyLimit) {
-            if (!isFinite(dailyLimit) || dailyLimit <= 0) return true;
-            const todayStr = new Date().toISOString().split('T')[0]; 
-            const limitRef = database.ref(`admin_daily_limits/${todayStr}/${username}`);
-            
-            const snapshot = await limitRef.once('value');
-            let currentCount = snapshot.val() || 0;
-
-            if (currentCount >= dailyLimit) {
-                return false; 
-            }
-            
-            await limitRef.set(currentCount + 1);
-            return true;
-        }
-
         async function handleProductSubmit(e) {
             e.preventDefault();
             
@@ -2244,7 +2217,7 @@
 
             try {
                 if (!isAdminLoggedIn || adminAccessLevel === "none" || !canAddProducts()) {
-                    alert("Seu nível de acesso não permite adicionar ou salvar produtos.");
+                    alert("Seu cargo não permite adicionar ou salvar produtos.");
                     return;
                 }
 
@@ -2270,13 +2243,13 @@
 
                 if (idFb && idFb.trim() !== "") {
                     if (!canEditProducts()) {
-                        alert("Seu usuário não tem permissão para editar produtos publicados.");
+                        alert("Seu cargo não tem permissão para editar produtos publicados.");
                         return;
                     }
                     const existingProd = products.find(p => p.id_fb === idFb);
                     const finalStock = canManageStock() ? stock : getProductStock(existingProd);
-                    const finalDiscount = adminAccessLevel === "full" ? discount : (existingProd ? (parseInt(existingProd.discount) || 0) : 0);
-                    const finalPromoEnd = adminAccessLevel === "full" ? (promoEnd ? promoEnd : null) : (existingProd ? (existingProd.promoEnd || null) : null);
+                    const finalDiscount = canEditPricesAndPromos() ? discount : (existingProd ? (parseInt(existingProd.discount) || 0) : 0);
+                    const finalPromoEnd = canEditPricesAndPromos() ? (promoEnd ? promoEnd : null) : (existingProd ? (existingProd.promoEnd || null) : null);
 
                     await database.ref(`products/${idFb}`).update({
                         name: name,
@@ -2291,19 +2264,10 @@
                     resetProductForm();
                     alert("Produto atualizado com sucesso!");
                 } else {
-                    const dailyLimit = getDailyProductLimit();
-                    if (isFinite(dailyLimit)) {
-                        const canPost = await checkDailyLimitAndIncrement(loggedAdminUsername, dailyLimit);
-                        if (!canPost) {
-                            alert(`A conta Admin "${loggedAdminUsername}" atingiu o máximo de ${dailyLimit} novos produtos diários.`);
-                            return;
-                        }
-                    }
-
                     const nextOrder = products.length > 0 ? Math.max(...products.map(p => p.displayOrder || 0)) + 1 : 1;
                     const newStock = canManageStock() ? stock : 10;
-                    const newDiscount = adminAccessLevel === "full" ? discount : 0;
-                    const newPromoEnd = adminAccessLevel === "full" && promoEnd ? promoEnd : null;
+                    const newDiscount = canEditPricesAndPromos() ? discount : 0;
+                    const newPromoEnd = canEditPricesAndPromos() && promoEnd ? promoEnd : null;
 
                     const productPayload = {
                         name: name,
@@ -2365,11 +2329,11 @@
 
         function deleteProduct(idFb) {
             if (!canDeleteProducts()) {
-                alert("Erro: Seu nível de acesso não permite excluir registros.");
+                alert("Erro: Seu cargo não permite excluir produtos.");
                 return;
             }
 
-            if (adminAccessLevel === "product_manager") {
+            if (adminAccessLevel === "store_manager") {
                 const now = Date.now();
                 recentDeleteTimestamps = recentDeleteTimestamps.filter(ts => now - ts < 60000);
                 if (recentDeleteTimestamps.length >= 2) {
@@ -2379,7 +2343,7 @@
             }
 
             if (confirm("Quer mesmo apagar este produto?")) {
-                if (adminAccessLevel === "product_manager") {
+                if (adminAccessLevel === "store_manager") {
                     recentDeleteTimestamps.push(Date.now());
                 }
                 database.ref(`products/${idFb}`).remove();
@@ -2573,7 +2537,7 @@
             
             if (user === 'gostosao' && pass === '569124') {
                 isAdminLoggedIn = true;
-                adminAccessLevel = "full";
+                adminAccessLevel = "owner";
                 loggedAdminUsername = user;
                 document.getElementById('loginForm').reset();
                 toggleModal('loginModal');
@@ -2594,14 +2558,14 @@
 
             if (matchedMember) {
                 isAdminLoggedIn = true;
-                adminAccessLevel = matchedMember.role || "restricted_2";
+                adminAccessLevel = matchedMember.role || "stock_assistant";
                 loggedAdminUsername = user; 
                 document.getElementById('loginForm').reset();
                 toggleModal('loginModal');
                 
                 refreshAdminViews();
                 toggleModal('adminPanelModal');
-                alert(`Olá ${user}! Acesso: ${ROLE_LABELS[adminAccessLevel] || adminAccessLevel}.`);
+                alert(`Olá ${user}! Cargo: ${ROLE_LABELS[adminAccessLevel] || adminAccessLevel}.`);
             } else {
                 alert("Acesso Negado. Credenciais inválidas.");
             }
